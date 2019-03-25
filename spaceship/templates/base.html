@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>{% block title %}{% endblock %}Spaceship Earth</title>
+  <meta name="description" content="Maintaining our home in the stars">
+  <meta name="author" content="Igor Serebryany">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="icon" type="image/png" href="/static/rocket.png" />
+
+  <!-- bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+
+{% block navbar %}
+
+{% macro render_nav_item(endpoint, text) %}
+  <a
+    class="nav-item nav-link {% if request.endpoint and request.endpoint == endpoint %}active{% endif %}"
+    href="{{ url_for(endpoint, **kwargs) }}"
+    >
+    {{ text }}
+  </a>
+{% endmacro %}
+
+<header>
+  <div class="navbar navbar-default navbar-static-top navbar-expand-md navbar-light bg-light" role="navigation" aria-label="main navigation">
+    <a class="navbar-brand" href="/">
+      <img src="/static/rocket.png" width="30" height="30" class="d-inline-block align-top" alt="Spaceship!">
+      Spaceship Earth
+    </a>
+
+    <div class="navbar-nav mr-auto">
+      {{ render_nav_item('home', 'Home') }}
+
+      {% if not current_user.is_anonymous %}
+      {{ render_nav_item('dashboard', 'Dashboard') }}
+      {% endif %}
+    </div>
+
+    <div class="navbar-nav ml-auto">
+      {% if current_user.is_anonymous %}
+      {{ render_nav_item('login', 'Log In') }}
+      {% else %}
+      <span class="navbar-text">Welcome, {{ current_user.username }}</span>
+      {{ render_nav_item('logout', 'Log Out') }}
+      {% endif %}
+    </div>
+  </div>
+</header>
+{% endblock %}
+
+<main role="main">
+{% block flash %}
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message['level']|default('warning') }} alert-dismissible fade show" role="alert">
+    {{ message['msg'] }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  {% endfor %}
+  {% endif %}
+  {% endwith %}
+{% endblock %}
+
+<div class="container">
+  {% block content %} {% endblock %}
+</div>
+
+</main>
+
+{% block scripts %}
+<!-- bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<!-- jquery -->
+<script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+<!-- moment -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js" integrity="sha384-fYxN7HsDOBRo1wT/NSZ0LkoNlcXvpDpFy6WzB42LxuKAX7sBwgo7vuins+E1HCaw" crossorigin="anonymous"></script>
+
+<!-- some custom JS -->
+<script src="/static/prevent-invalid-form-submit.js"></script>
+
+{% endblock %}
+
+</body>
+</html>
