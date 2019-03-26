@@ -1,5 +1,5 @@
 
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 
 from . import app
@@ -65,3 +65,7 @@ def logout():
   logout_user()
   flash({'msg':'Logged out successfully', 'level':'success'})
   return redirect(url_for('home'))
+
+@app.route('/health')
+def health():
+  return jsonify({'OK': True})

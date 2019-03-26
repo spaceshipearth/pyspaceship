@@ -1,6 +1,8 @@
 from invoke import Collection
 
-from . import run
+from . import run, image, k8s
 
 ns = Collection()
 ns.add_collection(run)
+ns.add_collection(image)
+ns.add_collection(k8s)

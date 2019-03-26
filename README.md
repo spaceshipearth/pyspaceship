@@ -27,7 +27,7 @@ Now, you can see all the tasks we have defined:
 $ inv --list
 ```
 
-## Running ##
+## Running Locally ##
 
 Run the website like so:
 
@@ -52,7 +52,7 @@ If you have `docker-compose` set up, you can bring one up like so:
 $ inv run.mysql
 ```
 
-## Migrations ##
+### Migrations ###
 
 First, you need to create the migration.
 You can do this through `migration-prep`:
@@ -72,7 +72,29 @@ $ inv run.upgrade
 
 If you need to back down again, run `inv run.downgrade`.
 
-## Manual steps in production
+
+## In production ##
+
+You need `kubectl` set up to talk to our K8S cluster.
+You might need the following:
+
+```bash
+$ gcloud components install kubectl
+$ gcloud container clusters get-credentials default --region us-central1-a
+$ glcoud auth configure docker
+```
+
+Run this just to make sure you're set up to talk to the cluster:
+
+```bash
+$ kubectl get nodes
+```
+
+### Building an image ###
+
+Run `inv image.build`
+
+### Manual steps in production ###
 
 You have to do these by hand:
 * set up a mysql database

@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: pyspaceship-ingress
+spec:
+  rules:
+  - host: test.spaceshipearth.org
+    http:
+      paths:
+      - backend:
+          serviceName: pyspaceship-service
+          servicePort: pyspaceship-port

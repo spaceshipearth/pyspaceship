@@ -9,13 +9,15 @@ class Config:
   MYSQL_HOST = os.environ.get('MYSQL_HOST', '127.0.0.1:9877')
   MYSQL_USERNAME = os.environ.get('MYSQL_USERNAME', 'spaceship-app')
   MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', 'aa7925b6f7b')
+  MYSQL_DB = os.environ.get('MYSQL_DB', 'spaceship')
 
   MYSQL_URL = ''.join([
-      'mysql://',
-      MYSQL_USERNAME,
-      ':',
-      MYSQL_PASSWORD,
-      '@',
-      MYSQL_HOST,
-      '/spaceship',
-    ])
+    'mysql://',
+    MYSQL_USERNAME,
+    ':',
+    MYSQL_PASSWORD,
+    '@',
+    MYSQL_HOST,
+    '/',
+    MYSQL_DB,
+  ])
