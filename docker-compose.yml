@@ -1,0 +1,12 @@
+version: '3.3'
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'spaceship'
+      MYSQL_USER: 'spaceship-app'
+      MYSQL_PASSWORD: 'aa7925b6f7b'
+      MYSQL_ROOT_PASSWORD: 'secret'
+    ports:
+      - '9877:3306'
