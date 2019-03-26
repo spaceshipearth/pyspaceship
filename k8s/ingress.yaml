@@ -9,4 +9,4 @@ spec:
       paths:
       - backend:
           serviceName: pyspaceship-service
-          servicePort: pyspaceship-port
+          servicePort: spaceship-port

@@ -8,6 +8,7 @@ from peewee import Model
 # we get configuration from the app instance
 from . import app
 
+app.logger.info(f"Connecting to mysql at {app.config['MYSQL_HOST']}")
 db = connect(app.config['MYSQL_URL'])
 db.connect()
 
@@ -15,6 +16,3 @@ db.connect()
 class BaseModel(Model):
   class Meta:
     database = db
-
-# import our models so they can be found by migrations
-from .models.user import User

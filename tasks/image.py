@@ -7,7 +7,7 @@ from . import utils
 
 DEFAULT_VERSION = 'latest'
 REPO = "us.gcr.io"
-PROJECT = "capable-arbor-234207"
+PROJECT = "spaceshipearthtest"
 
 def generate_tag(version):
   """Generates a tag string for the docker image"""

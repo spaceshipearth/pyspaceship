@@ -80,5 +80,5 @@ def shell(ctx):
   """Get a shell on a random pod"""
   random_pod_name = [p['name'] for p in get_pods() if p['phase'] == 'Running'].pop()
 
-  print(f"Using pod {random_pod_name} to run migrations...")
+  print(f"Picked pod {random_pod_name} for shell access...")
   run(f'kubectl exec -i -t {random_pod_name} -- /bin/bash', pty=True)

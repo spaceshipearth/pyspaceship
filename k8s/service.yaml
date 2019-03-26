@@ -7,6 +7,6 @@ spec:
   selector:
     app: pyspaceship
   ports:
-  - name: pyspaceship-port
+  - name: spaceship-port
     protocol: TCP
     port: 9876
