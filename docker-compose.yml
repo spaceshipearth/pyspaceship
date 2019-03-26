@@ -1,12 +1,17 @@
 version: '3.3'
+
 services:
   db:
     image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - 9877:3306
     restart: always
     environment:
-      MYSQL_DATABASE: 'spaceship'
-      MYSQL_USER: 'spaceship-app'
-      MYSQL_PASSWORD: 'aa7925b6f7b'
-      MYSQL_ROOT_PASSWORD: 'secret'
-    ports:
-      - '9877:3306'
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+      MYSQL_DATABASE: spaceship
+      MYSQL_USER: spaceship-app
+      MYSQL_PASSWORD: aa7925b6f7b
+volumes:
+  db_data: {}
