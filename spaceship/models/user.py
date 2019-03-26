@@ -1,5 +1,6 @@
 
 from peewee import *
+from playhouse.hybrid import hybrid_property
 import pendulum
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -19,3 +20,18 @@ class User(BaseModel):
 
   def check_password(self, password):
     return check_password_hash(self.password_hash, password)
+
+  @hybrid_property
+  def is_active(self):
+    return self.deleted_at == None
+
+  # required by Flask Login
+  @property
+  def is_authenticated(self):
+    return True
+  @property
+  def is_anonymous(self):
+    return False
+  def get_id(self):
+    return str(self.id)
+

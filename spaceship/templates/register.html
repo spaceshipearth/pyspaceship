@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Register - {{ super() }}{% endblock %}
+
+{% block content %}
+<h3>Become a Captain!</h3>
+
+<form method="POST" class="needs-validation" novalidate>
+  {% for field in register %}
+  {% set errors = register.errors[field.name] %}
+  {% if field.flags.hidden %}
+    {{ field(class="form-control") }}
+  {% elif field.type == "SubmitField" %}
+    {{ field(class="btn btn-primary") }}
+  {% else %}
+    {% if errors %}
+    {% set class="form-control is-invalid" %}
+    {% else %}
+    {% set class="form-control" %}
+    {% endif %}
+
+    {{ field.label() }}
+    {{ field(class=class) }}
+    <div class="invalid-feedback">
+      {{ ';'.join(errors) }}
+    </div>
+  {% endif %}
+  {% endfor %}
+</form>
+
+{% endblock %}
