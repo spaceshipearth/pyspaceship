@@ -61,22 +61,23 @@
 {% endblock %}
 
 <main role="main">
-{% block flash %}
-  {% with messages = get_flashed_messages() %}
-  {% if messages %}
-  {% for message in messages %}
-  <div class="alert alert-{{ message['level']|default('warning') }} alert-dismissible fade show" role="alert">
-    {{ message['msg'] }}
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-  {% endfor %}
-  {% endif %}
-  {% endwith %}
-{% endblock %}
 
 <div class="container">
+  {% block flash %}
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message['level']|default('warning') }} alert-dismissible fade show" role="alert">
+      {{ message['msg'] }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  {% endblock %}
+
   {% block content %} {% endblock %}
 </div>
 

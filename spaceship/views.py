@@ -36,7 +36,7 @@ def login():
         return redirect(url_for('dashboard'))
 
     else:
-      flash({'msg':'Authentication failed', 'level':'danger'})
+      flash({'msg':'Incorrect email or password. Try again?', 'level':'danger'})
 
   return render_template('login.html', login=login)
 
