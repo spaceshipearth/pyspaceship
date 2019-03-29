@@ -40,6 +40,10 @@ def login():
 
   return render_template('login.html', login=login)
 
+@app.route('/about')
+def about():
+  return render_template('about.html')
+
 @app.route('/dashboard')
 @login_required
 def dashboard():

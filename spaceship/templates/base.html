@@ -40,7 +40,7 @@
     </a>
 
     <div class="navbar-nav mr-auto">
-      {{ render_nav_item('home', 'Home') }}
+      {{ render_nav_item('about', 'About') }}
 
       {% if not current_user.is_anonymous %}
       {{ render_nav_item('dashboard', 'Dashboard') }}
@@ -49,7 +49,6 @@
 
     <div class="navbar-nav ml-auto">
       {% if current_user.is_anonymous %}
-      {{ render_nav_item('register', 'Sign Up') }}
       {{ render_nav_item('login', 'Log In') }}
       {% else %}
       <span class="navbar-text">Welcome!</span>
