@@ -11,6 +11,7 @@ from .custom_fields import PendulumDateTimeField
 class User(BaseModel):
   id = AutoField(primary_key=True)
   email = CharField(unique=True)
+  name = CharField(default='')
   password_hash = CharField()
   created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
   deleted_at = PendulumDateTimeField(null=True)
