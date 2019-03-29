@@ -58,7 +58,7 @@ First, you need to create the migration.
 You can do this through `migration-prep`:
 
 ```
-$ inv run.migration-prep "my migration description"
+$ inv run.migration-prep --name "my migration description"
 ```
 
 This will generate your migration in `migrations/versions`.
@@ -81,7 +81,7 @@ You might need the following:
 ```bash
 $ gcloud components install kubectl
 $ gcloud container clusters get-credentials default --region us-central1-a
-$ glcoud auth configure docker
+$ gcloud auth configure-docker
 ```
 
 Run this just to make sure you're set up to talk to the cluster:

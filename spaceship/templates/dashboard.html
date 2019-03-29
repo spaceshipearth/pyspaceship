@@ -3,6 +3,9 @@
 {% block title %}Dashboard - {{ super() }}{% endblock %}
 
 {% block content %}
-<h3>Welcome, Captain!</h3>
+<h3>Welcome, Captain {{ current_user.name.split(" ")[0] }}! </h3>
+{% for team in teams: %}
+    {{ team.name }}
+{% endfor %}
 
 {% endblock %}
