@@ -12,11 +12,16 @@ body {
 
 .navbar {
   background-color: #9bc1bc;
+  margin-bottom: 16px;
 }
 
 .btn {
   border-color: #ed604e;
   background-color: #ed6a5a;
+}
+
+.form-box {
+  margin-bottom: 16px;
 }
 
 .splash-banner {

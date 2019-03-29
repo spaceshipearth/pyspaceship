@@ -3,7 +3,10 @@
 {% block title %}Register - {{ super() }}{% endblock %}
 
 {% block content %}
-<h3>Become a Captain!</h3>
+<h3>Register to become a captain</h3>
+
+<p>We need to know your name and email so we can tell your friends who you are
+when you invite them to join your crew. (We promise not to spam you.)
 
 <form method="POST" class="needs-validation" novalidate>
   {% for field in register %}
@@ -19,10 +22,16 @@
     {% set class="form-control" %}
     {% endif %}
 
-    {{ field.label() }}
-    {{ field(class=class) }}
-    <div class="invalid-feedback">
-      {{ ';'.join(errors) }}
+    <div class="row">
+      <span class="col-3">{{ field.label() }}</span>
+    </div>
+    <div class="row form-box">
+      <span class="col-6">
+      {{ field(class=class) }}
+      <div class="invalid-feedback">
+        {{ ';'.join(errors) }}
+      </div>
+      </span>
     </div>
   {% endif %}
   {% endfor %}
