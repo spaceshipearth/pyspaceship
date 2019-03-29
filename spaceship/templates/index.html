@@ -3,5 +3,32 @@
 {% block title %}Home - {{ super() }}{% endblock %}
 
 {% block content %}
-  <h1>Welcome to Spaceship Earth!</h1>
+  <div class="splash-banner">
+    <h1 class="text-center">Spaceship Earth</h1>
+    <p class="text-center font-italic">Take climate action with friends today. You're all counting on you&hellip; don't let you down!
+  </div>
+
+  <div class="splash-stats row justify-content-md-center">
+    <div class="col col-lg-2">
+      <div class="text-center splash-stat">72</div>
+      <div class="text-center">teams registered</div>
+    </div>
+    <div class="col col-lg-2">
+      <div class="text-center splash-stat">306</div>
+      <div class="text-center">tons CO<sub>2</sub> reduced</div>
+    </div>
+  </div>
+
+  <div class="splash-pitch">
+    <p>Spaceship Earth is a community planning tool for groups of friends who want to do something about climate change.
+    <p>Start a crew, invite your friends, and then take action. Every month you'll embark on a new mission, accomplish goals, and find out what you can do to make a difference together.
+    <ul>
+      <li>Plant based diet: [key callouts]</li>
+      <li>[Mission 2]: [key callouts]</li>
+      <li>[Mission 3]: [key callouts]</li>
+    </ul>
+    <div class="row justify-content-md-center">
+      <a href="/register" class="btn btn-primary btn-lg" role="button">Become a captain</a>
+    </div>
+  </div>
 {% endblock %}

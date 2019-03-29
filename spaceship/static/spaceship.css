@@ -1,3 +1,24 @@
+/*
+  Here is a base palette for inspiration, sort of southwestern.
+  terra cotta    #ed6a5a
+  blond          #f4f1bb
+  cambridge blue #9bc1bc
+  cadet blue     #5ca4a9
+  platinum       #e6ebe0
+*/
+body {
+  background-color: #e6ebe0;
+}
+
+.navbar {
+  background-color: #9bc1bc;
+}
+
+.btn {
+  border-color: #ed604e;
+  background-color: #ed6a5a;
+}
+
 .splash-banner {
   margin: 96px 0 32px 0;
 }
