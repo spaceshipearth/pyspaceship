@@ -13,6 +13,7 @@ from .models.invitation import Invitation
 from .forms.register import Register
 from .forms.login import Login
 from .forms.invite import Invite
+from .forms.enlist import EnlistExistingUser, EnlistNewUser
 
 import uuid
 
@@ -128,7 +129,6 @@ def roster(team_id):
       except DatabaseError:
         transaction.rollback()
         flash({'msg':f'Error sending invitations', 'level':'danger'})
-        raise
       else:
         flash({'msg':'Invitations are on the way!', 'level':'success'})
 
@@ -142,6 +142,79 @@ def roster(team_id):
                  .where(Invitation.team_id == team_id))
 
   return render_template('roster.html', team=team, roster=roster, invitations=invitations, invite=invite)
+
+@app.route('/enlist/<key>', methods=['GET', 'POST'])
+def enlist(key):
+  invitation = (Invitation
+                .select()
+                .where(Invitation.key_for_sharing == key)
+                .get())
+  if not invitation:
+    flash({'msg':f'Could not find invitation', 'level':'danger'})
+    return redirect(url_for('home'))
+  if invitation.status == 'accepted':
+    return redirect(url_for('dashboard'))
+
+  if current_user.is_authenticated:
+    enlist = EnlistExistingUser()
+    email_mismatch = (invitation.invited_email and current_user.email != invitation.invited_email)
+    if not enlist.is_submitted() and email_mismatch:
+      # could have gotten the invite via an alias? but also maybe multiple accounts. let them decide
+      flash({'msg':f'Invitation was for ' + invitation.invited_email + ' but you are logged in as ' + current_user.email, 'level':'warning'})
+  elif User.select().where(User.email == invitation.invited_email):
+    # assume cookies were cleared
+    flash({'msg':f'Please log in as ' + invitation.invited_email, 'level':'warning'})
+    return redirect(url_for('login'))
+  else:
+    enlist = EnlistNewUser()
+    if not enlist.is_submitted():
+      # auto populate the email from the invitation but allow the user to change it
+      enlist.email.process_data(invitation.invited_email)
+
+  if enlist.is_submitted():
+    is_valid = enlist.validate()
+    if enlist.csrf_token.errors:  # csrf must validate even for decline
+      flash({'msg':f'Validation error', 'level':'danger'})
+      return redirect(url_for('home'))
+    if enlist.decline.data:  # don't validate form for decline, just decline
+      with db.atomic() as transaction:
+        try:
+          invitation.status = 'declined'
+          invitation.save()
+        except DatabaseError:
+          transaction.rollback()
+          flash({'msg':f'Database error', 'level':'danger'})
+        else:
+          flash({'msg':f'Invitation declined', 'level':'success'})
+          return redirect(url_for('home'))
+    elif is_valid:
+      with db.atomic() as transaction:
+        try:
+          if isinstance(enlist, EnlistNewUser):
+            u = User(name=enlist.data['name'],
+                     email=enlist.data['email'])
+            u.set_password(enlist.data['password'])
+            u.save()
+          else:
+            u = current_user
+ 
+          tu = TeamUser(team=invitation.team, user=u)
+          tu.save()
+ 
+          invitation.status = 'accepted'
+          invitation.save()
+        except IntegrityError:
+          transaction.rollback()
+          flash({'msg':f'Email already registered. Please sign-in', 'level': 'danger'})
+        except DatabaseError:
+          transaction.rollback()
+          flash({'msg':f'Database error', 'level':'danger'})
+        else:
+          if not current_user.is_authenticated:
+            login_user(u)
+        return redirect(url_for('dashboard'))
+
+  return render_template('enlist.html', enlist=enlist, invitation=invitation)
 
 @app.route('/logout')
 def logout():

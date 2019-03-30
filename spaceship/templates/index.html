@@ -3,10 +3,7 @@
 {% block title %}Home - {{ super() }}{% endblock %}
 
 {% block content %}
-  <div class="splash-banner">
-    <h1 class="text-center">Spaceship Earth</h1>
-    <p class="text-center font-italic">Take climate action with friends today. You're all counting on you&hellip; don't let you down!
-  </div>
+  {% include 'banner.html' %}
 
   <div class="splash-stats row justify-content-md-center">
     <div class="col col-lg-2">
