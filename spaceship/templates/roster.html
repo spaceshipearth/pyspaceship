@@ -27,13 +27,41 @@
 <h4>Crew Invitations</h4>
 
 {% for invite in invitations: %}
-  {{ invite.invited_email }}
-  {{ invite.status }}
+  <div>
+    {{ invite.invited_email }}
+    {{ invite.status }}
+    {{ invite.created_at }}
+  </div>
 {% endfor %}
 
-<!--
 <form method="POST" class="needs-validation" novalidate>
+  {% for field in invite %}
+  {% set errors = invite.errors[field.name] %}
+  {% if field.flags.hidden %}
+    {{ field(class="form-control") }}
+  {% elif field.type == "SubmitField" %}
+    {{ field(class="btn btn-primary") }}
+  {% else %}
+    {% if errors %}
+    {% set class="form-control is-invalid" %}
+    {% else %}
+    {% set class="form-control" %}
+    {% endif %}
+
+    <div class="row">
+      <span class="col-3">{{ field.label() }}</span>
+    </div>
+    <div class="row form-box">
+      <span class="col-6">
+      {{ field(class=class) }}
+      <div class="invalid-feedback">
+        {{ ';'.join(errors) }}
+      </div>
+      {{ field.description }}
+      </span>
+    </div>
+  {% endif %}
+  {% endfor %}
 </form>
--->
 
 {% endblock %}

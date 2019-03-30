@@ -12,6 +12,9 @@ from .models.team_user import TeamUser
 from .models.invitation import Invitation
 from .forms.register import Register
 from .forms.login import Login
+from .forms.invite import Invite
+
+import uuid
 
 @app.route('/')
 def home():
@@ -95,7 +98,7 @@ def register():
 
   return render_template('register.html', register=register)
 
-@app.route('/roster/<team_id>', methods=['GET'])
+@app.route('/roster/<team_id>', methods=['GET', 'POST'])
 @login_required
 def roster(team_id):
   bad_team = f'Could not find team'
@@ -108,6 +111,27 @@ def roster(team_id):
     flash({'msg': bad_team, 'level': 'danger'})
     return redirect(url_for('dashboard'))
 
+  invite = Invite()
+  if invite.validate_on_submit():
+    with db.atomic() as transaction:
+      try:
+        message = invite.data['message']
+        emails = invite.data['emails'].split()
+        for email in emails:
+          iv = Invitation(inviter_id=current_user.id,
+                          key_for_sharing=uuid.uuid4(),
+                          team_id=team_id,
+                          invited_email=email,
+                          message=message,
+                          status='pending')
+          iv.save()
+      except DatabaseError:
+        transaction.rollback()
+        flash({'msg':f'Error sending invitations', 'level':'danger'})
+        raise
+      else:
+        flash({'msg':'Invitations are on the way!', 'level':'success'})
+
   roster = (User
             .select()
             .join(TeamUser)
@@ -117,7 +141,7 @@ def roster(team_id):
                  .select()
                  .where(Invitation.team_id == team_id))
 
-  return render_template('roster.html', team=team, roster=roster, invitations=invitations)
+  return render_template('roster.html', team=team, roster=roster, invitations=invitations, invite=invite)
 
 @app.route('/logout')
 def logout():
