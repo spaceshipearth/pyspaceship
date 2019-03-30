@@ -20,9 +20,6 @@ class Invitation(BaseModel):
   created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
   deleted_at = PendulumDateTimeField(null=True)
 
-  def create_uri_path(self):
-    self.uri_path = inviter.id + team.
-
   @hybrid_property
   def is_active(self):
     return self.deleted_at == None

@@ -52,7 +52,6 @@
       {% if current_user.is_anonymous %}
       {{ render_nav_item('login', 'Log In') }}
       {% else %}
-      <span class="navbar-text">Welcome!</span>
       {{ render_nav_item('logout', 'Log Out') }}
       {% endif %}
     </div>

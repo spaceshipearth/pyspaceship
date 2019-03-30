@@ -5,7 +5,10 @@
 {% block content %}
 <h3>Welcome, Captain {{ current_user.name.split(" ")[0] }}! </h3>
 {% for team in teams: %}
+  <div>
     {{ team.name }}
+    <a href="{{ url_for('roster', team_id=team) }}" class="btn">Roster</a>
+  </div>
 {% endfor %}
 
 {% endblock %}

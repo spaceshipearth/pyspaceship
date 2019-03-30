@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Roster - {{ super() }}{% endblock %}
+
+{% block content %}
+<h3>Team {{ team.name }} Roster</h3>
+
+<table class="table-bordered">
+<thead class="thead-dark">
+  <tr>
+    <th>Name
+    <th>Email
+</thead>
+<tbody>
+{% for user in roster: %}
+  <tr>
+    <td>{% if user.id == team.captain_id %}
+          {{ user.name }} (Captain)
+        {% else %}
+          {{ user.name }}
+        {% endif %}
+    <td>{{ user.email }}
+{% endfor %}
+</tbody>
+</table>
+
+<h4>Crew Invitations</h4>
+
+{% for invite in invitations: %}
+  {{ invite.invited_email }}
+  {{ invite.status }}
+{% endfor %}
+
+<!--
+<form method="POST" class="needs-validation" novalidate>
+</form>
+-->
+
+{% endblock %}

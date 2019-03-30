@@ -9,6 +9,7 @@ from .db import db
 from .models.user import User
 from .models.team import Team
 from .models.team_user import TeamUser
+from .models.invitation import Invitation
 from .forms.register import Register
 from .forms.login import Login
 
@@ -93,6 +94,30 @@ def register():
     return redirect(url_for('dashboard'))
 
   return render_template('register.html', register=register)
+
+@app.route('/roster/<team_id>', methods=['GET'])
+@login_required
+def roster(team_id):
+  bad_team = f'Could not find team'
+  try:
+    team = Team.get(Team.id == team_id)
+  except DoesNotExist:
+    flash({'msg': bad_team, 'level': 'danger'})
+    return redirect(url_for('dashboard'))
+  if team.captain_id != current_user.id:
+    flash({'msg': bad_team, 'level': 'danger'})
+    return redirect(url_for('dashboard'))
+
+  roster = (User
+            .select()
+            .join(TeamUser)
+            .join(Team)
+            .where(Team.id == team_id))
+  invitations = (Invitation
+                 .select()
+                 .where(Invitation.team_id == team_id))
+
+  return render_template('roster.html', team=team, roster=roster, invitations=invitations)
 
 @app.route('/logout')
 def logout():
