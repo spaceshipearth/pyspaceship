@@ -67,7 +67,8 @@ def register():
     error_saving = False
     with db.atomic() as transaction:
       try:
-        u = User(email=register.data['email'])
+        u = User(name=register.data['name'],
+                 email=register.data['email'])
         u.set_password(register.data['password'])
         u.save()
 
