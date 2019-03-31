@@ -15,7 +15,15 @@ from .forms.login import Login
 from .forms.invite import Invite
 from .forms.enlist import EnlistExistingUser, EnlistNewUser
 
+import hashlib
 import uuid
+
+def teams(user):
+  return (Team
+          .select()
+          .join(TeamUser)
+          .join(User)
+          .where(User.id == user.id))
 
 @app.route('/')
 def home():
@@ -56,13 +64,7 @@ def about():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-  teams = (Team
-            .select()
-            .join(TeamUser)
-            .join(User)
-            .where(User.id == current_user.id))
-
-  return render_template('dashboard.html', teams=teams)
+  return render_template('dashboard.html', teams=teams(current_user))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -221,6 +223,29 @@ def logout():
   logout_user()
   flash({'msg':'Logged out successfully', 'level':'success'})
   return redirect(url_for('home'))
+
+@app.route('/profile/<user_id>')
+@login_required
+def profile(user_id):
+  try:
+    user = User.get(User.id == user_id)
+  except User.DoesNotExist:
+    return redirect(url_for('dashboard'))
+
+  if current_user.id != user_id and not (set(teams(current_user)) & set(teams(user))):
+    # only allow looking at own and teammates' profiles to prevent enumerating users
+    return redirect(url_for('dashboard'))
+
+  return render_template('profile.html', user=user)
+
+@app.context_processor
+def gravatar():
+  def write_gravatar_link(email, size=100, default='mp'):
+    url = 'https://www.gravatar.com/avatar/'
+    hash_email = hashlib.md5(email.encode('ascii')).hexdigest()
+    link = "{url}{hash_email}?s={size}&d={default}".format(url=url, hash_email=hash_email, size=size, default=default)
+    return link
+  return dict(gravatar=write_gravatar_link)
 
 @app.route('/health')
 def health():
