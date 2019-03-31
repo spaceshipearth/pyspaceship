@@ -5,14 +5,16 @@
 {% block content %}
 <h3>Welcome {{ current_user.name.split(" ")[0] }}! </h3>
 {% for team in teams: %}
-  <div>
+  <section class="border">
+    <h5>Team
     {% if team.captain.id == current_user.id %}
       <a role="button" class="editable" data-title="Edit team name" data-table="team" data-id="{{ team.id }}" data-field="name">{{ team.name }}</a>
     {% else %}
       {{ team.name }}
     {% endif %}
+    </h5>
     <a href="{{ url_for('roster', team_id=team) }}" class="btn">Roster</a>
-  </div>
+  </section>
 {% endfor %}
 
 {% endblock %}

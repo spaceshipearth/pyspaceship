@@ -5,6 +5,7 @@
 {% block content %}
 <h3>Log in (returning users)</h3>
 
+<section>
 <form method="POST" class="needs-validation" novalidate>
   {% for field in login %}
   {% set errors = login.errors[field.name] %}
@@ -20,10 +21,10 @@
     {% endif %}
 
     <div class="row">
-      <span class="col-3">{{ field.label() }}</span>
+      <span class="col-md-3">{{ field.label() }}</span>
     </div>
     <div class="row form-box">
-      <span class="col-6">
+      <span class="col-md-6">
       {{ field(class=class) }}
       <div class="invalid-feedback">
         {{ ';'.join(errors) }}
@@ -33,5 +34,6 @@
   {% endif %}
   {% endfor %}
 </form>
+</section>
 
 {% endblock %}

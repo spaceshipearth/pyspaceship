@@ -3,6 +3,7 @@
 {% block title %}Roster - {{ super() }}{% endblock %}
 
 {% block content %}
+<section>
 <h3>Team {{ team.name }} Roster</h3>
 
 <table class="table-bordered">
@@ -28,9 +29,11 @@
 {% endfor %}
 </tbody>
 </table>
+</section>
 
 {% if is_captain %}
 
+<section>
 <h4>Crew Invitations</h4>
 
 {% for invite in invitations: %}
@@ -40,7 +43,9 @@
     {{ invite.created_at }}
   </div>
 {% endfor %}
+</section>
 
+<section>
 <form method="POST" class="needs-validation" novalidate>
   {% for field in invite %}
   {% set errors = invite.errors[field.name] %}
@@ -70,6 +75,7 @@
   {% endif %}
   {% endfor %}
 </form>
+</section
 
 {% endif %}
 

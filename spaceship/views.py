@@ -200,7 +200,7 @@ def enlist(key):
             u.set_password(enlist.data['password'])
             u.save()
           else:
-            u = current_user
+            u = User.get(User.id == current_user.id)
  
           tu = TeamUser(team=invitation.team, user=u)
           tu.save()
@@ -214,7 +214,7 @@ def enlist(key):
           transaction.rollback()
           flash({'msg':f'Database error', 'level':'danger'})
         else:
-          if not current_user.is_authenticated:
+          if isinstance(enlist, EnlistNewUser) and not current_user.is_authenticated:
             login_user(u)
         return redirect(url_for('dashboard'))
 
