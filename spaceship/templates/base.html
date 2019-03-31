@@ -35,17 +35,18 @@
 
 <header>
   <div class="navbar navbar-default navbar-static-top navbar-expand-md navbar-light" role="navigation" aria-label="main navigation">
-    <a class="navbar-brand" href="/">
+    {% if not current_user.is_anonymous %}
+      {% set target = url_for('dashboard') %}
+    {% else %}
+      {% set target = '/' %}
+    {% endif %}
+    <a class="navbar-brand" href="{{ target }}">
       <img src="/static/sship-152.png" width="30" height="30" class="d-inline-block align-top" alt="Spaceship!">
       Spaceship Earth
     </a>
 
     <div class="navbar-nav mr-auto">
       {{ render_nav_item('about', 'About') }}
-
-      {% if not current_user.is_anonymous %}
-      {{ render_nav_item('dashboard', 'Dashboard') }}
-      {% endif %}
     </div>
 
     <div class="navbar-nav ml-auto">
