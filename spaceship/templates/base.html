@@ -49,10 +49,12 @@
       {{ render_nav_item('about', 'About') }}
     </div>
 
+    {% if current_user.is_anonymous %}
     <div class="navbar-nav ml-auto">
-      {% if current_user.is_anonymous %}
       {{ render_nav_item('login', 'Log In') }}
-      {% else %}
+    </div>
+    {% else %}
+    <div class="navbar-item ml-auto">
       <div class="dropdown dropleft nav-item">
         <a role="button" class="dropdown-toggle" data-toggle="dropdown">
           <img src="{{ gravatar(current_user.email, size=30) }}" width="30" height="30" alt="Profile" class="d-inline-block align-top">
@@ -63,8 +65,8 @@
           <a class="dropdown-item" href="{{ url_for('logout') }}">Log Out</a>
         </div>
       </div>
-      {% endif %}
     </div>
+    {% endif %}
   </div>
 </header>
 {% endblock %}
