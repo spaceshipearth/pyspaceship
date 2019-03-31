@@ -284,9 +284,9 @@ def edit():
         if field_name == 'name':
           user.name = value
           user.save()
-        elif field_name == 'email':
-          user.email = value
-          user.save()
+        #elif field_name == 'email':
+        #  user.email = value
+        #  user.save()
       except DatabaseError:
         transaction.rollback()
         return jsonify({'ok': False})

@@ -19,11 +19,11 @@
       {% endif %}
     </h1>
     <div>
-      {% if can_edit %}
+      {# {% if can_edit %}
         <a role="button" class="editable" data-title="Edit email" data-table="user" data-id="{{ user.id }}" data-field="email">{{ user.email }}</a>
-      {% else %}
+      {% else %} #}
         {{ user.email }}
-      {% endif %}
+      {# {% endif %} #}
     </div>
   </div>
 </div>
