@@ -29,6 +29,8 @@
 </tbody>
 </table>
 
+{% if is_captain %}
+
 <h4>Crew Invitations</h4>
 
 {% for invite in invitations: %}
@@ -68,5 +70,7 @@
   {% endif %}
   {% endfor %}
 </form>
+
+{% endif %}
 
 {% endblock %}

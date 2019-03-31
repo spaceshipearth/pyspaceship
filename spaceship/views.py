@@ -110,12 +110,14 @@ def roster(team_id):
   except DoesNotExist:
     flash({'msg': bad_team, 'level': 'danger'})
     return redirect(url_for('dashboard'))
-  if team.captain_id != current_user.id:
+  if not any(t.id == int(team_id) for t in set(teams(current_user))):
     flash({'msg': bad_team, 'level': 'danger'})
     return redirect(url_for('dashboard'))
 
+  is_captain = team.captain_id == current_user.id
+
   invite = Invite()
-  if invite.validate_on_submit():
+  if is_captain and invite.validate_on_submit():
     with db.atomic() as transaction:
       try:
         message = invite.data['message']
@@ -143,7 +145,7 @@ def roster(team_id):
                  .select()
                  .where(Invitation.team_id == team_id))
 
-  return render_template('roster.html', team=team, roster=roster, invitations=invitations, invite=invite)
+  return render_template('roster.html', is_captain=is_captain, team=team, roster=roster, invitations=invitations, invite=invite)
 
 @app.route('/enlist/<key>', methods=['GET', 'POST'])
 def enlist(key):
