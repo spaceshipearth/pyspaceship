@@ -39,3 +39,10 @@ body {
 .splash-pitch {
   margin: 32px 0;
 }
+
+.editable {
+  cursor: pointer;
+}
+.editable::after {
+  content: " ✎"
+}

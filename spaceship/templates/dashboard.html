@@ -6,7 +6,11 @@
 <h3>Welcome {{ current_user.name.split(" ")[0] }}! </h3>
 {% for team in teams: %}
   <div>
-    {{ team.name }}
+    {% if team.captain.id == current_user.id %}
+      <a role="button" class="editable" data-title="Edit team name" data-table="team" data-id="{{ team.id }}" data-field="name">{{ team.name }}</a>
+    {% else %}
+      {{ team.name }}
+    {% endif %}
     <a href="{{ url_for('roster', team_id=team) }}" class="btn">Roster</a>
   </div>
 {% endfor %}

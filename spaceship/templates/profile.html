@@ -11,8 +11,20 @@
     </a>
   </div>
   <div class="col-10">
-    <h1>{{ user.name }}</h1>
-    <div>{{ user.email }}</div>
+    <h1>
+      {% if can_edit %}
+        <a role="button" class="editable" data-title="Edit name" data-table="user" data-id="{{ user.id }}" data-field="name">{{ user.name }}</a>
+      {% else %}
+        {{ user.name }}
+      {% endif %}
+    </h1>
+    <div>
+      {% if can_edit %}
+        <a role="button" class="editable" data-title="Edit email" data-table="user" data-id="{{ user.id }}" data-field="email">{{ user.email }}</a>
+      {% else %}
+        {{ user.email }}
+      {% endif %}
+    </div>
   </div>
 </div>
 

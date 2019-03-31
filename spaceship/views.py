@@ -1,5 +1,5 @@
 
-from flask import render_template, flash, redirect, url_for, jsonify
+from flask import render_template, flash, redirect, url_for, jsonify, request
 from flask_login import login_user, logout_user, login_required, current_user
 from peewee import DatabaseError, IntegrityError
 
@@ -234,11 +234,66 @@ def profile(user_id):
   except User.DoesNotExist:
     return redirect(url_for('dashboard'))
 
-  if current_user.id != user_id and not (set(teams(current_user)) & set(teams(user))):
+  is_me = current_user.id == int(user_id)
+  if not is_me and not (set(teams(current_user)) & set(teams(user))):
     # only allow looking at own and teammates' profiles to prevent enumerating users
     return redirect(url_for('dashboard'))
 
-  return render_template('profile.html', user=user)
+  return render_template('profile.html', can_edit=is_me, user=user)
+
+@app.route('/edit', methods=['POST'])
+def edit():
+  if not current_user.is_authenticated:
+    return jsonify({'ok': False})
+
+  table_name = request.form['table']
+  try:
+    object_id = int(request.form['id'])
+  except ValueError:
+    return jsonify({'ok': False})
+  field_name = request.form['field']
+  value = request.form['value']
+
+  if table_name == 'team':
+    try:
+      team = Team.get(Team.id == object_id)
+    except Team.DoesNotExist:
+      return jsonify({'ok': False})
+    if current_user.id != team.captain.id:
+      return jsonify({'ok': False})
+    with db.atomic() as transaction:
+      try:
+        if field_name == 'name':
+          team.name = value
+          team.save()
+      except DatabaseError:
+        transaction.rollback()
+        return jsonify({'ok': False})
+      else:
+        return jsonify({'ok': True})
+
+  elif table_name == 'user':
+    try:
+      user = User.get(User.id == object_id)
+    except User.DoesNotExist:
+      return jsonify({'ok': False})
+    if current_user.id != user.id:
+      return jsonify({'ok': False})
+    with db.atomic() as transaction:
+      try:
+        if field_name == 'name':
+          user.name = value
+          user.save()
+        elif field_name == 'email':
+          user.email = value
+          user.save()
+      except DatabaseError:
+        transaction.rollback()
+        return jsonify({'ok': False})
+      else:
+        return jsonify({'ok': True})
+
+  return jsonify({'ok': False})
 
 @app.context_processor
 def gravatar():
