@@ -87,9 +87,9 @@ def bounce(ctx):
 def logs(ctx):
   """Read the latest logs"""
   output = json.loads(
-    run('gcloud logging read logName=projects/spaceshipearthprod/logs/pyspaceship --format json --freshness 1d --order desc', hide=True).stdout)
+    run('gcloud logging read logName=projects/spaceshipearthprod/logs/pyspaceship --format json --freshness 1h --order asc', hide=True).stdout)
   for line in output:
-    print(line['textPayload'])
+    print(line['textPayload'].strip())
 
 
 @task()
