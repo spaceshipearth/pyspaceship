@@ -61,6 +61,10 @@ def login():
 def about():
   return render_template('about.html')
 
+@app.route('/mission')
+def mission():
+  return render_template('mission_plant_diet.html')
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
