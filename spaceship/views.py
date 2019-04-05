@@ -212,10 +212,10 @@ def enlist(key):
             u.save()
           else:
             u = User.get(User.id == current_user.id)
- 
+
           tu = TeamUser(team=invitation.team, user=u)
           tu.save()
- 
+
           invitation.status = 'accepted'
           invitation.save()
         except IntegrityError:
@@ -317,4 +317,5 @@ def gravatar():
 
 @app.route('/health')
 def health():
+  db.connect(reuse_if_open=True)
   return jsonify({'OK': True})
