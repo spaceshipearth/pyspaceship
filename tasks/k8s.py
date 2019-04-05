@@ -62,6 +62,14 @@ def session_secret(ctx, secret_key = None):
   utils.k8s_apply(secret, dry_run = False)
 
 @task()
+def sendgrid_secret(ctx, secret_key = None):
+  secret = utils.load_manifest('sendgrid_secret', {
+    'secret_key': secret_key,
+  })
+
+  utils.k8s_apply(secret, dry_run = False)
+
+@task()
 def run_migrations(ctx):
   """Migrate the DB that the cluster is connected to"""
   random_pod_name = [p['name'] for p in get_pods() if p['phase'] == 'Running'].pop()

@@ -4,6 +4,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from peewee import DatabaseError, IntegrityError
 
 from . import app
+from . import email
 from . import names
 
 from .db import db
@@ -102,6 +103,11 @@ def register():
 
     login_user(u)
     flash({'msg':f'Access Granted', 'level':'success'})
+
+    email.send(to_emails=register.data['email'], 
+        subject='Please verify you email for Spaceship Earth',
+        html_content=render_template('confirm_email.html'))
+
     return redirect(url_for('dashboard'))
 
   return render_template('register.html', register=register)

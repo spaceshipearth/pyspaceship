@@ -105,3 +105,4 @@ venv.bak/
 
 # a sqlite local db
 app.db
+sendgrid.env

@@ -48,3 +48,8 @@ spec:
               secretKeyRef:
                 name: pyspaceship-session
                 key: secret_key
+          - name: SENDGRID_KEY
+            valueFrom:
+              secretKeyRef:
+                name: pyspaceship-sendgrid
+                key: secret_key
