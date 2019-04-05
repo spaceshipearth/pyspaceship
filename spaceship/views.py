@@ -4,6 +4,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from peewee import DatabaseError, IntegrityError
 
 from . import app
+from . import names
 
 from .db import db
 from .models.user import User
@@ -83,7 +84,7 @@ def register():
         u.set_password(register.data['password'])
         u.save()
 
-        t = Team(captain=u, name="Serenity")
+        t = Team(captain=u, name=names.name_team())
         t.save()
 
         tu = TeamUser(team=t, user=u)
