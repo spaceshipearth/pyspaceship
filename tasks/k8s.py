@@ -75,6 +75,15 @@ def bounce(ctx):
   for pod_name in [p['name'] for p in get_pods() if p['phase'] == 'Running']:
     run(f'kubectl delete pod {pod_name}')
 
+@task
+def logs(ctx):
+  """Read the latest logs"""
+  output = json.loads(
+    run('gcloud logging read logName=projects/spaceshipearthprod/logs/pyspaceship --format json --freshness 1d --order desc', hide=True).stdout)
+  for line in output:
+    print(line['textPayload'])
+
+
 @task()
 def shell(ctx):
   """Get a shell on a random pod"""
