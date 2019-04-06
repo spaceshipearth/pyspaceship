@@ -6,7 +6,6 @@ import pendulum
 from ..db import BaseModel
 
 from .custom_fields import PendulumDateTimeField
-from .mission import Mission
 
 class Mission(BaseModel):
   id = AutoField(primary_key=True)

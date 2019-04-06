@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Mission - {{ super() }}{% endblock %}
+
+{% block content %}
+<h3>{{ mission.title }}</h3>
+<ul>
+{% for goal in mission.goals: %}
+    <li>{{ goal.short_description }}
+{% endfor %}
+
+{% endblock %}

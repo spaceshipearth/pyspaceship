@@ -8,7 +8,7 @@ def upgrade(migrator):
         table.primary_key('id')
         table.char('title')
         table.text('short_description')
-        table.foreign_key('AUTO', 'prerequisite', references='mission.id', null=True)
+        table.foreign_key('AUTO', 'prerequisite_id', references='mission.id', null=True)
         table.char('created_at')
         table.char('deleted_at', null=True)
 

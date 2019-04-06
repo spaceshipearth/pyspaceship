@@ -12,6 +12,8 @@ from .models.user import User
 from .models.team import Team
 from .models.team_user import TeamUser
 from .models.invitation import Invitation
+from .models.goal import Goal
+from .models.mission import Mission
 from .forms.register import Register
 from .forms.login import Login
 from .forms.invite import Invite
@@ -63,14 +65,20 @@ def login():
 def about():
   return render_template('about.html')
 
-@app.route('/mission')
-def mission():
-  return render_template('mission_plant_diet.html')
+@app.route('/mission/<mission_id>', methods=['GET'])
+@login_required
+def mission(mission_id):
+  try:
+    mission = Mission.get(Mission.id == mission_id)
+  except DoesNotExist:
+    flash({'msg': 'Could not find mission', 'level': 'danger'})
+    return redirect(url_for('dashboard'))
+  return render_template('mission.html', mission=mission)
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-  return render_template('dashboard.html', teams=teams(current_user))
+  return render_template('dashboard.html', teams=teams(current_user), missions=Mission.select())
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

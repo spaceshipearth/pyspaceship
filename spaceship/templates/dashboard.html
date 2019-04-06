@@ -13,6 +13,13 @@
       {{ team.name }}
     {% endif %}
     </h5>
+    <h5>Missions</h5>
+    {% for mission in missions: %}
+      <div>
+        <div><a href="{{ '/mission/' + mission.id|string }}">{{ mission.title }}</a></div>
+        <div>{{ mission.short_description }}</div>
+      </div>
+    {% endfor %}
     <a href="{{ url_for('roster', team_id=team) }}" class="btn">Roster</a>
   </section>
 {% endfor %}
