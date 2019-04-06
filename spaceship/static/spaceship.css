@@ -71,3 +71,17 @@ main {
 .editable::after {
   content: " ✎"
 }
+
+.goal {
+  background: #ccc;
+  border-radius: 3px;
+  padding: 10px;
+  margin: 8px;
+}
+
+.nonpledged .done-label {
+  display: none;
+}
+.pledged .pledge {
+  display: none;
+}

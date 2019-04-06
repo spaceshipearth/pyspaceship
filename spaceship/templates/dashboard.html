@@ -16,7 +16,7 @@
     <h5>Missions</h5>
     {% for mission in missions: %}
       <div>
-        <div><a href="{{ '/mission/' + mission.id|string }}">{{ mission.title }}</a></div>
+        <div><a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}</a></div>
         <div>{{ mission.short_description }}</div>
       </div>
     {% endfor %}

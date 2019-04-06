@@ -14,12 +14,14 @@ from .models.team_user import TeamUser
 from .models.invitation import Invitation
 from .models.goal import Goal
 from .models.mission import Mission
+from .models.pledge import Pledge
 from .forms.register import Register
 from .forms.login import Login
 from .forms.invite import Invite
 from .forms.enlist import EnlistExistingUser, EnlistNewUser
 
 import hashlib
+import pendulum
 import uuid
 
 def teams(user):
@@ -65,15 +67,69 @@ def login():
 def about():
   return render_template('about.html')
 
-@app.route('/mission/<mission_id>', methods=['GET'])
+@app.route('/mission/<team_id>/<mission_id>', methods=['GET'])
 @login_required
-def mission(mission_id):
+def mission(team_id, mission_id):
+  # TODO specify date ranges for mission
   try:
     mission = Mission.get(Mission.id == mission_id)
   except DoesNotExist:
     flash({'msg': 'Could not find mission', 'level': 'danger'})
     return redirect(url_for('dashboard'))
-  return render_template('mission.html', mission=mission)
+
+  bad_team = f'Could not find team'
+  try:
+    team = Team.get(Team.id == team_id)
+  except DoesNotExist:
+    flash({'msg': bad_team, 'level': 'danger'})
+    return redirect(url_for('dashboard'))
+  if not any(t.id == int(team_id) for t in set(teams(current_user))):
+    flash({'msg': bad_team, 'level': 'danger'})
+    return redirect(url_for('dashboard'))
+
+  start_at = pendulum.now()
+  pledges = (Pledge.select()
+    .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
+    .where((TeamUser.team_id == team.id) &
+           (start_at < Pledge.end_at)))
+  my_pledges = {p.goal_id: p for p in pledges if p.user_id == current_user.id}
+
+  return render_template('mission.html', mission=mission, my_pledges=my_pledges)
+
+@app.route('/pledge', methods=['POST'])
+def pledge():
+  if not current_user.is_authenticated:
+    return jsonify({'ok': False})
+
+  try:
+    goal_id = int(request.form['goal_id'])
+  except ValueError:
+    return jsonify({'ok': False})
+
+  # pledges last for 31 days
+  start_at = pendulum.now()
+  end_at = start_at.add(months=31)
+
+  # a user can have at most one outstanding pledge for a goal
+  conflicting_pledge = (Pledge.select()
+      .where((Pledge.user_id == current_user.id) &
+             (Pledge.goal_id == goal_id) &
+             (start_at < Pledge.end_at)))
+  if conflicting_pledge:
+    return jsonify({'ok': False})
+
+  try:
+    p = Pledge(user_id=current_user.id,
+               goal_id=goal_id,
+               start_at=start_at,
+               end_at=end_at,
+               fulfilled=False)
+    p.save()
+  except IntegrityError:
+    return jsonify({'ok': False})
+  except DatabaseError:
+    return jsonify({'ok': False})
+  return jsonify({'ok': True})
 
 @app.route('/dashboard')
 @login_required
@@ -306,6 +362,25 @@ def edit():
         #elif field_name == 'email':
         #  user.email = value
         #  user.save()
+      except DatabaseError:
+        transaction.rollback()
+        return jsonify({'ok': False})
+      else:
+        return jsonify({'ok': True})
+
+  elif table_name == 'pledge':
+    try:
+      pledge = Pledge.get(Pledge.id == object_id)
+    except Pledge.DoesNotExist:
+      return jsonify({'ok': False})
+    if current_user.id != pledge.user_id:
+      return jsonify({'ok': False})
+
+    with db.atomic() as transaction:
+      try:
+        if field_name == 'fulfilled':
+          pledge.fulfilled = (value == 'true')
+          pledge.save()
       except DatabaseError:
         transaction.rollback()
         return jsonify({'ok': False})

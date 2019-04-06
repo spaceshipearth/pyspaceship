@@ -4,9 +4,57 @@
 
 {% block content %}
 <h3>{{ mission.title }}</h3>
-<ul>
-{% for goal in mission.goals: %}
-    <li>{{ goal.short_description }}
-{% endfor %}
 
+<section class="primary">
+<h4>Primary Objectives</h4>
+{% for week in range(1,5): %} 
+<h5>Week {{ week }}</h5>
+{% for goal in mission.goals: %}
+{% if goal.week == week and goal.primary_for_mission %}
+{% include "goal.html" %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+</section>
+
+<section class="bonus">
+<h5>Bonus</h5>
+{% for goal in mission.goals: %}
+{% if not goal.primary_for_mission %}
+{% include "goal.html" %}
+{% endif %}
+{% endfor %}
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  $('.pledge').click(function() {
+    var container = $(this).parent();
+    var goal = $(this).data('goal');
+    $.post('/pledge', {
+      'goal_id': goal
+    }).done(function(json) {
+      if (json['ok']) {
+        $(container).removeClass('nonpledged').addClass('pledged');
+      }
+    });
+  });
+
+  $('.done').click(function() {
+    var checked = $(this).prop('checked');
+    var pledge = $(this).data('pledge');
+    $.post('/edit', {
+      'table': 'pledge',
+      'field': 'fulfilled',
+      'id': pledge,
+      'value': checked
+    }).done(function(json) {
+      if (json['ok']) {
+      }
+    });
+  });
+</script>
 {% endblock %}
