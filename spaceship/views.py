@@ -398,6 +398,19 @@ def gravatar():
     return link
   return dict(gravatar=write_gravatar_link)
 
+@app.before_request
+def mock_time():
+  try:
+    fake_time = request.values.get('now')
+    now = pendulum.parse(fake_time)
+    pendulum.set_test_now(now)
+  except:
+    pass
+
+@app.teardown_request
+def unmock_time(response):
+  pendulum.set_test_now()
+
 @app.route('/health')
 def health():
   db.connect(reuse_if_open=True)
