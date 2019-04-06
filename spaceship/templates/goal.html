@@ -4,15 +4,15 @@
 
 <div class="goal">
   <div>{{ goal.short_description }}</div>
-  <div class="pledge-controls row {{ 'pledged' if pledged else 'nonpledged' }}">
-    <div class="col-auto ml-auto">
-    <a href="#" class="pledge btn" data-goal="{{ goal.id }}">Pledge</a>
-    <label class="done-label form-check-label">
-      <input type="checkbox"
-             class="done form-check-input" 
-             data-pledge="{{ pledge_id }}"
-             {% if fulfilled %}checked{% endif %}>Done
-    </label>
+  <div class="pledge-controls row">
+    <div class="col-auto ml-auto {{ 'pledged' if pledged else 'nonpledged' }}">
+      <a href="#" class="pledge btn" data-goal="{{ goal.id }}">Pledge</a>
+      <label class="done-label form-check-label">
+        <input type="checkbox"
+               class="done form-check-input" 
+               data-pledge="{{ pledge_id }}"
+               {% if fulfilled %}checked{% endif %}>Done
+      </label>
     </div>
   </div>
 </div>
