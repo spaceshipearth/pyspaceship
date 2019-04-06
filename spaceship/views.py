@@ -108,7 +108,7 @@ def pledge():
 
   # pledges last for 31 days
   start_at = pendulum.now()
-  end_at = start_at.add(months=31)
+  end_at = start_at.add(days=31)
 
   # a user can have at most one outstanding pledge for a goal
   conflicting_pledge = (Pledge.select()
