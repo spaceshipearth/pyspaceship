@@ -112,6 +112,7 @@ def mission(team_id, mission_id):
       flash({'msg': 'Could not start mission', 'level': 'danger'})
 
   week_of_mission = 0
+  mission_pledges = []
   if team.mission and team.mission.id == mission.id:
     week_of_mission = (pendulum.now() - team.mission_start_at).in_weeks() + 1
     if week_of_mission >= 5:
@@ -126,18 +127,18 @@ def mission(team_id, mission_id):
           transaction.rollback()
         else:
           flash({'msg': f'Mission has concluded.', 'level': 'success'})
-
-  start_at = pendulum.now()
-  active_pledges = (Pledge.select()
-    .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
-    .where((TeamUser.team_id == team.id) &
-           (start_at < Pledge.end_at)))
+    else:
+      mission_end_at = team.mission_start_at.add(weeks=4)
+      mission_pledges = (Pledge.select()
+        .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
+        .where((TeamUser.team_id == team.id) &
+               (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < team.mission_start_at)))))
   team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
   goal_progress = {goal.id: count_goal_progress(team_size=team_size,
-                                                pledges=[p for p in active_pledges if p.goal_id == goal.id])
+                                                pledges=[p for p in mission_pledges if p.goal_id == goal.id])
                    for goal in mission.goals}
 
-  my_pledges = {p.goal_id: p for p in active_pledges if p.user_id == current_user.id}
+  my_pledges = {p.goal_id: p for p in mission_pledges if p.user_id == current_user.id}
 
   return render_template('mission.html',
                          start_mission=start_mission,
@@ -155,18 +156,19 @@ def goal_progress(team_id, goal_id):
   team = get_team_if_member(team_id)
   if not team:
     raise ValueError('auth')
+  start_at = pendulum.parse(request.values.get('start_at'))
+  mission_end_at = start_at.add(weeks=4)
 
-  start_at = pendulum.now()
-  active_pledges_for_goal = (Pledge.select()
+  mission_pledges_for_goal = (Pledge.select()
     .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
-    .where((TeamUser.team_id == team_id) &
+    .where((TeamUser.team_id == team.id) &
            (Pledge.goal_id == goal_id) &
-           (start_at < Pledge.end_at)))
+           (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < start_at)))))
   team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
-  progress = count_goal_progress(team_size=team_size, pledges=active_pledges_for_goal)
+  progress = count_goal_progress(team_size=team_size, pledges=mission_pledges_for_goal)
 
   my_pledge_id = -1
-  for p in active_pledges_for_goal:
+  for p in mission_pledges_for_goal:
     if p.user_id == current_user.id:
       my_pledge_id = p.id
       break
@@ -189,7 +191,6 @@ def count_goal_progress(team_size=1, pledges=[]):
 
 @app.route('/pledge', methods=['POST'])
 def pledge():
-  # TODO csrf
   if not current_user.is_authenticated:
     return jsonify({'ok': False})
 
@@ -208,7 +209,7 @@ def pledge():
              (Pledge.goal_id == goal_id) &
              (start_at < Pledge.end_at)))
   if conflicting_pledge:
-    return jsonify({'ok': False})
+    return jsonify({'ok': False, 'conflicting': True})
 
   try:
     p = Pledge(user_id=current_user.id,
@@ -405,7 +406,6 @@ def profile(user_id):
 
 @app.route('/edit', methods=['POST'])
 def edit():
-  # TODO csrf
   if not current_user.is_authenticated:
     return jsonify({'ok': False})
 
@@ -467,7 +467,10 @@ def edit():
     with db.atomic() as transaction:
       try:
         if field_name == 'fulfilled':
-          pledge.fulfilled = (value == 'true')
+          fulfilled = (value == 'true')
+          pledge.fulfilled = fulfilled
+          if fulfilled:
+            pledge.fulfilled_at = pendulum.now()
           pledge.save()
       except DatabaseError:
         transaction.rollback()
