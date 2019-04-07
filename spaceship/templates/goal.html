@@ -3,6 +3,7 @@
 
 <div class="goal" data-goal="{{ goal.id }}">
   <div>{{ goal.short_description }}</div>
+  {% if week_of_mission > 0 and week_of_mission <= 4 and week_of_mission >= goal.week %}
   <div class="goal-progress"
        data-update-url="{{ url_for('goal_progress', team_id=team.id, goal_id=goal.id) }}">
     {% set progress = goal_progress[goal.id] %}
@@ -19,4 +20,5 @@
       </label>
     </div>
   </div>
+  {% endif %}
 </div>

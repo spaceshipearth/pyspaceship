@@ -4,6 +4,44 @@
 
 {% block content %}
 <h3>{{ mission.title }}</h3>
+{% if week_of_mission > 0 and week_of_mission <= 4 %}
+<p>Currently active, in week {{ week_of_mission }}!
+{% else %}
+<p>Not currently active.
+{% endif %}
+
+{% if is_captain and not team.mission %}
+<p>Commit your team to this mission for one month?
+<form method="POST" class="needs-validation" novalidate>
+  {% for field in start_mission %}
+  {% set errors = start_mission.errors[field.name] %}
+  {% if field.flags.hidden %}
+    {{ field(class="form-control") }}
+  {% elif field.type == "SubmitField" %}
+    {{ field(class="btn btn-primary") }}
+  {% else %}
+    {% if errors %}
+    {% set class="form-control is-invalid" %}
+    {% else %}
+    {% set class="form-control" %}
+    {% endif %}
+
+    <div class="row">
+      <span class="col-3">{{ field.label() }}</span>
+    </div>
+    <div class="row form-box">
+      <span class="col-6">
+      {{ field(class=class) }}
+      <div class="invalid-feedback">
+        {{ ';'.join(errors) }}
+      </div>
+      {{ field.description }}
+      </span>
+    </div>
+  {% endif %}
+  {% endfor %}
+</form>
+{% endif %}
 
 <section class="primary">
 <h4>Primary Objectives</h4>

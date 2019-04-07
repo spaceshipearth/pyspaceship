@@ -19,6 +19,7 @@ from .forms.register import Register
 from .forms.login import Login
 from .forms.invite import Invite
 from .forms.enlist import EnlistExistingUser, EnlistNewUser
+from .forms.start_mission import StartMission
 
 import hashlib
 import pendulum
@@ -76,10 +77,9 @@ def login():
 def about():
   return render_template('about.html')
 
-@app.route('/mission/<team_id>/<mission_id>', methods=['GET'])
+@app.route('/mission/<team_id>/<mission_id>', methods=['GET', 'POST'])
 @login_required
 def mission(team_id, mission_id):
-  # TODO specify date ranges for mission
   try:
     mission = Mission.get(Mission.id == mission_id)
   except DoesNotExist:
@@ -90,6 +90,42 @@ def mission(team_id, mission_id):
   if not team:
     flash({'msg': 'Could not find team', 'level': 'danger'})
     return redirect(url_for('dashboard'))
+  is_captain = team.captain_id == current_user.id
+
+  start_mission = StartMission()
+  if start_mission.validate_on_submit():
+    if is_captain and not team.mission:
+      with db.atomic() as transaction:
+        try:
+          team.mission = mission
+          team.mission_start_at = pendulum.now()
+          team.save()
+        except IntegrityError:
+          transaction.rollback()
+          flash({'msg': f'Database error', 'level': 'danger'})
+        except DatabaseError:
+          transaction.rollback()
+          flash({'msg': f'Database error', 'level': 'danger'})
+        else:
+          flash({'msg': f'Started mission!', 'level': 'success'})
+    else:
+      flash({'msg': 'Could not start mission', 'level': 'danger'})
+
+  week_of_mission = 0
+  if team.mission and team.mission.id == mission.id:
+    week_of_mission = (pendulum.now() - team.mission_start_at).in_weeks() + 1
+    if week_of_mission >= 5:
+      with db.atomic() as transaction:
+        try:
+          team.mission = None
+          team.save()
+          # TODO roll up to completed missions
+        except IntegrityError:
+          transaction.rollback()
+        except DatabaseError:
+          transaction.rollback()
+        else:
+          flash({'msg': f'Mission has concluded.', 'level': 'success'})
 
   start_at = pendulum.now()
   active_pledges = (Pledge.select()
@@ -103,7 +139,14 @@ def mission(team_id, mission_id):
 
   my_pledges = {p.goal_id: p for p in active_pledges if p.user_id == current_user.id}
 
-  return render_template('mission.html', team=team, mission=mission, my_pledges=my_pledges, goal_progress=goal_progress)
+  return render_template('mission.html',
+                         start_mission=start_mission,
+                         week_of_mission=week_of_mission,
+                         team=team,
+                         is_captain=is_captain,
+                         mission=mission,
+                         my_pledges=my_pledges,
+                         goal_progress=goal_progress)
 
 @app.route('/goal_progress/<team_id>/<goal_id>')
 def goal_progress(team_id, goal_id):
@@ -146,6 +189,7 @@ def count_goal_progress(team_size=1, pledges=[]):
 
 @app.route('/pledge', methods=['POST'])
 def pledge():
+  # TODO csrf
   if not current_user.is_authenticated:
     return jsonify({'ok': False})
 
@@ -361,6 +405,7 @@ def profile(user_id):
 
 @app.route('/edit', methods=['POST'])
 def edit():
+  # TODO csrf
   if not current_user.is_authenticated:
     return jsonify({'ok': False})
 
