@@ -106,3 +106,8 @@ venv.bak/
 # a sqlite local db
 app.db
 sendgrid.env
+
+# local frameworks for offline testing
+spaceship/static/bootstrap.bundle.min.js
+spaceship/static/bootstrap.min.css
+spaceship/static/jquery-3.2.1.js
