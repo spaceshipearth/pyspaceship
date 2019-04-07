@@ -34,7 +34,7 @@ def teams(user):
 def get_team_if_member(team_id):
   try:
     team = Team.get(Team.id == team_id)
-  except DoesNotExist:
+  except Team.DoesNotExist:
     return None
   if not any(t.id == int(team_id) for t in set(teams(current_user))):
     return None
