@@ -31,30 +31,43 @@
 {% block scripts %}
 {{ super() }}
 <script>
-  $('.pledge').click(function() {
-    var container = $(this).parent();
-    var goal = $(this).data('goal');
-    $.post('/pledge', {
-      'goal_id': goal
-    }).done(function(json) {
-      if (json['ok']) {
-        $(container).removeClass('nonpledged').addClass('pledged');
-      }
-    });
+function updateProgress(goalDiv) {
+  var progress = goalDiv.find('.goal-progress');
+  var updateUrl = progress.data('update-url')
+  $.ajax(updateUrl).done(function(html) {
+    $(progress).html(html);
   });
+}
 
-  $('.done').click(function() {
-    var checked = $(this).prop('checked');
-    var pledge = $(this).data('pledge');
-    $.post('/edit', {
-      'table': 'pledge',
-      'field': 'fulfilled',
-      'id': pledge,
-      'value': checked
-    }).done(function(json) {
-      if (json['ok']) {
-      }
-    });
+$('.pledge').click(function() {
+  var goalDiv = $(this).parents('.goal');
+  $.post('/pledge', {
+    'goal_id': goalDiv.data('goal')
+  }).done(function(json) {
+    if (json['ok']) {
+      var pledgeControls = goalDiv.find('.pledge-controls');
+      pledgeControls.removeClass('nonpledged').addClass('pledged');
+      updateProgress(goalDiv);
+    }
   });
+  return false;
+});
+
+$('.done').click(function() {
+  var goalDiv = $(this).parents('.goal');
+  var progressDiv = goalDiv.find('.progress');
+  var pledgeId = progressDiv.data('my-pledge');
+  var checked = $(this).prop('checked');
+  $.post('/edit', {
+    'table': 'pledge',
+    'field': 'fulfilled',
+    'id': pledgeId,
+    'value': checked
+  }).done(function(json) {
+    if (json['ok']) {
+      updateProgress(goalDiv);
+    }
+  });
+});
 </script>
 {% endblock %}

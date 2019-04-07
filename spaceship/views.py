@@ -1,7 +1,7 @@
 
 from flask import render_template, flash, redirect, url_for, jsonify, request
 from flask_login import login_user, logout_user, login_required, current_user
-from peewee import DatabaseError, IntegrityError
+from peewee import DatabaseError, IntegrityError, fn
 
 from . import app
 from . import email
@@ -30,6 +30,15 @@ def teams(user):
           .join(TeamUser)
           .join(User)
           .where(User.id == user.id))
+
+def get_team_if_member(team_id):
+  try:
+    team = Team.get(Team.id == team_id)
+  except DoesNotExist:
+    return None
+  if not any(t.id == int(team_id) for t in set(teams(current_user))):
+    return None
+  return team
 
 @app.route('/')
 def home():
@@ -77,24 +86,63 @@ def mission(team_id, mission_id):
     flash({'msg': 'Could not find mission', 'level': 'danger'})
     return redirect(url_for('dashboard'))
 
-  bad_team = f'Could not find team'
-  try:
-    team = Team.get(Team.id == team_id)
-  except DoesNotExist:
-    flash({'msg': bad_team, 'level': 'danger'})
-    return redirect(url_for('dashboard'))
-  if not any(t.id == int(team_id) for t in set(teams(current_user))):
-    flash({'msg': bad_team, 'level': 'danger'})
+  team = get_team_if_member(team_id)
+  if not team:
+    flash({'msg': 'Could not find team', 'level': 'danger'})
     return redirect(url_for('dashboard'))
 
   start_at = pendulum.now()
-  pledges = (Pledge.select()
+  active_pledges = (Pledge.select()
     .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
     .where((TeamUser.team_id == team.id) &
            (start_at < Pledge.end_at)))
-  my_pledges = {p.goal_id: p for p in pledges if p.user_id == current_user.id}
+  team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
+  goal_progress = {goal.id: count_goal_progress(team_size=team_size,
+                                                pledges=[p for p in active_pledges if p.goal_id == goal.id])
+                   for goal in mission.goals}
 
-  return render_template('mission.html', mission=mission, my_pledges=my_pledges)
+  my_pledges = {p.goal_id: p for p in active_pledges if p.user_id == current_user.id}
+
+  return render_template('mission.html', team=team, mission=mission, my_pledges=my_pledges, goal_progress=goal_progress)
+
+@app.route('/goal_progress/<team_id>/<goal_id>')
+def goal_progress(team_id, goal_id):
+  if not current_user.is_authenticated:
+    raise ValueError('auth')
+  team = get_team_if_member(team_id)
+  if not team:
+    raise ValueError('auth')
+
+  start_at = pendulum.now()
+  active_pledges_for_goal = (Pledge.select()
+    .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
+    .where((TeamUser.team_id == team_id) &
+           (Pledge.goal_id == goal_id) &
+           (start_at < Pledge.end_at)))
+  team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
+  progress = count_goal_progress(team_size=team_size, pledges=active_pledges_for_goal)
+
+  my_pledge_id = -1
+  for p in active_pledges_for_goal:
+    if p.user_id == current_user.id:
+      my_pledge_id = p.id
+      break
+
+  return render_template('goal_progress.html', my_pledge_id=my_pledge_id, progress=progress)
+
+def count_goal_progress(team_size=1, pledges=[]):
+  progress = {'num_done': 0, 'num_pledged': 0, 'num_active': 0}
+  for p in pledges:
+    if p.fulfilled:
+      progress['num_done'] += 1
+    else:
+      progress['num_pledged'] += 1
+    progress['num_active'] += 1
+  def percent_of_team(count):
+    return '{:.2f}%'.format(100 * (count / team_size))
+  progress['percent_done'] = percent_of_team(progress['num_done'])
+  progress['percent_pledged'] = percent_of_team(progress['num_pledged'])
+  return progress
 
 @app.route('/pledge', methods=['POST'])
 def pledge():
@@ -179,14 +227,9 @@ def register():
 @app.route('/roster/<team_id>', methods=['GET', 'POST'])
 @login_required
 def roster(team_id):
-  bad_team = f'Could not find team'
-  try:
-    team = Team.get(Team.id == team_id)
-  except DoesNotExist:
-    flash({'msg': bad_team, 'level': 'danger'})
-    return redirect(url_for('dashboard'))
-  if not any(t.id == int(team_id) for t in set(teams(current_user))):
-    flash({'msg': bad_team, 'level': 'danger'})
+  team = get_team_if_member(team_id)
+  if not team:
+    flash({'msg': 'Could not find team', 'level': 'danger'})
     return redirect(url_for('dashboard'))
 
   is_captain = team.captain_id == current_user.id

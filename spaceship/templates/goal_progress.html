@@ -1,0 +1,12 @@
+{% if progress.num_active > 0 %}
+<div class="progress" data-my-pledge="{{ my_pledge_id }}">
+  {% if progress.num_done > 0 %}
+  <div class="bg-success" style="width: {{ progress.percent_done }}">Done ({{ progress.num_done }})</div>
+  {% endif %}
+  {% if progress.num_pledged > 0 %}
+  <div class="bg-primary" style="width: {{ progress.percent_pledged }}">Pledged ({{ progress.num_pledged }})</div>
+  {% endif %}
+</div>
+{% else %}
+<em>Nobody pledged for this yet.</em>
+{% endif %}
