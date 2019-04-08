@@ -2,6 +2,8 @@
 from invoke import task, run, Responder
 from peewee_moves import DatabaseManager
 
+from .utils import ROOT_REPO_DIR, in_repo_root
+
 PORT = 9876
 FLASK_ENV = {
   'FLASK_APP':'spaceship',
@@ -24,18 +26,22 @@ def flask(ctx, debug=True):
   if debug:
     FLASK_ENV['FLASK_DEBUG'] = '1'
 
-  run(f'flask run -p {PORT}', env=FLASK_ENV)
+  with ctx.cd(ROOT_REPO_DIR):
+    ctx.run(f'flask run -p {PORT}', env=FLASK_ENV)
 
 @task
 def shell(ctx):
   """Run the flask shell"""
-  run(f'flask shell', env=FLASK_ENV, pty=True)
+  with ctx.cd(ROOT_REPO_DIR):
+    ctx.run(f'flask shell', env=FLASK_ENV, pty=True)
 
 @task()
 def gunicorn(ctx):
   """Runs the server via gunicorn"""
   print(f"Running gunicorn on localhost:{PORT}...")
-  run(f'gunicorn spaceship:app --bind 127.0.0.1:{PORT}')
+
+  with ctx.cd(ROOT_REPO_DIR):
+    ctx.run(f'gunicorn spaceship:app --bind 127.0.0.1:{PORT}')
 
 @task(
   help={
@@ -65,8 +71,9 @@ def mysql_client(ctx):
 @task
 def migration_status(ctx):
   """Show the status of current migrations"""
-  manager = get_db_manager()
-  manager.status()
+  with in_repo_root():
+    manager = get_db_manager()
+    manager.status()
 
 @task(
   help={
@@ -76,14 +83,15 @@ def migration_status(ctx):
 )
 def migration_prep(ctx, name = None, model = None):
   """Create a migration file to alter DB schema"""
-  manager = get_db_manager()
+  with in_repo_root():
+    manager = get_db_manager()
 
-  if model:
-    manager.create(model)
-  elif name:
-    manager.revision(name)
-  else:
-    raise ValueError("You must pass in either 'name' or 'model'")
+    if model:
+      manager.create(model)
+    elif name:
+      manager.revision(name)
+    else:
+      raise ValueError("You must pass in either 'name' or 'model'")
 
 @task(
   help={
@@ -92,11 +100,12 @@ def migration_prep(ctx, name = None, model = None):
 )
 def upgrade(ctx, target = None):
   """Apply pending migrations (or, optionally, only up to given target version)"""
-  manager = get_db_manager()
-  if target:
-    manager.upgrade(target)
-  else:
-    manager.upgrade()
+  with in_repo_root():
+    manager = get_db_manager()
+    if target:
+      manager.upgrade(target)
+    else:
+      manager.upgrade()
 
 @task(
   help={
@@ -105,8 +114,9 @@ def upgrade(ctx, target = None):
 )
 def downgrade(ctx, target = None):
   """Undo last migration (or optionally, all since given target version)"""
-  manager = get_db_manager()
-  if target:
-    manager.downgrade(target)
-  else:
-    manager.downgrade()
+  with in_repo_root():
+    manager = get_db_manager()
+    if target:
+      manager.downgrade(target)
+    else:
+      manager.downgrade()

@@ -1,11 +1,23 @@
 
 from invoke import run
+
+import contextlib
 import jsone
 import os, os.path
 import tempfile
 import yaml
 
 ROOT_REPO_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+@contextlib.contextmanager
+def in_repo_root():
+  cwd = os.getcwd()
+
+  os.chdir(ROOT_REPO_DIR)
+  try:
+    yield
+  finally:
+    os.chdir(cwd)
 
 def load_manifest(mtype, context = {}):
   """Load the specified yaml file given the specified context"""

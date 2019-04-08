@@ -3,7 +3,7 @@ from invoke.exceptions import Exit
 
 import json
 
-from . import utils
+from .utils import load_manifest, k8s_apply, in_repo_root
 
 DEFAULT_VERSION = 'latest'
 REPO = "us.gcr.io"
@@ -47,9 +47,10 @@ def build(ctx, version=DEFAULT_VERSION, push=True):
   """Builds and uploads the docker image"""
   tag = generate_tag(version)
 
-  result = do_build(tag)
-  if push:
-    do_push(tag)
+  with in_repo_root():
+    result = do_build(tag)
+    if push:
+      do_push(tag)
 
   print('Built image %(image_id)s, tagged %(tag)s (context size: %(context_size)s)' % result)
 
@@ -73,8 +74,9 @@ def release(ctx, version):
 
   # generate and push correctly-tagged build
   docker_tag = generate_tag(version)
-  do_build(docker_tag)
-  do_push(docker_tag)
+  with in_repo_root():
+    do_build(docker_tag)
+    do_push(docker_tag)
 
   # mark the git repo as corresponding to that tag
   run('git tag -a %s -m "Releasing image %s"' % (version, docker_tag))
@@ -89,19 +91,19 @@ def deploy(ctx, version = DEFAULT_VERSION, dry_run = False):
   """Generates and applies k8s configuration"""
   tag = generate_tag(version)
 
-  deployment = utils.load_manifest(
+  deployment = load_manifest(
     'deployment',
     {
       'image': tag,
     }
   )
-  utils.k8s_apply(deployment, dry_run)
+  k8s_apply(deployment, dry_run)
 
-  service = utils.load_manifest('service')
-  utils.k8s_apply(service, dry_run)
+  service = load_manifest('service')
+  k8s_apply(service, dry_run)
 
-  ingress = utils.load_manifest('ingress')
-  utils.k8s_apply(ingress, dry_run)
+  ingress = load_manifest('ingress')
+  k8s_apply(ingress, dry_run)
 
   info = json.loads(run('kubectl get ingress pyspaceship-ingress -o=json', hide=True).stdout)
   ingress = info['status']['loadBalancer']['ingress']
