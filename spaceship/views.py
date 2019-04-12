@@ -308,7 +308,7 @@ def roster(team_id):
                  .select()
                  .where(Invitation.team_id == team_id))
 
-  return render_template('roster.html', is_captain=is_captain, team=team, roster=roster, invitations=invitations, invite=invite)
+  return render_template('roster.html', is_captain=is_captain, team=team, missions=Mission.select(), roster=roster, invitations=invitations, invite=invite)
 
 @app.route('/enlist/<key>', methods=['GET', 'POST'])
 def enlist(key):
