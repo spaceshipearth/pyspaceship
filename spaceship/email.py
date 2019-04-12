@@ -15,4 +15,4 @@ def send(to_emails, subject, html_content, from_email='gaia@spaceshipearth.org')
         response = sg.send(message)
     except Exception as e:
         # TODO: instrument send failures
-        print(e.message)
+        print("Exception occured:", e)
