@@ -43,6 +43,9 @@ def get_team_if_member(team_id):
 
 @app.route('/')
 def home():
+  if current_user.is_authenticated:
+    return redirect(url_for('dashboard'))
+
   return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
