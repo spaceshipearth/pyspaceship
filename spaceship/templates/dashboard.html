@@ -7,11 +7,7 @@
 {% for team in teams: %}
   <section class="border">
     <h5>Team
-    {% if team.captain.id == current_user.id %}
-      <a role="button" class="editable" data-title="Edit team name" data-table="team" data-id="{{ team.id }}" data-field="name">{{ team.name }}</a>
-    {% else %}
       {{ team.name }}
-    {% endif %}
     </h5>
     <h5>Missions</h5>
     {% for mission in missions: %}

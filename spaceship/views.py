@@ -248,7 +248,6 @@ def register():
   register = Register()
 
   if register.validate_on_submit():
-    error_saving = False
     with db.atomic() as transaction:
       try:
         u = User(name=register.data['name'],
@@ -258,7 +257,6 @@ def register():
 
         t = Team(captain=u, name=names.name_team())
         t.save()
-
         tu = TeamUser(team=t, user=u)
         tu.save()
       except IntegrityError:
@@ -282,6 +280,25 @@ def register():
     return redirect(url_for('dashboard'))
 
   return render_template('register.html', register=register)
+
+
+@app.route('/create_crew', methods=['GET'])
+def create_crew():
+  with db.atomic() as transaction:
+    try:
+      u = current_user.id
+      t = Team(captain=u, name=names.name_team())
+      t.save()
+      tu = TeamUser(team=t, user=u)
+      tu.save()
+    except (IntegrityError, DatabaseError) as e:
+      transaction.rollback()
+      flash({'msg':f'Error creating a new crew', 'level':'danger'})
+
+  return redirect(url_for('dashboard'))
+
+
+
 
 @app.route('/roster/<team_id>', methods=['GET', 'POST'])
 @login_required
