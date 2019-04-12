@@ -55,7 +55,13 @@
       {{ render_nav_item('login', 'Log In') }}
     </div>
     {% else %}
-    <div class="navbar-item ml-auto">
+
+    <form class="form-inline">
+      <a href="{{ url_for('register') }}" class="btn btn-primary" role="button">Start a new crew</a>
+    </form>
+
+    
+    <div class="navbar-item">
       <div class="dropdown dropleft nav-item">
         <a role="button" class="dropdown-toggle" data-toggle="dropdown">
           <img src="{{ gravatar(current_user.email, size=30) }}" width="30" height="30" alt="Profile" class="d-inline-block align-top">
