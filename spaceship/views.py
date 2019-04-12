@@ -43,8 +43,13 @@ def get_team_if_member(team_id):
 
 @app.route('/')
 def home():
+  # take the user directly to their team if they only have one, dashboard otherwise
   if current_user.is_authenticated:
-    return redirect(url_for('dashboard'))
+    current_user_teams = teams(current_user)
+    if len(current_user_teams) > 1:
+      return redirect(url_for('dashboard'))
+    else:
+      return redirect(url_for('roster', team_id=current_user_teams[0].id))
 
   return render_template('index.html')
 
@@ -230,7 +235,13 @@ def pledge():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-  return render_template('dashboard.html', teams=teams(current_user), missions=Mission.select())
+  current_user_teams = teams(current_user)
+
+  # go straight to team page iff user only has one team
+  if len(current_user_teams) == 1:
+    return redirect(url_for('roster', team_id=current_user_teams[0].id))
+
+  return render_template('dashboard.html', teams=current_user_teams, missions=Mission.select())
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
