@@ -7,7 +7,6 @@ from ..db import BaseModel
 
 from .custom_fields import PendulumDateTimeField
 from .user import User
-from .achievement import Achievement
 
 class UserAchievement(BaseModel):
   id = AutoField(primary_key=True)
