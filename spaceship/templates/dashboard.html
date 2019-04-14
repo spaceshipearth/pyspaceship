@@ -3,7 +3,7 @@
 {% block title %}Dashboard - {{ super() }}{% endblock %}
 
 {% block content %}
-<h3>Welcome {{ current_user.name.split(" ")[0] }}! </h3>
+<h3>Welcome <a href="{{ url_for('profile', user_id=current_user.id) }}">{{ current_user.name.split(" ")[0] }}</a>! </h3>
 {% for team in teams: %}
   <section class="dash-team">
     <h5>{{ team.name }}</h5>
@@ -19,9 +19,13 @@
   </section>
 {% endfor %}
 
+<div class="row">
+<div class="ml-auto col-auto">
 <form method="POST" action="/create_crew" class="needs-validation" novalidate>
   {% set form = create_crew %}
   {% include 'form_fields.html' %}
 </form>
+</div>
+</div>
 
 {% endblock %}
