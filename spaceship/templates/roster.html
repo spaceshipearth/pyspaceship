@@ -1,116 +1,115 @@
 {% extends "base.html" %}
 
-{% block title %} Crew Nest - {{ super() }}{% endblock %}
+{% block title %}Crew Nest - {{ super() }}{% endblock %}
 
 {% block content %}
 
 <div class="row">
-
-<h3>
+<h3 class="col">
 {% if team.captain.id == current_user.id %}
 <a role="button" class="editable" data-title="Edit team name" data-table="team" data-id="{{ team.id }}" data-field="name">{{ team.name }}</a>
 {% else %}
 {{ team.name }}
 {% endif %}
 </h3>
-
 </div>
 
-<div class="row" style="flex:50%">
-  <div class="column" style="float:left;width:50%">
-    <section>
-      <h4>About</h4>
-      <div><p>Best. Crew. Ever.</p></div>
-      <h4>Missions</h4>
-      {% for mission in missions: %}
-        {% if mission.is_active %}
-          <div>
-            <div style="color:green;">ACTIVE MISSION: <a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}&mdash;{{ mission.short_description }}</a></div>
-          </div>
-        {% else %}
-          <div>
-            <div><a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}: {{ mission.short_description }}</a></div>
-          </div>
-        {% endif %}
-      {% endfor %}
-    </section>
-  </div>
-  <div class="column" style="float:left;width:50%">
-    <section>
-      <h4>Roster</h4>
-      <table class="table-bordered">
-        <thead class="thead-dark">
-          <tr>
-            <th>Profile
-            <th>Name
-            <th>Email
-        </thead>
-        <tbody>
-        {% for user in roster: %}
-          <tr>
-            <td>
-              <a href="{{ url_for('profile', user_id=user.id) }}">
-                <img src="{{ gravatar(user.email, size=30) }}" width="30" height="30">
-              </a>
-            <td>{% if user.id == team.captain_id %}
-                  {{ user.name }} (Captain)
-                {% else %}
-                  {{ user.name }}
-                {% endif %}
-            <td>{{ user.email }}
-        {% endfor %}
-        </tbody>
-      </table>
-    </section>
-  
-  
-    {% if is_captain %}
-
-    <section>
-    <h4>Crew Invitations</h4>
-    {% for invite in invitations: %}
+<div class="row">
+<div class="col-sm-6">
+<section>
+  <h4>About</h4>
+  <div><p>Best. Crew. Ever.</p></div>
+  <h4>Missions</h4>
+  {% for mission in missions: %}
+    {% if mission.is_active %}
       <div>
-        {{ invite.invited_email }}
-        {{ invite.status }}
-        {{ invite.created_at }}
+        <div style="color:green;">ACTIVE MISSION: <a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}&mdash;{{ mission.short_description }}</a></div>
       </div>
-    {% endfor %}
-    </section>
-
-    <section>
-    <form method="POST" class="needs-validation" novalidate>
-      {% for field in invite %}
-      {% set errors = invite.errors[field.name] %}
-      {% if field.flags.hidden %}
-        {{ field(class="form-control") }}
-      {% elif field.type == "SubmitField" %}
-        {{ field(class="btn btn-primary") }}
-      {% else %}
-        {% if errors %}
-        {% set class="form-control is-invalid" %}
-        {% else %}
-        {% set class="form-control" %}
-        {% endif %}
-
-        <div class="row">
-          <span class="col-md-3">{{ field.label() }}</span>
-        </div>
-        <div class="row form-box">
-          <span class="col-md-6">
-          {{ field(class=class) }}
-          <div class="invalid-feedback">
-            {{ ';'.join(errors) }}
-          </div>
-          {{ field.description }}
-          </span>
-        </div>
-      {% endif %}
-      {% endfor %}
-    </form>
-    </section>
-  </div>
+    {% else %}
+      <div>
+        <div><a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}: {{ mission.short_description }}</a></div>
+      </div>
+    {% endif %}
+  {% endfor %}
+</section>
 </div>
+
+<div class="col-sm-6">
+<section>
+  <h4>Roster</h4>
+  <table class="table-bordered">
+    <thead class="thead-dark">
+      <tr>
+        <th>Profile
+        <th>Name
+        <th>Email
+    </thead>
+    <tbody>
+    {% for user in roster: %}
+      <tr>
+        <td>
+          <a href="{{ url_for('profile', user_id=user.id) }}">
+            <img src="{{ gravatar(user.email, size=30) }}" width="30" height="30">
+          </a>
+        <td>{% if user.id == team.captain_id %}
+              {{ user.name }} (Captain)
+            {% else %}
+              {{ user.name }}
+            {% endif %}
+        <td>{{ user.email }}
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if is_captain %}
+
+<section>
+<h4>Crew Invitations</h4>
+{% for invite in invitations: %}
+  <div>
+    {{ invite.invited_email }}
+    {{ invite.status }}
+    {{ invite.created_at }}
+  </div>
+{% endfor %}
+</section>
+
+<section>
+<form method="POST" class="needs-validation" novalidate>
+  {% for field in invite %}
+  {% set errors = invite.errors[field.name] %}
+  {% if field.flags.hidden %}
+    {{ field(class="form-control") }}
+  {% elif field.type == "SubmitField" %}
+    {{ field(class="btn btn-primary") }}
+  {% else %}
+    {% if errors %}
+    {% set class="form-control is-invalid" %}
+    {% else %}
+    {% set class="form-control" %}
+    {% endif %}
+
+    <div class="row">
+      <span class="col-md-3">{{ field.label() }}</span>
+    </div>
+    <div class="row form-box">
+      <span class="col-md-6">
+      {{ field(class=class) }}
+      <div class="invalid-feedback">
+        {{ ';'.join(errors) }}
+      </div>
+      {{ field.description }}
+      </span>
+    </div>
+  {% endif %}
+  {% endfor %}
+</form>
+</section>
 
 {% endif %}
+
+</div>
+</div>
 
 {% endblock %}
