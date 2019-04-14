@@ -74,8 +74,9 @@ class CompleteMissionAchievement(Achievement):
 complete_mission = CompleteMissionAchievement()
 
 def for_user(user):
-  return [kinds.get(ua.name, unknown_achievement)
-          for ua in user.achievements]
+  distinct_achievements = set(ua.name for ua in user.achievements)
+  return [kinds.get(name, unknown_achievement)
+          for name in distinct_achievements]
 
 def for_team(team):
   return [kinds.get(ta.name, unknown_achievement)

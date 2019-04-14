@@ -15,15 +15,17 @@
 </div>
 
 <div class="row">
+<div class="col"><p>Best. Crew. Ever.</p></div>
+</div>
+
+<div class="row">
 <div class="col-sm-6">
 <section>
-  <h4>About</h4>
-  <div><p>Best. Crew. Ever.</p></div>
   <h4>Missions</h4>
   {% for mission in missions: %}
     {% if team.mission_id == mission.id %}
       <div>
-        <div style="color:green;">ACTIVE MISSION: <a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}&mdash;{{ mission.short_description }}</a></div>
+        <div style="color:green;">ACTIVE MISSION: <a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}</a></div>
       </div>
     {% else %}
       <div>
@@ -31,10 +33,18 @@
       </div>
     {% endif %}
   {% endfor %}
+</section>
+<section>
   <h4>Achievements</h4>
+  {% if achievements %}
   {% for achievement in achievements %}
     {% include 'achievement.html' %}
   {% endfor %}
+  {% elif is_captain %}
+    <em>None yet&mdash;try starting a mission!</em>
+  {% else %}
+    <em>None yet...</em>
+  {% endif %}
 </section>
 </div>
 
@@ -95,10 +105,10 @@
     {% endif %}
 
     <div class="row">
-      <span class="col-md-3">{{ field.label() }}</span>
+      <span class="col">{{ field.label() }}</span>
     </div>
     <div class="row form-box">
-      <span class="col-md-6">
+      <span class="col">
       {{ field(class=class) }}
       <div class="invalid-feedback">
         {{ ';'.join(errors) }}

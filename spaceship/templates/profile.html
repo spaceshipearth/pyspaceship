@@ -5,12 +5,12 @@
 {% block content %}
 <section>
 <div class="row">
-  <div class="col">
+  <div class="col-auto">
     <a href="https://www.gravatar.com">
       <img class="profile-pic" src="{{ gravatar(user.email, size=80) }}" width="80" height="80">
     </a>
   </div>
-  <div class="col-10">
+  <div class="col">
     <h1>
       {% if can_edit %}
         <a role="button" class="editable" data-title="Edit name" data-table="user" data-id="{{ user.id }}" data-field="name">{{ user.name }}</a>
@@ -25,15 +25,26 @@
         {{ user.email }}
       {# {% endif %} #}
     </div>
-    <div>Join date {{ user.created_at }}</div>
   </div>
 </div>
 </section>
 
 <section>
+<div class="row">
+  <div class="col">Joined {{ user.created_at }}</div>
+</div>
+</section>
+
+<section>
 <h5>Achievements</h5>
+{% if achievements %}
 {% for achievement in achievements %}
 {% include 'achievement.html' %}
 {% endfor %}
+{% elif can_edit  %}
+<em>None yet... try pledging for a mission goal!</em>
+{% else %}
+<em>None yet...</em>
+{% endif %}
 </section>
 {% endblock %}

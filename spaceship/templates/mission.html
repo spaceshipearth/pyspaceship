@@ -47,7 +47,8 @@
 </form>
 {% endif %}
 
-<section class="primary">
+<div class="row">
+<section class="primary col-sm-6">
 <h4>Primary Objectives</h4>
 {% for week in range(1,5): %} 
 <h5>Week {{ week }}</h5>
@@ -59,7 +60,8 @@
 {% endfor %}
 </section>
 
-<section class="bonus">
+<section class="bonus col-sm-6">
+<h4>Secondary Objectives</h4>
 <h5>Bonus</h5>
 {% for goal in mission.goals: %}
 {% if not goal.primary_for_mission %}
@@ -67,6 +69,8 @@
 {% endif %}
 {% endfor %}
 </section>
+</div>
+</div>
 
 {% endblock %}
 
