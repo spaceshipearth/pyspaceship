@@ -10,7 +10,7 @@ class Achievement(object):
   def __init__(self, name='', short_description='', **kwargs):
     self.name = name
     self.short_description = short_description
-    self.badge_url = kwargs.get('badge_url', '')
+    self.badge_url = kwargs.get('badge_url', '/static/generic-achievement.png')
     self.is_team = kwargs.get('is_team', False)
     kinds[name] = self
 
@@ -33,7 +33,7 @@ unknown_achievement = Achievement(
 # real achievements
 pledge_for_goal = Achievement(
   name='Pledge for a goal',
-  short_description='Awarded for completing the Plant based diet mission'
+  short_description='Awarded for pledging to meet a goal'
 )
 
 fulfill_pledge = Achievement(

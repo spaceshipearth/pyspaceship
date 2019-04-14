@@ -5,18 +5,17 @@
 {% block content %}
 <h3>Welcome {{ current_user.name.split(" ")[0] }}! </h3>
 {% for team in teams: %}
-  <section class="border">
-    <h5>Team
-      {{ team.name }}
-    </h5>
-    <h5>Missions</h5>
-    {% for mission in missions: %}
-      <div>
-        <div><a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}</a></div>
-        <div>{{ mission.short_description }}</div>
-      </div>
-    {% endfor %}
-    <a href="{{ url_for('roster', team_id=team) }}" class="btn btn-primary" role="button">Roster</a>
+  <section class="dash-team">
+    <h5>{{ team.name }}</h5>
+    <div>
+    {% if not team.mission_id %}
+      <em>No current mission</em>
+    {% else %}
+        <div><a href="{{ url_for('mission', team_id=team.id, mission_id=team.mission_id) }}">{{ team.mission.title }}</a></div>
+        <div>{{ team.mission.short_description }}</div>
+    {% endif %}
+    </div>
+    <a href="{{ url_for('roster', team_id=team) }}" class="btn btn-primary" role="button">Crew Page</a>
   </section>
 {% endfor %}
 

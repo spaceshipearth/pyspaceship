@@ -72,6 +72,26 @@ main {
   content: " ✎"
 }
 
+.profile-pic {
+  background: #ccc;
+}
+
+.achievement {
+  padding: 5px 0;
+}
+.achievement-pic {
+  background: #ccc;
+  border: 3px #ccc;
+  border-radius: 8px;
+}
+
+.dash-team {
+  background: #ccc;
+  border-radius: 3px;
+  padding: 10px;
+  margin: 8px;
+}
+
 .goal {
   background: #ccc;
   border-radius: 3px;

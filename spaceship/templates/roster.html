@@ -21,7 +21,7 @@
   <div><p>Best. Crew. Ever.</p></div>
   <h4>Missions</h4>
   {% for mission in missions: %}
-    {% if mission.is_active %}
+    {% if team.mission_id == mission.id %}
       <div>
         <div style="color:green;">ACTIVE MISSION: <a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}&mdash;{{ mission.short_description }}</a></div>
       </div>
@@ -30,6 +30,10 @@
         <div><a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}: {{ mission.short_description }}</a></div>
       </div>
     {% endif %}
+  {% endfor %}
+  <h4>Achievements</h4>
+  {% for achievement in achievements %}
+    {% include 'achievement.html' %}
   {% endfor %}
 </section>
 </div>

@@ -16,8 +16,11 @@
   <link rel="apple-touch-icon-precomposed" href="/static/sship-bevel-152.png" />
 
   <!-- bootstrap CSS -->
+  {% if False %}
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
+  {% else %}
+  <link rel="stylesheet" href="/static/bootstrap.min.css">
+  {% endif %}
   <link rel="stylesheet" type="text/css" href="/static/spaceship.css">
 </head>
 
@@ -57,7 +60,7 @@
     {% else %}
 
     <div class="navbar-item">
-      <div class="dropdown dropleft nav-item">
+      <div class="dropdown nav-item">
         <a role="button" class="dropdown-toggle" data-toggle="dropdown">
           <img src="{{ gravatar(current_user.email, size=30) }}" width="30" height="30" alt="Profile" class="d-inline-block align-top">
         </a>
@@ -105,12 +108,17 @@
 
 {% block scripts %}
 <!-- bootstrap JS -->
+{% if False %}
 <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
 <!-- moment -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js" integrity="sha384-fYxN7HsDOBRo1wT/NSZ0LkoNlcXvpDpFy6WzB42LxuKAX7sBwgo7vuins+E1HCaw" crossorigin="anonymous"></script>
+{% else %}
+<script src="/static/jquery-3.2.1.js"></script>
+<script src="/static/bootstrap.bundle.min.js"></script>
+{% endif %}
 
 <!-- some custom JS -->
 <script>

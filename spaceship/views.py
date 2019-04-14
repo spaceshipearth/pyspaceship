@@ -337,7 +337,14 @@ def roster(team_id):
                  .select()
                  .where(Invitation.team_id == team_id))
 
-  return render_template('roster.html', is_captain=is_captain, team=team, missions=Mission.select(), roster=roster, invitations=invitations, invite=invite)
+  return render_template('roster.html',
+                         is_captain=is_captain,
+                         team=team,
+                         missions=Mission.select(),
+                         roster=roster,
+                         invitations=invitations,
+                         invite=invite,
+                         achievements=achievements.for_team(team))
 
 @app.route('/enlist/<key>', methods=['GET', 'POST'])
 def enlist(key):
@@ -431,7 +438,10 @@ def profile(user_id):
     # only allow looking at own and teammates' profiles to prevent enumerating users
     return redirect(url_for('dashboard'))
 
-  return render_template('profile.html', can_edit=is_me, user=user)
+  return render_template('profile.html',
+                         can_edit=is_me,
+                         user=user,
+                         achievements=achievements.for_user(user))
 
 @app.route('/edit', methods=['POST'])
 def edit():
