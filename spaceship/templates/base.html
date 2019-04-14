@@ -63,7 +63,7 @@
       <a role="button" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <img src="{{ gravatar(current_user.email, size=30) }}" width="30" height="30" alt="Profile" class="d-inline-block align-top profile-pic">
       </a>
-      <div class="dropdown-menu">
+      <div class="dropdown-menu dropdown-menu-right">
         <a class="dropdown-item" href="{{ url_for('profile', user_id=current_user.id) }}">Profile</a>
         <a class="dropdown-item" href="{{ url_for('dashboard') }}">Crews</a>
         <div class="dropdown-divider"></div>
