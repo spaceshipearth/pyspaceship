@@ -1,0 +1,26 @@
+{% for field in form %}
+  {% set errors = form.errors[field.name] %}
+  {% if field.flags.hidden %}
+    {{ field(class="form-control") }}
+  {% elif field.type == "SubmitField" %}
+    {{ field(class="btn btn-primary") }}
+  {% else %}
+    {% if errors %}
+    {% set class="form-control is-invalid" %}
+    {% else %}
+    {% set class="form-control" %}
+    {% endif %}
+
+    <div class="row">
+      <span class="col-md-3">{{ field.label() }}</span>
+    </div>
+    <div class="row form-box">
+      <span class="col-md-6">
+      {{ field(class=class) }}
+      <div class="invalid-feedback">
+        {{ ';'.join(errors) }}
+      </div>
+      </span>
+    </div>
+  {% endif %}
+{% endfor %}

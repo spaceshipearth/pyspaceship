@@ -19,6 +19,9 @@
   </section>
 {% endfor %}
 
-<a href="{{ url_for('create_crew') }}" class="btn btn-primary" role="button">Start a new crew</a>
+<form method="POST" action="/create_crew" class="needs-validation" novalidate>
+  {% set form = create_crew %}
+  {% include 'form_fields.html' %}
+</form>
 
 {% endblock %}

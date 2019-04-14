@@ -22,6 +22,7 @@ from .forms.login import Login
 from .forms.invite import Invite
 from .forms.enlist import EnlistExistingUser, EnlistNewUser
 from .forms.start_mission import StartMission
+from .forms.create_crew import CreateCrew
 
 import hashlib
 import pendulum
@@ -242,7 +243,10 @@ def pledge():
 def dashboard():
   # to avoid redirect loops, this view does not redirect
   current_user_teams = teams(current_user)
-  return render_template('dashboard.html', teams=current_user_teams, missions=Mission.select())
+  return render_template('dashboard.html',
+                         teams=current_user_teams,
+                         missions=Mission.select(),
+                         create_crew=CreateCrew())
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -284,20 +288,22 @@ def register():
 
   return render_template('register.html', register=register)
 
-# TODO this should be POST
-@app.route('/create_crew', methods=['GET'])
+@app.route('/create_crew', methods=['POST'])
+@login_required
 def create_crew():
-  with db.atomic() as transaction:
-    try:
-      u = current_user.id
-      t = Team(captain=u, name=names.name_team())
-      t.save()
-      tu = TeamUser(team=t, user=u)
-      tu.save()
-      achievements.become_captain(current_user)
-    except (IntegrityError, DatabaseError) as e:
-      transaction.rollback()
-      flash({'msg':f'Error creating a new crew', 'level':'danger'})
+  create_crew = CreateCrew()
+  if create_crew.validate_on_submit():
+    with db.atomic() as transaction:
+      try:
+        u = current_user.id
+        t = Team(captain=u, name=names.name_team())
+        t.save()
+        tu = TeamUser(team=t, user=u)
+        tu.save()
+        achievements.become_captain(current_user)
+      except (IntegrityError, DatabaseError) as e:
+        transaction.rollback()
+        flash({'msg':f'Error creating a new crew', 'level':'danger'})
 
   return redirect(url_for('dashboard'))
 
