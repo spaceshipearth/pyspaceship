@@ -11,8 +11,8 @@ from .achievement import Achievement
 
 class UserAchievement(BaseModel):
   id = AutoField(primary_key=True)
-  user = ForeignKeyField(Team, backref='achievements')
-  achievement = ForeignKeyField(Achievement, backref='users')
+  user = ForeignKeyField(User, backref='achievements')
+  name = CharField()
   created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
   deleted_at = PendulumDateTimeField(null=True)
 

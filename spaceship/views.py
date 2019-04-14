@@ -6,6 +6,7 @@ from peewee import DatabaseError, IntegrityError, fn
 from . import app
 from . import email
 from . import names
+from . import achievements
 
 from .db import db
 from .models.user import User
@@ -111,10 +112,7 @@ def mission(team_id, mission_id):
           team.mission = mission
           team.mission_start_at = pendulum.now()
           team.save()
-        except IntegrityError:
-          transaction.rollback()
-          flash({'msg': f'Database error', 'level': 'danger'})
-        except DatabaseError:
+        except (IntegrityError, DatabaseError) as e:
           transaction.rollback()
           flash({'msg': f'Database error', 'level': 'danger'})
         else:
@@ -132,9 +130,7 @@ def mission(team_id, mission_id):
           team.mission = None
           team.save()
           # TODO roll up to completed missions
-        except IntegrityError:
-          transaction.rollback()
-        except DatabaseError:
+        except (IntegrityError, DatabaseError) as e:
           transaction.rollback()
         else:
           flash({'msg': f'Mission has concluded.', 'level': 'success'})
@@ -229,10 +225,11 @@ def pledge():
                end_at=end_at,
                fulfilled=False)
     p.save()
-  except IntegrityError:
+    acheivements.pledge(current_user)
+    achievements.bestow_on_user(achievements.PLEDGE_FOR_GOAL, current_user)
+  except (IntegrityError, DatabaseError) as e:
     return jsonify({'ok': False})
-  except DatabaseError:
-    return jsonify({'ok': False})
+
   return jsonify({'ok': True})
 
 @app.route('/dashboard')
@@ -272,6 +269,8 @@ def register():
     login_user(u)
     flash({'msg':f'Access Granted', 'level':'success'})
 
+    achievements.bestow_on_user(achievements.BECOME_CAPTAIN, u)
+
     email.send(to_emails=register.data['email'], 
         subject='Please verify you email for Spaceship Earth',
         html_content=render_template('confirm_email.html'))
@@ -290,6 +289,7 @@ def create_crew():
       t.save()
       tu = TeamUser(team=t, user=u)
       tu.save()
+      achievements.bestow_on_user(achievements.BECOME_CAPTAIN, u)
     except (IntegrityError, DatabaseError) as e:
       transaction.rollback()
       flash({'msg':f'Error creating a new crew', 'level':'danger'})
@@ -320,6 +320,7 @@ def roster(team_id):
                           message=message,
                           status='pending')
           iv.save()
+        achievements.bestow_on_user(achievements.INVITE_CREW, current_user)
       except DatabaseError:
         transaction.rollback()
         flash({'msg':f'Error sending invitations', 'level':'danger'})
@@ -498,6 +499,7 @@ def edit():
           pledge.fulfilled = fulfilled
           if fulfilled:
             pledge.fulfilled_at = pendulum.now()
+            achievements.bestow_on_user(achievements.FULFILL_PLEDGE, current_user)
           pledge.save()
       except DatabaseError:
         transaction.rollback()
