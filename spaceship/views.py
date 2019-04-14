@@ -41,22 +41,24 @@ def get_team_if_member(team_id):
     return None
   return team
 
+def redirect_for_logged_in():
+  # take the user directly to their team if they only have one, dashboard otherwise
+  current_user_teams = teams(current_user)
+  if len(current_user_teams) > 1:
+    return redirect(url_for('dashboard'))
+  return redirect(url_for('roster', team_id=current_user_teams[0].id))
+
 @app.route('/')
 def home():
-  # take the user directly to their team if they only have one, dashboard otherwise
   if current_user.is_authenticated:
-    current_user_teams = teams(current_user)
-    if len(current_user_teams) > 1:
-      return redirect(url_for('dashboard'))
-    else:
-      return redirect(url_for('roster', team_id=current_user_teams[0].id))
+    return redirect_for_logged_in()
 
   return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
   if current_user.is_authenticated:
-    return redirect(url_for('dashboard'))
+    return redirect_for_logged_in()
 
   login = Login()
   if login.validate_on_submit():
@@ -72,9 +74,10 @@ def login():
       login_user(user)
       flash({'msg':'Access Granted', 'level':'success'})
       try:
+        # TODO validate next to avoid open redirect
         return redirect(url_for(request.values.get('next')))
       except:
-        return redirect(url_for('dashboard'))
+        return redirect_for_logged_in()
 
     else:
       flash({'msg':'Incorrect email or password. Try again?', 'level':'danger'})
@@ -235,12 +238,8 @@ def pledge():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+  # to avoid redirect loops, this view does not redirect
   current_user_teams = teams(current_user)
-
-  # go straight to team page iff user only has one team
-  if len(current_user_teams) == 1:
-    return redirect(url_for('roster', team_id=current_user_teams[0].id))
-
   return render_template('dashboard.html', teams=current_user_teams, missions=Mission.select())
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -277,11 +276,11 @@ def register():
         subject='Please verify you email for Spaceship Earth',
         html_content=render_template('confirm_email.html'))
 
-    return redirect(url_for('dashboard'))
+    return redirect_for_logged_in()
 
   return render_template('register.html', register=register)
 
-
+# TODO this should be POST
 @app.route('/create_crew', methods=['GET'])
 def create_crew():
   with db.atomic() as transaction:
@@ -296,9 +295,6 @@ def create_crew():
       flash({'msg':f'Error creating a new crew', 'level':'danger'})
 
   return redirect(url_for('dashboard'))
-
-
-
 
 @app.route('/roster/<team_id>', methods=['GET', 'POST'])
 @login_required

@@ -16,8 +16,10 @@
         <div>{{ mission.short_description }}</div>
       </div>
     {% endfor %}
-    <a href="{{ url_for('roster', team_id=team) }}" class="btn">Roster</a>
+    <a href="{{ url_for('roster', team_id=team) }}" class="btn btn-primary" role="button">Roster</a>
   </section>
 {% endfor %}
+
+<a href="{{ url_for('create_crew') }}" class="btn btn-primary" role="button">Start a new crew</a>
 
 {% endblock %}
