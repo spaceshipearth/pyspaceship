@@ -1,7 +1,7 @@
 
 from flask_wtf import FlaskForm
 from wtforms import TextAreaField, SubmitField
-from wtforms.validators import Email
+from wtforms.validators import Email, Length
 
 def list_of_emails(form, field):
   for email in field.data.split():
@@ -9,7 +9,7 @@ def list_of_emails(form, field):
 
 class Invite(FlaskForm):
   message = TextAreaField('Message', default='Join my team!')
-  emails = TextAreaField('Email(s)', validators=[list_of_emails],
+  emails = TextAreaField('Email(s)', validators=[Length(min=1), list_of_emails],
       description='Enter one or more emails separated by spaces or new lines.',
       render_kw={'placeholder': 'bob@example.com mary@example.com'})
   invite = SubmitField('Send Invitations')
