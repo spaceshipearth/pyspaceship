@@ -7,6 +7,7 @@ from . import app
 from . import email
 from . import names
 from . import achievements
+from . import calendar
 
 from .db import db
 from .models.user import User
@@ -124,6 +125,7 @@ def mission(team_id, mission_id):
 
   week_of_mission = 0
   mission_pledges = []
+  mission_calendar = []
   if team.mission and team.mission.id == mission.id:
     week_of_mission = (pendulum.now() - team.mission_start_at).in_weeks() + 1
     if week_of_mission >= 5:
@@ -142,6 +144,7 @@ def mission(team_id, mission_id):
         .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
         .where((TeamUser.team_id == team.id) &
                (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < team.mission_start_at)))))
+      mission_calendar = calendar.layout(pendulum.today(), team.mission_start_at, mission_end_at)
   team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
   goal_progress = {goal.id: count_goal_progress(team_size=team_size,
                                                 pledges=[p for p in mission_pledges if p.goal_id == goal.id])
@@ -155,6 +158,7 @@ def mission(team_id, mission_id):
                          team=team,
                          is_captain=is_captain,
                          mission=mission,
+                         calendar=mission_calendar,
                          my_pledges=my_pledges,
                          goal_progress=goal_progress)
 

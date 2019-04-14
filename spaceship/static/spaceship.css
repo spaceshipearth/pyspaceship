@@ -85,6 +85,22 @@ main {
   border-radius: 8px;
 }
 
+.cal-week-0 {
+  background: #c60;
+}
+.cal-week-1 {
+  background: #6c0;
+}
+.cal-week-2 {
+  background: #0c6;
+}
+.cal-week-3 {
+  background: #06c;
+}
+.cal-today {
+  background: red;
+}
+
 .dash-team {
   background: #ccc;
   border-radius: 3px;

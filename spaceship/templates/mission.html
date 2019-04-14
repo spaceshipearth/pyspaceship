@@ -10,6 +10,7 @@
 <h3>{{ mission.title }}</h3>
 {% if week_of_mission > 0 and week_of_mission <= 4 %}
 <p>Currently active, in week {{ week_of_mission }}!
+{% include 'calendar.html' %}
 {% else %}
 <p>Not currently active.
 {% endif %}
