@@ -59,17 +59,15 @@
     </div>
     {% else %}
 
-    <div class="navbar-item">
-      <div class="dropdown nav-item">
-        <a role="button" class="dropdown-toggle" data-toggle="dropdown">
-          <img src="{{ gravatar(current_user.email, size=30) }}" width="30" height="30" alt="Profile" class="d-inline-block align-top">
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="{{ url_for('profile', user_id=current_user.id) }}">Profile</a>
-          <a class="dropdown-item" href="{{ url_for('dashboard') }}">Crews</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="{{ url_for('logout') }}">Log Out</a>
-        </div>
+    <div class="nav-item dropdown">
+      <a role="button" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <img src="{{ gravatar(current_user.email, size=30) }}" width="30" height="30" alt="Profile" class="d-inline-block align-top profile-pic">
+      </a>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="{{ url_for('profile', user_id=current_user.id) }}">Profile</a>
+        <a class="dropdown-item" href="{{ url_for('dashboard') }}">Crews</a>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="{{ url_for('logout') }}">Log Out</a>
       </div>
     </div>
     {% endif %}
