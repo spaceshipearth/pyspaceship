@@ -319,18 +319,23 @@ def roster(team_id):
 
   invite = Invite()
   if is_captain and invite.validate_on_submit():
+    message = invite.data['message']
+    emails = invite.data['emails'].split()
     with db.atomic() as transaction:
       try:
-        message = invite.data['message']
-        emails = invite.data['emails'].split()
-        for email in emails:
+        for invited_email in emails:
+          key_for_sharing = uuid.uuid4()
           iv = Invitation(inviter_id=current_user.id,
-                          key_for_sharing=uuid.uuid4(),
+                          key_for_sharing=key_for_sharing,
                           team_id=team_id,
-                          invited_email=email,
+                          invited_email=invited_email,
                           message=message,
-                          status='pending')
+                          status='sent')
           iv.save()
+          # TODO probably should queue this instead
+          email.send(to_emails=invited_email,
+              subject='Please join my Spaceship Earth team',
+              html_content=render_template('invite_email.html', inviter=current_user.name, message=message, key_for_sharing=key_for_sharing))
         achievements.invite_crew(current_user)
       except DatabaseError:
         transaction.rollback()
