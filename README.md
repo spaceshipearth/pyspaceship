@@ -7,6 +7,40 @@ A python implementation of [Spaceship Earth](python.spaceshipearth.org).
 We are expecting that you already have `pyenv` and `pyenv-virtualenvwrapper` installed.
 If you haven't done that already, see how Igor does it in [his dotfiles](https://github.com/igor47/dotfiles/blob/264092d5314e3a83039554731a62c77ecd7d62ce/bashrc#L254-L270).
 
+### If you are on a Mac
+
+Install Homebrew
+
+```
+brew install pyenv
+brew install pyenv-virtualenvwrapper
+```
+
+Add the following to your `~/.bash_profile`
+
+```
+PYENV_VIRTUALENVWRAPPER_PREFER_PYVENV="true"
+if command -v pyenv 1>/dev/null 2>&1
+then
+  eval "$(pyenv init -)"
+  pyenv virtualenvwrapper
+fi
+```
+
+Run the following to install a couple Python versions:
+```
+pyenv install 2.7.14
+pyenv install 3.7.2
+```
+
+From the project directory, run the following command:
+```
+cp .python-version ~
+```
+
+Follow these instructions to get Docker up and running: https://stackoverflow.com/a/43365425
+
+
 ### Set up virtualenv
 
 Create the virtualenv:
