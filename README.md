@@ -77,6 +77,10 @@ $ inv run.gunicorn
 
 The site will be accessible on localhost port 9876 (it's a countdown!).
 
+## Sending email locally ## 
+
+Create a file called sendgrid.key and place the sendgrid secret inside on a single line by itself
+
 ## MySQL ##
 
 This app expects a MySQL database on port 9877.
