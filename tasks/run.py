@@ -26,6 +26,13 @@ def flask(ctx, debug=True):
   if debug:
     FLASK_ENV['FLASK_DEBUG'] = '1'
 
+  # load sendgrid key if present
+  try:
+    file = open("sendgrid.key", "r")
+    FLASK_ENV['SENDGRID_KEY'] = file.readline().strip()
+  except:
+    pass
+
   with ctx.cd(ROOT_REPO_DIR):
     ctx.run(f'flask run -p {PORT}', env=FLASK_ENV)
 
