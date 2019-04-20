@@ -11,12 +11,14 @@
 {% if week_of_mission > 0 and week_of_mission <= 4 %}
 <p>Currently active, in week {{ week_of_mission }}!
 {% include 'calendar.html' %}
-{% else %}
-<p>Not currently active.
 {% endif %}
 
 {% if is_captain and not team.mission %}
-<p>Commit your team to this mission for one month?
+{% if team_size < 2 %}
+<p>You need some crew before you can start a mission.
+Invite people <a href="{{ url_for('roster', team_id=team, _anchor='invite') }}">here</a>.
+{% else %}
+<p>Commit your crew to this mission for one month?
 <form method="POST" class="needs-validation" novalidate>
   {% for field in start_mission %}
   {% set errors = start_mission.errors[field.name] %}
@@ -46,6 +48,7 @@
   {% endif %}
   {% endfor %}
 </form>
+{% endif %}
 {% endif %}
 
 <div class="row">

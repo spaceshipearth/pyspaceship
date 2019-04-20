@@ -103,16 +103,31 @@ main {
 
 .dash-team {
   background: #ccc;
-  border-radius: 3px;
+  border-radius: 5px;
   padding: 10px;
   margin: 8px;
 }
 
 .goal {
   background: #ccc;
-  border-radius: 3px;
+  border: 1px solid #333;
+  border-radius: 5px;
   padding: 10px;
   margin: 8px;
+  min-height: 100px;
+}
+
+.active-goal {
+  background: #fff;
+  border: 1px solid #ccc;
+}
+
+.help {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 16px;
 }
 
 .nonpledged .done-label {
@@ -120,4 +135,9 @@ main {
 }
 .pledged .pledge {
   display: none;
+}
+
+.highlight-section {
+  background: #f4f1bb;
+  padding: 5px;
 }

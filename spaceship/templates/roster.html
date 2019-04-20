@@ -4,6 +4,16 @@
 
 {% block content %}
 
+{% if team_size < 2 %}
+<div class="help">
+<p><b>Getting started</b>
+<ol>
+  <li>Use the <a href="#invite">Invite Crew</a> section to invite people to join your crew.
+  <li>After people join, select a <a href="#missions">mission</a>.
+</ol>
+</div>
+{% endif %}
+
 <div class="row">
 <h3 class="col">
 {% if team.captain.id == current_user.id %}
@@ -20,7 +30,8 @@
 
 <div class="row">
 <div class="col-sm-6">
-<section>
+<section class="missions">
+  <a name="missions">
   <h4>Missions</h4>
   {% for mission in missions: %}
     {% if team.mission_id == mission.id %}
@@ -50,7 +61,7 @@
 
 <div class="col-sm-6">
 <section>
-  <h4>Roster</h4>
+  <h4>Crew Members</h4>
   <table class="table-bordered">
     <thead class="thead-dark">
       <tr>
@@ -78,8 +89,8 @@
 
 {% if is_captain %}
 
+<!--
 <section>
-<h4>Crew Invitations</h4>
 {% for invite in invitations: %}
   <div>
     {{ invite.invited_email }}
@@ -88,8 +99,12 @@
   </div>
 {% endfor %}
 </section>
+-->
 
-<section>
+<section class="invite">
+<a name="invite"></a>
+<h4>Invite Crew</h4>
+<p>Send email to invite people to join your crew.
 <form method="POST" class="needs-validation" novalidate>
   {% for field in invite %}
   {% set errors = invite.errors[field.name] %}
@@ -125,5 +140,27 @@
 
 </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+function updateSectionHighlight() {
+  var hash = location.hash;
+  var invite = $('.invite');
+  var missions = $('.missions');
+  invite.removeClass('highlight-section');
+  missions.removeClass('highlight-section');
+  if (hash == '#invite') {
+    invite.addClass('highlight-section');
+  } else if (hash == '#missions') {
+    missions.addClass('highlight-section');
+  }
+}
+
+$(window).on('hashchange', updateSectionHighlight);
+$(document).ready(updateSectionHighlight);
+</script>
 
 {% endblock %}

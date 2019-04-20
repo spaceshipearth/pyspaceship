@@ -103,11 +103,15 @@ def mission(team_id, mission_id):
   if not team:
     flash({'msg': 'Could not find team', 'level': 'danger'})
     return redirect(url_for('dashboard'))
+
   is_captain = team.captain_id == current_user.id
+  team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
 
   start_mission = StartMission()
   if start_mission.validate_on_submit():
-    if is_captain and not team.mission:
+    if team_size < 2:
+      flash({'msg': 'Need add least one crew member.', 'level': 'danger'})
+    elif is_captain and not team.mission:
       with db.atomic() as transaction:
         try:
           team.mission = mission
@@ -146,7 +150,6 @@ def mission(team_id, mission_id):
         .where((TeamUser.team_id == team.id) &
                (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < team.mission_start_at)))))
       mission_calendar = calendar.layout(pendulum.today(), team.mission_start_at, mission_end_at)
-  team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
   goal_progress = {goal.id: count_goal_progress(team_size=team_size,
                                                 pledges=[p for p in mission_pledges if p.goal_id == goal.id])
                    for goal in mission.goals}
@@ -157,6 +160,7 @@ def mission(team_id, mission_id):
                          start_mission=start_mission,
                          week_of_mission=week_of_mission,
                          team=team,
+                         team_size=team_size,
                          is_captain=is_captain,
                          mission=mission,
                          calendar=mission_calendar,
@@ -315,6 +319,7 @@ def roster(team_id):
     return redirect(url_for('dashboard'))
 
   is_captain = team.captain_id == current_user.id
+  team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
 
   invite = Invite()
   if is_captain and invite.validate_on_submit():
@@ -355,6 +360,7 @@ def roster(team_id):
   return render_template('roster.html',
                          is_captain=is_captain,
                          team=team,
+                         team_size=team_size,
                          missions=Mission.select(),
                          roster=roster,
                          invitations=invitations,
