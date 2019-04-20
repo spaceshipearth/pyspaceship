@@ -194,17 +194,16 @@ def goal_progress(team_id, goal_id):
   return render_template('goal_progress.html', my_pledge_id=my_pledge_id, progress=progress)
 
 def count_goal_progress(team_size=1, pledges=[]):
-  progress = {'num_done': 0, 'num_pledged': 0, 'num_active': 0}
+  progress = {'done': [], 'pledged': [], 'num_active': 0, 'num_inactive': 0}
+  active = set()
   for p in pledges:
     if p.fulfilled:
-      progress['num_done'] += 1
+      progress['done'].append(p.user)
     else:
-      progress['num_pledged'] += 1
-    progress['num_active'] += 1
-  def percent_of_team(count):
-    return '{:.2f}%'.format(100 * (count / team_size))
-  progress['percent_done'] = percent_of_team(progress['num_done'])
-  progress['percent_pledged'] = percent_of_team(progress['num_pledged'])
+      progress['pledged'].append(p.user)
+    active.add(p.user.id)
+  progress['num_active'] = len(active)
+  progress['num_inactive'] = team_size - len(active)
   return progress
 
 @app.route('/pledge', methods=['POST'])

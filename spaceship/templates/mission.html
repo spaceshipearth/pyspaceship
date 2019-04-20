@@ -94,7 +94,7 @@ completed at any time during the mission.
 {{ super() }}
 <script>
 function updateProgress(goalDiv) {
-  var progress = goalDiv.find('.goal-progress');
+  var progress = goalDiv.find('.goal-progress-wrapper');
   var updateUrl = progress.data('update-url')
   $.ajax(updateUrl).done(function(html) {
     $(progress).html(html);
@@ -117,7 +117,7 @@ $('.pledge').click(function() {
 
 $('.done').click(function() {
   var goalDiv = $(this).parents('.goal');
-  var progressDiv = goalDiv.find('.progress');
+  var progressDiv = goalDiv.find('.goal-progress');
   var pledgeId = progressDiv.data('my-pledge');
   var checked = $(this).prop('checked');
   $.post('/edit', {

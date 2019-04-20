@@ -146,3 +146,7 @@ main {
   background: #f4f1bb;
   padding: 5px;
 }
+
+.goal-progress {
+  font-size: 80%;
+}

@@ -5,7 +5,7 @@
 <div class="goal{% if active %} active-goal{% endif %}" data-goal="{{ goal.id }}">
   <div>{{ goal.short_description }}</div>
   {% if active %}
-  <div class="goal-progress"
+  <div class="goal-progress-wrapper"
        data-update-url="{{ url_for('goal_progress', team_id=team.id, goal_id=goal.id, start_at=team.mission_start_at) }}">
     {% set progress = goal_progress[goal.id] %}
     {% set my_pledge_id = my_pledges[goal.id].id if pledged else -1 %}
