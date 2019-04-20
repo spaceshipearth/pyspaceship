@@ -75,7 +75,6 @@ def login():
 
     if user:
       login_user(user)
-      flash({'msg':'Access Granted', 'level':'success'})
       try:
         # TODO validate next to avoid open redirect
         return redirect(url_for(request.values.get('next')))
@@ -276,7 +275,6 @@ def register():
         return redirect(url_for('home'))
 
     login_user(u)
-    flash({'msg':f'Access Granted', 'level':'success'})
 
     achievements.become_captain(u)
 
