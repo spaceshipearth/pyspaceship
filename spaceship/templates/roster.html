@@ -17,7 +17,7 @@
 <div class="row">
 <h3 class="col">
 {% if team.captain.id == current_user.id %}
-<a role="button" class="editable" data-title="Edit team name" data-table="team" data-id="{{ team.id }}" data-field="name">{{ team.name }}</a>
+<a role="button" class="editable" data-title="Edit crew name" data-table="team" data-id="{{ team.id }}" data-field="name">{{ team.name }}</a>
 {% else %}
 {{ team.name }}
 {% endif %}
@@ -25,7 +25,7 @@
 </div>
 
 <div class="row">
-<div class="col"><p>Best. Crew. Ever.</p></div>
+<div class="col"><p><a role="button" class="editable" data-title="Edit crew description" data-multiline="1" data-table="team" data-id="{{ team.id }}" data-field="description">{{ team.description }}</a></p></div>
 </div>
 
 <div class="row">

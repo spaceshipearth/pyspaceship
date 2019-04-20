@@ -494,6 +494,9 @@ def edit():
         if field_name == 'name':
           team.name = value
           team.save()
+        elif field_name == 'description':
+          team.description = value
+          team.save()
       except DatabaseError:
         transaction.rollback()
         return jsonify({'ok': False})

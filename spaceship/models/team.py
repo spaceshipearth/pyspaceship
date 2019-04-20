@@ -13,6 +13,7 @@ class Team(BaseModel):
   id = AutoField(primary_key=True)
   captain = ForeignKeyField(User, backref='teams')
   name = CharField()
+  description = TextField(default='Best. Crew. Ever.')
   created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
   deleted_at = PendulumDateTimeField(null=True)
 
