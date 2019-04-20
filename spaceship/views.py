@@ -2,6 +2,7 @@
 from flask import render_template, flash, redirect, url_for, jsonify, request
 from flask_login import login_user, logout_user, login_required, current_user
 from peewee import DatabaseError, IntegrityError, fn
+from urllib.parse import urlparse
 
 from . import app
 from . import email
@@ -76,8 +77,11 @@ def login():
     if user:
       login_user(user)
       try:
-        # TODO validate next to avoid open redirect
-        return redirect(url_for(request.values.get('next')))
+        next_url = request.values['next']
+        parsed_next_url = urlparse(next_url)
+        if parsed_next_url.netloc:
+          raise ValueError('only relative redirect allowed')
+        return redirect(next_url)
       except:
         return redirect_for_logged_in()
 
@@ -337,7 +341,7 @@ def roster(team_id):
           iv.save()
           # TODO probably should queue this instead
           email.send(to_emails=invited_email,
-              subject='Please join my Spaceship Earth team',
+              subject='Invitation to join',
               html_content=render_template('invite_email.html', inviter=current_user.name, message=message, key_for_sharing=key_for_sharing))
         achievements.invite_crew(current_user)
       except DatabaseError:
@@ -387,7 +391,7 @@ def enlist(key):
   elif User.select().where(User.email == invitation.invited_email):
     # assume cookies were cleared
     flash({'msg':f'Please log in as ' + invitation.invited_email, 'level':'warning'})
-    return redirect(url_for('login'))
+    return redirect(url_for('login', next=url_for('enlist', key=key)))
   else:
     enlist = EnlistNewUser()
     if not enlist.is_submitted():
@@ -429,13 +433,15 @@ def enlist(key):
         except IntegrityError:
           transaction.rollback()
           flash({'msg':f'Email already registered. Please sign-in', 'level': 'danger'})
+          return redirect(url_for('login'))
         except DatabaseError:
           transaction.rollback()
           flash({'msg':f'Database error', 'level':'danger'})
         else:
           if isinstance(enlist, EnlistNewUser) and not current_user.is_authenticated:
             login_user(u)
-        return redirect(url_for('dashboard'))
+          return redirect_for_logged_in()
+      return redirect(url_for('dashboard'))
 
   return render_template('enlist.html', enlist=enlist, invitation=invitation)
 

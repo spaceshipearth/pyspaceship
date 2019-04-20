@@ -1,15 +1,18 @@
 
 from flask_wtf import FlaskForm
-from wtforms import TextAreaField, SubmitField
+from wtforms import TextField, TextAreaField, SubmitField
 from wtforms.validators import Email, Length
+
+_PITCH="""I am organizing a crew of volunteers to take climate change action through a site called Spaceship Earth. Hoping you will join!"""
 
 def list_of_emails(form, field):
   for email in field.data.split():
     Email()(email, field=field)
 
 class Invite(FlaskForm):
-  message = TextAreaField('Message', default='Join my team!')
-  emails = TextAreaField('Email(s)', validators=[Length(min=1), list_of_emails],
-      description='Enter one or more emails separated by spaces or new lines.',
-      render_kw={'placeholder': 'bob@example.com mary@example.com'})
+  subject = TextField('Subject:', default='Invitation to join', render_kw={'disabled': True})
+  emails = TextAreaField('To:', validators=[Length(min=1), list_of_emails],
+      description='Enter one or more email addresses separated by spaces.',
+      render_kw={'placeholder': 'bob@example.com mary@example.com', 'rows': 1})
+  message = TextAreaField('Message:', default=_PITCH, render_kw={'rows': 5})
   invite = SubmitField('Send Invitations')

@@ -62,7 +62,7 @@
 <div class="col-sm-6">
 <section>
   <h4>Crew Members</h4>
-  <table class="table-bordered">
+  <table class="table table-secondary table-bordered">
     <thead class="thead-dark">
       <tr>
         <th>Profile
@@ -74,7 +74,7 @@
       <tr>
         <td>
           <a href="{{ url_for('profile', user_id=user.id) }}">
-            <img src="{{ gravatar(user.email, size=30) }}" width="30" height="30">
+            <img src="{{ gravatar(user.email, size=48) }}" width="48" height="48">
           </a>
         <td>{% if user.id == team.captain_id %}
               {{ user.name }} (Captain)
@@ -105,7 +105,7 @@
 <a name="invite"></a>
 <h4>Invite Crew</h4>
 <p>Send email to invite people to join your crew.
-<form method="POST" class="needs-validation" novalidate>
+<form method="post" class="needs-validation" novalidate>
   {% for field in invite %}
   {% set errors = invite.errors[field.name] %}
   {% if field.flags.hidden %}
