@@ -25,7 +25,13 @@
 </div>
 
 <div class="row">
-<div class="col"><p><a role="button" class="editable" data-title="Edit crew description" data-multiline="1" data-table="team" data-id="{{ team.id }}" data-field="description">{{ team.description }}</a></p></div>
+<div class="col"><p>
+{% if team.captain.id == current_user.id %}
+<a role="button" class="editable" data-title="Edit crew description" data-multiline="1" data-table="team" data-id="{{ team.id }}" data-field="description">{{ team.description }}</a>
+{% else %}
+{{ team.description }}
+{% endif %}
+</p></div>
 </div>
 
 <div class="row">
