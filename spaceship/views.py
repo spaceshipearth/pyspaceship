@@ -122,6 +122,7 @@ def mission(team_id, mission_id):
           flash({'msg': f'Started mission!', 'level': 'success'})
     else:
       flash({'msg': 'Could not start mission', 'level': 'danger'})
+    return redirect(url_for('mission', team_id=team_id, mission_id=mission_id), code=303)
 
   week_of_mission = 0
   mission_pledges = []
@@ -340,6 +341,7 @@ def roster(team_id):
         flash({'msg':f'Error sending invitations', 'level':'danger'})
       else:
         flash({'msg':'Invitations are on the way!', 'level':'success'})
+    return redirect(url_for('roster', team_id=team_id), code=303)
 
   roster = (User
             .select()
