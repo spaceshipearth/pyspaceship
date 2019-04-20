@@ -10,7 +10,10 @@
 <h3>{{ mission.title }}</h3>
 {% if week_of_mission > 0 and week_of_mission <= 4 %}
 <p>Currently active, in week {{ week_of_mission }}!
+<p><a class="btn btn-primary" data-toggle="collapse" href="#calendar" role="button" aria-expanded="false" aria-controls="calendar">Toggle calendar</a>
+<div class="collapse" id="calendar">
 {% include 'calendar.html' %}
+</div>
 {% endif %}
 
 {% if is_captain and not team.mission %}

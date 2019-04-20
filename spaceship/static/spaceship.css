@@ -86,19 +86,24 @@ main {
 }
 
 .cal-week-0 {
-  background: #c60;
+  background: #9bc1bc;
 }
 .cal-week-1 {
-  background: #6c0;
+  background: #9bc1bc;
 }
 .cal-week-2 {
-  background: #0c6;
+  background: #9bc1bc;
 }
 .cal-week-3 {
-  background: #06c;
+  background: #9bc1bc;
 }
 .cal-today {
-  background: red;
+  background: #f4f1bb;
+  font-weight: bold;
+  outline: 1px solid #000;
+}
+.cal-this-week {
+  background: #f4f1bb;
 }
 
 .dash-team {

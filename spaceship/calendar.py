@@ -4,6 +4,7 @@ def layout(today, start_date, end_date):
   calendar = []
   month = {}
   cur_month_number = -1
+  this_week = (today - start_date).in_days() // 7
   for day in pendulum.period(start_date.start_of('month'), end_date.end_of('month')):
     if cur_month_number != day.month:
       if cur_month_number != -1:
@@ -15,7 +16,8 @@ def layout(today, start_date, end_date):
       'number': day.day,
       'of_week': day.day_of_week,
       'week_number': week_number,
-      'is_today': today.date() == day.date()
+      'is_today': today.date() == day.date(),
+      'is_this_week': this_week == week_number
     })
   calendar.append(month)
   return calendar

@@ -14,7 +14,7 @@
 {% endfor %}
 {% for day in month.days %}
 {% if column.next() == 0 %}<tr>{% endif %}
-<td class="cal-week-{{day.week_number}}{% if day.is_today %} cal-today{% endif %}">{{ day.number }}
+<td class="cal-week-{{day.week_number}}{% if day.is_today %} cal-today{% endif %}{% if day.is_this_week %} cal-this-week{% endif %}">{{ day.number }}
 {% endfor %}
 </tbody>
 </table>
