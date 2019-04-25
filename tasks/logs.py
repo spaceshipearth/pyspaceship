@@ -40,11 +40,47 @@ def lb(ctx, freshness='1h', agent=False):
     except Exception as e:
       print(f"Invalid log line {line}: {e}")
 
-@task
-def logs(ctx):
-  """Read the latest logs"""
-  output = json.loads(
-    run('gcloud logging read logName=projects/spaceshipearthprod/logs/pyspaceship --format json --freshness 1h --order asc', hide=True).stdout)
-  for line in output:
-    print(line['textPayload'].strip())
+@task(
+  default=True,
+  help={
+    'freshness': 'Interval over which to look at logs (default: "1h")',
+  }
+)
+def container(ctx, freshness='1h'):
+  """Logs from our containers"""
+  log_filter = ' AND '.join([
+    'resource.type=container',
+    'resource.labels.namespace_id=default',
+    'resource.labels.container_name=pyspaceship',
+  ])
 
+  cmd = f'gcloud logging read "{log_filter}" --format json --freshness {freshness}'
+
+  output = json.loads(run(cmd, hide=True).stdout)
+  for line in output[::-1]:
+    """
+    {'insertId': 'ibe8vife9ti4i', 'labels': , 'logName': 'projects/spaceshipearthprod/logs/pyspaceship', 'receiveTimestamp': '2019-04-25T18:00:03.509676329Z', 'resource': , 'severity': 'INFO', 'textPayload': '10.128.2.1 - - [25/Apr/2019:17:59:58 +0000] "GET / HTTP/1.1" 200 4627 "-" "GoogleHC/1.0"\n', 'timestamp': '2019-04-25T17:59:58.560663349Z'}
+"""
+    try:
+      # skip health checks
+      if 'textPayload' in line:
+        msg = line['textPayload']
+      elif 'jsonPayload' in line:
+        msg = line['jsonPayload']['message']
+      else:
+        msg = "<no message>"
+
+      if 'GoogleHC' in msg or 'kube-probe' in msg:
+        continue
+
+      time = pendulum.parse(line['timestamp'])
+
+      parts = [
+        time.to_datetime_string(),
+        line['severity'],
+        msg,
+      ]
+
+      print(" ".join(parts))
+    except Exception as e:
+      print(f"Invalid log line {line}: {e}")
