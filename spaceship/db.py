@@ -1,4 +1,6 @@
 
+import logging
+
 # allows us to use a db URL
 from playhouse.db_url import connect
 
@@ -7,9 +9,10 @@ from peewee import Model
 
 # we get configuration from the app instance
 from . import app
-from .logs import logger
 
+logger = logging.getLogger('spaceship.db')
 logger.info(f"Connecting to mysql at {app.config['MYSQL_HOST']}")
+
 db = connect(app.config['MYSQL_URL'])
 db.connect()
 
