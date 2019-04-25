@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: google-app-creds
+type: Opaque
+stringData:
+  key.json: {$eval: keyfile}

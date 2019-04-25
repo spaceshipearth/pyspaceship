@@ -70,6 +70,20 @@ def sendgrid_secret(ctx, secret_key = None):
   utils.k8s_apply(secret, dry_run = False)
 
 @task()
+def google_app_secret(ctx, keyfile):
+  """upload a keyfile as a google secret
+
+  created by:
+    gcloud iam service-accounts keys create /tmp/key.json --iam-account=pyspaceship@spaceshipearthprod.iam.gserviceaccount.com
+  """
+  secret = utils.load_manifest('google-app-creds', {
+    'keyfile': open(keyfile).read().strip(),
+  })
+
+  utils.k8s_apply(secret, dry_run = False)
+
+
+@task()
 def run_migrations(ctx):
   """Migrate the DB that the cluster is connected to"""
   random_pod_name = [p['name'] for p in get_pods() if p['phase'] == 'Running'].pop()
