@@ -2,6 +2,7 @@
 from invoke import run
 
 import contextlib
+import json
 import jsone
 import os, os.path
 import tempfile
@@ -42,3 +43,23 @@ def k8s_apply(manifest, dry_run = True):
 
     else:
       run('kubectl apply -f %s' % tf.name)
+
+def get_pods():
+  """List running pods"""
+  items = json.loads(
+    run('kubectl get pods -l app=pyspaceship -o=json', hide=True).stdout
+  )['items']
+
+  pods = []
+  for item in items:
+    pods.append({
+      'name': item['metadata']['name'],
+      'image': item['status']['containerStatuses'][0]['image'],
+      'phase': item['status']['phase'],
+    })
+
+  return pods
+
+def random_pod_name():
+  return [p['name'] for p in get_pods() if p['phase'] == 'Running'].pop()
+
