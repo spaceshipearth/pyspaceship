@@ -460,6 +460,19 @@ def enlist(key):
 
           invitation.status = 'accepted'
           invitation.save()
+
+          # tell the captain about the new user
+          captain = (User
+                        .select()
+                        .join(Team, on=(Team.captain == User.id))
+                        .where(Team.id == invitation.team)
+                        .get())  
+          email.send(to_emails=captain.email, 
+            subject='Your crew is growing!',
+            html_content=render_template('crew_growing_email.html', 
+              team_id=invitation.team, 
+              name=u.name, _external=True))
+
         except IntegrityError:
           transaction.rollback()
           flash({'msg':f'Email already registered. Please sign-in', 'level': 'danger'})
@@ -472,6 +485,7 @@ def enlist(key):
             login_user(u)
           return redirect_for_logged_in()
       return redirect(url_for('dashboard'))
+
 
   return render_template('enlist.html', enlist=enlist, invitation=invitation)
 
