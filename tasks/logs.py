@@ -58,9 +58,6 @@ def container(ctx, freshness='1h'):
 
   output = json.loads(run(cmd, hide=True).stdout)
   for line in output[::-1]:
-    """
-    {'insertId': 'ibe8vife9ti4i', 'labels': , 'logName': 'projects/spaceshipearthprod/logs/pyspaceship', 'receiveTimestamp': '2019-04-25T18:00:03.509676329Z', 'resource': , 'severity': 'INFO', 'textPayload': '10.128.2.1 - - [25/Apr/2019:17:59:58 +0000] "GET / HTTP/1.1" 200 4627 "-" "GoogleHC/1.0"\n', 'timestamp': '2019-04-25T17:59:58.560663349Z'}
-"""
     try:
       # skip health checks
       if 'textPayload' in line:
