@@ -3,39 +3,18 @@
 {% block title %}Log In - {{ super() }}{% endblock %}
 
 {% block content %}
-<h3>Log in (returning users)</h3>
+<h3 class="text-center">Returning users...</h3>
 
-<p><a href="/google/login">Sign in with Google</a>
+{% include 'social-buttons.html' %}
 
-<section>
+<div class="row justify-content-center">
+<section class="help col-md-5">
+<h5 class="text-center">Sign in with site account</h5>
+{% set form = login %}
 <form method="POST" class="needs-validation" novalidate>
-  {% for field in login %}
-  {% set errors = login.errors[field.name] %}
-  {% if field.flags.hidden %}
-    {{ field(class="form-control") }}
-  {% elif field.type == "SubmitField" %}
-    {{ field(class="btn btn-primary") }}
-  {% else %}
-    {% if errors %}
-    {% set class="form-control is-invalid" %}
-    {% else %}
-    {% set class="form-control" %}
-    {% endif %}
-
-    <div class="row">
-      <span class="col-md-3">{{ field.label() }}</span>
-    </div>
-    <div class="row form-box">
-      <span class="col-md-6">
-      {{ field(class=class) }}
-      <div class="invalid-feedback">
-        {{ ';'.join(errors) }}
-      </div>
-      </span>
-    </div>
-  {% endif %}
-  {% endfor %}
+{% include 'form_fields.html' %}
 </form>
 </section>
+</div>
 
 {% endblock %}
