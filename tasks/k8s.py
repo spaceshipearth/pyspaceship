@@ -1,31 +1,17 @@
 
 from invoke import task, run
 
-import json
 import random
 import string
 
 from . import utils
-
-def get_pods():
-  """List running pods"""
-  items = json.loads(run('kubectl get pods -l app=pyspaceship -o=json', hide=True).stdout)['items']
-  pods = []
-  for item in items:
-    pods.append({
-      'name': item['metadata']['name'],
-      'image': item['status']['containerStatuses'][0]['image'],
-      'phase': item['status']['phase'],
-    })
-
-  return pods
 
 @task
 def pods(ctx):
   """Display existing pods for the service"""
   print('Phase\tImage\tName')
   print('------------------------------')
-  for pod in get_pods():
+  for pod in utils.get_pods():
     print(f'{pod["phase"]}\t{pod["image"]}\t{pod["name"]}')
 
 @task(
@@ -70,9 +56,23 @@ def sendgrid_secret(ctx, secret_key = None):
   utils.k8s_apply(secret, dry_run = False)
 
 @task()
+def google_app_secret(ctx, keyfile):
+  """upload a keyfile as a google secret
+
+  created by:
+    gcloud iam service-accounts keys create /tmp/key.json --iam-account=pyspaceship@spaceshipearthprod.iam.gserviceaccount.com
+  """
+  secret = utils.load_manifest('google-app-creds', {
+    'keyfile': open(keyfile).read().strip(),
+  })
+
+  utils.k8s_apply(secret, dry_run = False)
+
+
+@task()
 def run_migrations(ctx):
   """Migrate the DB that the cluster is connected to"""
-  random_pod_name = [p['name'] for p in get_pods() if p['phase'] == 'Running'].pop()
+  random_pod_name = utils.random_pod_name()
 
   print(f"Using pod {random_pod_name} to run migrations...")
   run(f'kubectl exec {random_pod_name} inv run.upgrade')
@@ -80,22 +80,14 @@ def run_migrations(ctx):
 @task
 def bounce(ctx):
   """Bounce the deployment by deleting all pods and allowing them to be recreated"""
-  for pod_name in [p['name'] for p in get_pods() if p['phase'] == 'Running']:
+  pod_names = [p['name'] for p in utils.get_pods() if p['phase'] == 'Running']
+  for pod_name in pod_names:
     run(f'kubectl delete pod {pod_name}')
-
-@task
-def logs(ctx):
-  """Read the latest logs"""
-  output = json.loads(
-    run('gcloud logging read logName=projects/spaceshipearthprod/logs/pyspaceship --format json --freshness 1h --order asc', hide=True).stdout)
-  for line in output:
-    print(line['textPayload'].strip())
-
 
 @task()
 def shell(ctx):
   """Get a shell on a random pod"""
-  random_pod_name = [p['name'] for p in get_pods() if p['phase'] == 'Running'].pop()
+  random_pod_name = utils.random_pod_name()
 
   print(f"Picked pod {random_pod_name} for shell access...")
   run(f'kubectl exec -i -t {random_pod_name} -- /bin/bash', pty=True)

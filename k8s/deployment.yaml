@@ -53,3 +53,12 @@ spec:
               secretKeyRef:
                 name: pyspaceship-sendgrid
                 key: secret_key
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /srv/pyspaceship/google-app-creds/key.json
+        volumeMounts:
+          - name: google-app-creds
+            mountPath: /srv/pyspaceship/google-app-creds
+      volumes:
+        - name: google-app-creds
+          secret:
+            secretName: google-app-creds

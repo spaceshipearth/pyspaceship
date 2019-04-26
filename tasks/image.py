@@ -6,7 +6,6 @@ import tempfile
 
 from .utils import load_manifest, k8s_apply, in_repo_root
 
-DEFAULT_VERSION = 'latest'
 REPO = "us.gcr.io"
 PROJECT = "spaceshipearthprod"
 
@@ -34,7 +33,7 @@ def generate_tag(version):
 def do_build(tag):
   """Builds the docker image"""
   print("Starting docker build...")
-  output = run('docker build -t %s .' % tag, hide=True).stdout
+  output = run('docker build -t %s .' % tag).stdout
 
   result = {
     'context_size': None,
@@ -126,7 +125,7 @@ def release(ctx, version = None):
     'push': "Push the image to GCR after building (default: True)",
   })
 def build(ctx, version=None, push=True):
-  """Builds and uploads the docker image"""
+  """Builds and uploads the docker image (first part of `release`)"""
   # default to a hash of the repo state
   if not version:
     version = get_hash()
@@ -144,10 +143,10 @@ def build(ctx, version=None, push=True):
 
 @task(
   help={
-    'version': "Just the version part of the image tag (default: '%s')" % DEFAULT_VERSION,
+    'version': "Just the version part of the image tag",
     'dry-run': "Just display the configuration to apply without invoking kubectl",
   })
-def deploy(ctx, version = DEFAULT_VERSION, dry_run = False):
-  """Generates and applies k8s configuration"""
+def deploy(ctx, version, dry_run = False):
+  """Generates and applies k8s configuration (second part of `release`)"""
   tag = generate_tag(version)
   do_deploy(tag)

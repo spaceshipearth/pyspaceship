@@ -29,7 +29,6 @@ COPY . $CODE_DIR
 # set this to 'production' in production deploys
 ENV ENVIRONMENT dev
 
-ENTRYPOINT ["gunicorn", "spaceship:app", "--access-logfile", "-"]
+ENTRYPOINT ["inv", "run.gunicorn"]
 
-CMD ["--bind", "0.0.0.0:9876"]
 EXPOSE 9876/tcp

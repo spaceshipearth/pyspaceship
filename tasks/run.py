@@ -48,7 +48,7 @@ def gunicorn(ctx):
   print(f"Running gunicorn on localhost:{PORT}...")
 
   with ctx.cd(ROOT_REPO_DIR):
-    ctx.run(f'gunicorn spaceship:app --bind 127.0.0.1:{PORT}')
+    ctx.run(f'gunicorn spaceship:app --bind 0.0.0.0:{PORT} --access-logfile -')
 
 @task(
   help={
