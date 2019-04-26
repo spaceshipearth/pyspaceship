@@ -55,6 +55,9 @@
 
     {% if current_user.is_anonymous %}
     <div class="navbar-nav ml-auto">
+      {{ render_nav_item('register', 'Become a captain') }}
+    </div>
+    <div class="navbar-nav">
       {{ render_nav_item('login', 'Log In') }}
     </div>
     {% else %}
