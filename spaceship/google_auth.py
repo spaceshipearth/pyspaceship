@@ -1,8 +1,7 @@
-from flask import Flask
 from authlib.flask.client import OAuth
 from loginpass import create_flask_blueprint, Google
 
-app = Flask(__name__)
+from . import app
 oauth = OAuth(app)
 
 def handle_authorize(remote, token, user_info):
