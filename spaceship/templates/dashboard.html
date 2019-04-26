@@ -6,7 +6,9 @@
 <h3>Welcome <a href="{{ url_for('profile', user_id=current_user.id) }}">{{ current_user.name.split(" ")[0] }}</a>! </h3>
 {% for team in teams: %}
   <section class="dash-team">
-    <h5>{{ team.name }}</h5>
+    <a href="{{ url_for('roster', team_id=team) }}">
+      <h5>{{ team.name }}</h5>
+    </a>
     <div>
     {% if not team.mission_id %}
       <em>No current mission</em>
@@ -15,8 +17,8 @@
         <div>{{ team.mission.short_description }}</div>
     {% endif %}
     </div>
-    <a href="{{ url_for('roster', team_id=team) }}" class="btn btn-primary" role="button">Crew Page</a>
   </section>
+
 {% endfor %}
 
 <div class="row">

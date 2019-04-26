@@ -1,4 +1,5 @@
 
+from itsdangerous import URLSafeTimedSerializer
 from flask import render_template, flash, redirect, url_for, jsonify, request
 from flask_login import login_user, logout_user, login_required, current_user
 from peewee import DatabaseError, IntegrityError, fn
@@ -267,6 +268,21 @@ def dashboard():
                          missions=Mission.select(),
                          create_crew=CreateCrew())
 
+
+def generate_confirmation_token(email):
+    """Confirmation email token."""
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt=app.config['EMAIL_CONFIRM_SALT'])
+
+def confirm_token(token, expiration=3600):
+    """Plausibility check of confirmation token."""
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(token, salt=app.config['EMAIL_CONFIRM_SALT'], max_age=expiration)
+    except:
+        return False
+    return email
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
   register = Register()
@@ -298,13 +314,27 @@ def register():
 
     achievements.become_captain(u)
 
+    token = generate_confirmation_token(register.data['email'])
     email.send(to_emails=register.data['email'], 
         subject='Please verify you email for Spaceship Earth',
-        html_content=render_template('confirm_email.html'))
+        html_content=render_template('confirm_email.html', 
+        confirmation_url=url_for('confirm_email', token=token, _external=True)))
 
     return redirect_for_logged_in()
 
   return render_template('register.html', register=register)
+
+@app.route('/confirm_email/<token>', methods=['GET'])
+@login_required
+def confirm_email(token):
+  if confirm_token(token) == current_user.email:
+    user = (User
+                .select()
+                .where(User.email == current_user.email)
+                .get())
+    user.email_confirmed = True
+    user.save()
+  return redirect(url_for('dashboard'))
 
 @app.route('/create_crew', methods=['POST'])
 @login_required
@@ -442,6 +472,19 @@ def enlist(key):
 
           invitation.status = 'accepted'
           invitation.save()
+
+          # tell the captain about the new user
+          captain = (User
+                        .select()
+                        .join(Team, on=(Team.captain == User.id))
+                        .where(Team.id == invitation.team)
+                        .get())  
+          email.send(to_emails=captain.email, 
+            subject='Your crew is growing!',
+            html_content=render_template('crew_growing_email.html', 
+              team_id=invitation.team, 
+              name=u.name, _external=True))
+
         except IntegrityError:
           transaction.rollback()
           flash({'msg':f'Email already registered. Please sign-in', 'level': 'danger'})
@@ -454,6 +497,7 @@ def enlist(key):
             login_user(u)
           return redirect_for_logged_in()
       return redirect(url_for('dashboard'))
+
 
   return render_template('enlist.html', enlist=enlist, invitation=invitation)
 
@@ -563,7 +607,7 @@ def edit():
 
 @app.context_processor
 def gravatar():
-  def write_gravatar_link(email, size=100, default='mp'):
+  def write_gravatar_link(email, size=100, default='robohash'):
     url = 'https://www.gravatar.com/avatar/'
     hash_email = hashlib.md5(email.encode('ascii')).hexdigest()
     link = "{url}{hash_email}?s={size}&d={default}".format(url=url, hash_email=hash_email, size=size, default=default)
