@@ -15,6 +15,7 @@ class User(BaseModel):
   password_hash = CharField()
   created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
   deleted_at = PendulumDateTimeField(null=True)
+  email_confirmed = BooleanField(default=False)
 
   def set_password(self, password):
     self.password_hash = generate_password_hash(password)
