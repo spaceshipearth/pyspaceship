@@ -16,8 +16,12 @@ def handle_authorize(remote, token, user_info):
 
     try:
       user = User.get(User.email == email)
+      if user_info['email_verified']:
+        # reset the password in case someone else previously signed up with this email
+        user.password_hash = None
+        user.save()
     except User.DoesNotExist:
-      user = User(email=email)
+      user = User(name=user_info['name'], email=email)
       user.save()
 
     login_user(user)
