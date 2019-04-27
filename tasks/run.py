@@ -11,6 +11,7 @@ FLASK_ENV = {
 
 def get_db_manager():
   from spaceship.db import db
+  db.connect()
   return DatabaseManager(db)
 
 @task(
