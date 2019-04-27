@@ -53,6 +53,16 @@ spec:
               secretKeyRef:
                 name: pyspaceship-sendgrid
                 key: secret_key
+          - name: GOOGLE_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: pyspaceship-google-oauth
+                key: client_id
+          - name: GOOGLE_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: pyspaceship-google-oauth
+                key: secret
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: /srv/pyspaceship/google-app-creds/key.json
         volumeMounts:
