@@ -18,14 +18,16 @@ def pods(ctx):
   help={
     'host': 'MySQL host',
     'password': 'MySQL password',
+    'port': 'MySQL port (default: 3306)',
     'username': "MySQL username (default: 'spaceship-app')",
     'db': "Name of the mysql database (default: 'spaceship')",
   }
 )
-def mysql_secret(ctx, host, password, username = 'spaceship-app', db = 'spaceship'):
+def mysql_secret(ctx, host, password, port=3306, username = 'spaceship-app', db = 'spaceship'):
   """Create a secret containing mysql credentials"""
   secret = utils.load_manifest('mysql_secret', {
     'host': host,
+    'port': str(port),
     'username': username,
     'password': password,
     'db': db,

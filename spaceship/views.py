@@ -27,8 +27,11 @@ from .forms.start_mission import StartMission
 from .forms.create_crew import CreateCrew
 
 import hashlib
+import logging
 import pendulum
 import uuid
+
+logger = logging.getLogger('views')
 
 def teams(user):
   return (Team
@@ -304,10 +307,11 @@ def register():
         flash({'msg':f'Email already registered. Please sign-in'})
         # TODO: pass-through next?
         return redirect(url_for('login'))
-      except DatabaseError:
+      except DatabaseError as e:
         # TODO: docs mention ErrorSavingData but I cannot find wtf they are talking about
         transaction.rollback()
         flash({'msg':f'Error registering', 'level':'danger'})
+        logger.exception(e)
         return redirect(url_for('home'))
 
     login_user(u)
@@ -315,9 +319,9 @@ def register():
     achievements.become_captain(u)
 
     token = generate_confirmation_token(register.data['email'])
-    email.send(to_emails=register.data['email'], 
+    email.send(to_emails=register.data['email'],
         subject='Please verify you email for Spaceship Earth',
-        html_content=render_template('confirm_email.html', 
+        html_content=render_template('confirm_email.html',
         confirmation_url=url_for('confirm_email', token=token, _external=True)))
 
     return redirect_for_logged_in()
@@ -478,11 +482,11 @@ def enlist(key):
                         .select()
                         .join(Team, on=(Team.captain == User.id))
                         .where(Team.id == invitation.team)
-                        .get())  
-          email.send(to_emails=captain.email, 
+                        .get())
+          email.send(to_emails=captain.email,
             subject='Your crew is growing!',
-            html_content=render_template('crew_growing_email.html', 
-              team_id=invitation.team, 
+            html_content=render_template('crew_growing_email.html',
+              team_id=invitation.team,
               name=u.name, _external=True))
 
         except IntegrityError:
@@ -629,5 +633,4 @@ def unmock_time(response):
 
 @app.route('/health')
 def health():
-  db.connect(reuse_if_open=True)
   return jsonify({'OK': True})
