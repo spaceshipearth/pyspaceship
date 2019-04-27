@@ -65,15 +65,23 @@ def mysql(ctx, stop=False):
 @task
 def mysql_client(ctx):
   """Run a MySQL client connected to local dev DB"""
+  from spaceship.config import Config
+
   responder = Responder(
     pattern="Enter password:",
-    response="aa7925b6f7b\n",
+    response=f"{Config.MYSQL_PASSWORD}\n",
   )
 
-  run(
-    'mysql -h 127.0.0.1 -P 9877 -u spaceship-app --database=spaceship -p',
-    pty=True,
-    watchers=[responder])
+  mysql_cmd = " ".join([
+    'mysql',
+    '-h', Config.MYSQL_HOST,
+    '-P', str(Config.MYSQL_PORT),
+    '-u', Config.MYSQL_USERNAME,
+    f'--database={Config.MYSQL_DB}',
+    '-p'
+  ])
+
+  run(mysql_cmd, pty=True, watchers=[responder])
 
 @task
 def migration_status(ctx):
