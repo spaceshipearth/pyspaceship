@@ -37,6 +37,9 @@ def teams(user):
           .join(User)
           .where(User.id == user.id))
 
+def get_mission_title(mission_id):
+  return Mission.get(Mission.id == mission_id).title
+
 def get_team_if_member(team_id):
   try:
     team = Team.get(Team.id == team_id)
@@ -94,6 +97,15 @@ def login():
 @app.route('/about')
 def about():
   return render_template('about.html')
+
+@app.route('/mission/<mission_id>', methods=['GET', 'POST'])
+def show_mission_info(mission_id):
+  # use the mission's title (lowercase, replacing spaces with underscores)
+  # as the filename of the mission info template
+  mission_title = get_mission_title(mission_id)
+  info_file = mission_title.lower().replace(" ", "_")
+  mission_info_path = "mission_info/" + info_file + ".html"
+  return render_template(mission_info_path)
 
 @app.route('/mission/<team_id>/<mission_id>', methods=['GET', 'POST'])
 @login_required
