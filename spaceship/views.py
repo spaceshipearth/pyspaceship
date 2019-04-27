@@ -439,10 +439,13 @@ def roster(team_id):
 
 @app.route('/enlist/<key>', methods=['GET', 'POST'])
 def enlist(key):
-  invitation = (Invitation
-                .select()
-                .where(Invitation.key_for_sharing == key)
-                .get())
+  try:
+    invitation = (Invitation
+                  .select()
+                  .where(Invitation.key_for_sharing == key)
+                  .get())
+  except Invitation.DoesNotExist:
+    invitation = None
   if not invitation:
     flash({'msg':f'Could not find invitation', 'level':'danger'})
     return redirect(url_for('home'))
