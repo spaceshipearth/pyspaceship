@@ -1,6 +1,6 @@
 
 from itsdangerous import URLSafeTimedSerializer
-from flask import render_template, flash, redirect, url_for, jsonify, request
+from flask import render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 from peewee import DatabaseError, IntegrityError, fn
 from urllib.parse import urlparse
@@ -62,17 +62,36 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+  oauth_user_info = session.pop('oauth_user_info', None)
   if current_user.is_authenticated:
     return redirect_for_logged_in()
 
+  session['oauth_next_url'] = url_for('login')
   login = Login()
-  if login.validate_on_submit():
+
+  email_address = ''
+  password = None
+  if oauth_user_info:
+    email_address = oauth_user_info.get('email', '')
+  elif login.validate_on_submit():
+    email_address = login.data['email']
+    password = login.data['password']
+
+  if email_address:
     try:
-      user = User.get(User.email == login.data['email'])
+      user = User.get(User.email == email_address)
     except User.DoesNotExist:
       user = None
     else:
-      if not user.check_password(login.data['password']):
+      if oauth_user_info:
+        # clear password in case someone else claimed this email
+        user.password_hash = None
+        user.save()
+      elif not user.password_hash:
+        # user's password was previously cleared
+        # TODO redirect to password reset flow
+        user = None
+      elif not user.check_password(password):
         user = None
 
     if user:
@@ -273,14 +292,31 @@ def confirm_token(token, expiration=3600):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+  oauth_user_info = session.pop('oauth_user_info', None)
+  session['oauth_next_url'] = url_for('register')
+
   register = Register()
 
-  if register.validate_on_submit():
+  name = ''
+  email_address = ''
+  email_confirmed = False
+  password = None
+
+  if oauth_user_info:
+    name = oauth_user_info.get('name', '')
+    email_address = oauth_user_info.get('email', '')
+    email_confirmed = True
+  elif register.validate_on_submit():
+    name = register.data['name']
+    email_address = register.data['email']
+    password = register.data['password']
+
+  if name and email_address:
     with db.atomic() as transaction:
       try:
-        u = User(name=register.data['name'],
-                 email=register.data['email'])
-        u.set_password(register.data['password'])
+        u = User(name=name, email=email_address, email_confirmed=email_confirmed)
+        if password:
+          u.set_password(password)
         u.save()
 
         t = Team(captain=u, name=names.name_team())
@@ -289,8 +325,8 @@ def register():
         tu.save()
       except IntegrityError:
         transaction.rollback()
+        # don't automatically log in existing oauth users because we want login to trigger a password reset
         flash({'msg':f'Email already registered. Please sign-in'})
-        # TODO: pass-through next?
         return redirect(url_for('login'))
       except DatabaseError:
         # TODO: docs mention ErrorSavingData but I cannot find wtf they are talking about
@@ -302,11 +338,12 @@ def register():
 
     achievements.become_captain(u)
 
-    token = generate_confirmation_token(register.data['email'])
-    email.send(to_emails=register.data['email'], 
-        subject='Please verify you email for Spaceship Earth',
-        html_content=render_template('confirm_email.html', 
-        confirmation_url=url_for('confirm_email', token=token, _external=True)))
+    if not email_confirmed:
+      token = generate_confirmation_token(email_address)
+      email.send(to_emails=email_address,
+          subject='Please verify you email for Spaceship Earth',
+          html_content=render_template('confirm_email.html',
+          confirmation_url=url_for('confirm_email', token=token, _external=True)))
 
     return redirect_for_logged_in()
 
@@ -486,7 +523,6 @@ def enlist(key):
           return redirect_for_logged_in()
       return redirect(url_for('dashboard'))
 
-
   return render_template('enlist.html', enlist=enlist, invitation=invitation)
 
 @app.route('/logout')
@@ -603,6 +639,13 @@ def gravatar():
   return dict(gravatar=write_gravatar_link)
 
 @app.before_request
+def cleanup_oauth_session_fields():
+  if request.path not in ('/google/login', '/google/auth'):
+    session.pop('oauth_next_url', None)
+  if request.path not in ('/login', '/register') and not request.path.startswith('/enlist'):
+    session.pop('oauth_user_info', None)
+
+@app.before_request
 def mock_time():
   try:
     fake_time = request.values.get('now')
@@ -610,6 +653,12 @@ def mock_time():
     pendulum.set_test_now(now)
   except:
     pass
+
+#@app.before_request
+#def debug_oauth_fields():
+#  import sys
+#  print(f'oauth_next_url={session.get("oauth_next_url", "")}', file=sys.stderr)
+#  print(f'oauth_user_info={session.get("oauth_user_info", "")}', file=sys.stderr)
 
 @app.teardown_request
 def unmock_time(response):
