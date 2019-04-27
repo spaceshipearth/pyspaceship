@@ -22,7 +22,7 @@ from .models.pledge import Pledge
 from .forms.register import Register
 from .forms.login import Login
 from .forms.invite import Invite
-from .forms.enlist import EnlistExistingUser, EnlistNewUser
+from .forms.enlist import AcceptInvitation, DeclineInvitation
 from .forms.start_mission import StartMission
 from .forms.create_crew import CreateCrew
 
@@ -450,12 +450,27 @@ def enlist(key):
     flash({'msg':f'Could not find invitation', 'level':'danger'})
     return redirect(url_for('home'))
   if invitation.status == 'accepted':
-    return redirect(url_for('dashboard'))
+    flash({'msg':f'Invitation was already accepted.', 'level':'danger'})
+    return redirect(url_for('home'))
+
+  decline = DeclineInvitation()
+  if decline.decline.data and decline.validate():
+    with db.atomic() as transaction:
+      try:
+        invitation.status = 'declined'
+        invitation.save()
+      except DatabaseError:
+        transaction.rollback()
+        flash({'msg':f'Database error', 'level':'danger'})
+      else:
+        flash({'msg':f'Invitation declined', 'level':'success'})
+    return redirect(url_for('home'))
+
+  register = None
 
   if current_user.is_authenticated:
-    enlist = EnlistExistingUser()
     email_mismatch = (invitation.invited_email and current_user.email != invitation.invited_email)
-    if not enlist.is_submitted() and email_mismatch:
+    if email_mismatch:
       # could have gotten the invite via an alias? but also maybe multiple accounts. let them decide
       flash({'msg':f'Invitation was for ' + invitation.invited_email + ' but you are logged in as ' + current_user.email, 'level':'warning'})
   elif User.select().where(User.email == invitation.invited_email):
@@ -463,70 +478,114 @@ def enlist(key):
     flash({'msg':f'Please log in as ' + invitation.invited_email, 'level':'warning'})
     return redirect(url_for('login', next=url_for('enlist', key=key)))
   else:
-    enlist = EnlistNewUser()
-    if not enlist.is_submitted():
+    register = Register()
+    if not register.is_submitted():
       # auto populate the email from the invitation but allow the user to change it
-      enlist.email.process_data(invitation.invited_email)
+      register.email.process_data(invitation.invited_email)
 
-  if enlist.is_submitted():
-    is_valid = enlist.validate()
-    if enlist.csrf_token.errors:  # csrf must validate even for decline
-      flash({'msg':f'Validation error', 'level':'danger'})
+  oauth_user_info = session.pop('oauth_user_info', None)
+  session['oauth_next_url'] = url_for('enlist', key=invitation.key_for_sharing)
+
+  name = ''
+  email_address = ''
+  password = None
+  if oauth_user_info:
+    name = oauth_user_info.get('name', '')
+    email_address = oauth_user_info.get('email', '')
+  elif register and register.validate_on_submit():
+    name = register.data['name']
+    email_address = register.data['email']
+    password = register.data['password']
+
+  if name and email_address:
+    with db.atomic() as transaction:
+      try:
+        u = User(name=name, email=email_address, email_confirmed=True)
+        if password:
+          u.set_password(password)
+        u.save()
+        accept_invitation(invitation, u)
+      except IntegrityError:
+        transaction.rollback()
+        flash({'msg':f'Email already registered. Please sign-in', 'level': 'danger'})
+        return redirect(url_for('login'))
+      except DatabaseError:
+        transaction.rollback()
+        flash({'msg':f'Database error', 'level':'danger'})
+        return redirect(url_for('home'))
+      except ValueError as err:
+        flash({'msg':f'{str(err)}', 'level':'danger'})
+        return redirect(url_for('home'))
+      else:
+        if not current_user.is_authenticated:
+          login_user(u)
+        return redirect_for_logged_in()
+    return redirect(url_for('dashboard'))
+
+  return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), decline=decline, register=register)
+
+@app.route('/rsvp/<key>/<status>', methods=['POST'])
+@login_required
+def rsvp(key, status):
+  try:
+    invitation = (Invitation
+                  .select()
+                  .where(Invitation.key_for_sharing == key)
+                  .get())
+  except Invitation.DoesNotExist:
+    invitation = None
+  if not invitation:
+    flash({'msg':f'Could not find invitation', 'level':'danger'})
+    return redirect(url_for('home'))
+  if invitation.status == 'accepted':
+    flash({'msg':f'Invitation was already accepted.', 'level':'danger'})
+    return redirect(url_for('home'))
+
+  with db.atomic() as transaction:
+    try:
+      if status == 'accepted':
+        accept_invitation(invitation, User.get(User.id == current_user.id))
+      elif status == 'declined':
+        invitation.status = 'declined'
+        invitation.save()
+      else:
+        raise ValueError(f'Invalid rsvp {status}')
+    except DatabaseError:
+      transaction.rollback()
+      flash({'msg':f'Database error', 'level':'danger'})
+    except ValueError as err:
+      flash({'msg':f'{str(err)}', 'level':'danger'})
       return redirect(url_for('home'))
-    if enlist.decline.data:  # don't validate form for decline, just decline
-      with db.atomic() as transaction:
-        try:
-          invitation.status = 'declined'
-          invitation.save()
-        except DatabaseError:
-          transaction.rollback()
-          flash({'msg':f'Database error', 'level':'danger'})
-        else:
-          flash({'msg':f'Invitation declined', 'level':'success'})
-          return redirect(url_for('home'))
-    elif is_valid:
-      with db.atomic() as transaction:
-        try:
-          if isinstance(enlist, EnlistNewUser):
-            u = User(name=enlist.data['name'],
-                     email=enlist.data['email'])
-            u.set_password(enlist.data['password'])
-            u.save()
-          else:
-            u = User.get(User.id == current_user.id)
+    else:
+      flash({'msg':f'Invitation {status}', 'level':'success'})
+      return redirect(url_for('home'))
 
-          tu = TeamUser(team=invitation.team, user=u)
-          tu.save()
+  return redirect(url_for('home'))
 
-          invitation.status = 'accepted'
-          invitation.save()
+def accept_invitation(invitation, user):
+  already_on_team = (TeamUser
+      .select()
+      .where((TeamUser.user_id == user.id) &
+             (TeamUser.team_id == invitation.team)))
+  if already_on_team:
+    raise ValueError('Already on team')
 
-          # tell the captain about the new user
-          captain = (User
-                        .select()
-                        .join(Team, on=(Team.captain == User.id))
-                        .where(Team.id == invitation.team)
-                        .get())  
-          email.send(to_emails=captain.email, 
-            subject='Your crew is growing!',
-            html_content=render_template('crew_growing_email.html', 
-              team_id=invitation.team, 
-              name=u.name, _external=True))
+  tu = TeamUser(team=invitation.team, user=user)
+  tu.save()
+  invitation.status = 'accepted'
+  invitation.save()
 
-        except IntegrityError:
-          transaction.rollback()
-          flash({'msg':f'Email already registered. Please sign-in', 'level': 'danger'})
-          return redirect(url_for('login'))
-        except DatabaseError:
-          transaction.rollback()
-          flash({'msg':f'Database error', 'level':'danger'})
-        else:
-          if isinstance(enlist, EnlistNewUser) and not current_user.is_authenticated:
-            login_user(u)
-          return redirect_for_logged_in()
-      return redirect(url_for('dashboard'))
-
-  return render_template('enlist.html', enlist=enlist, invitation=invitation)
+  # tell captain about new user
+  captain = (User
+                .select()
+                .join(Team, on=(Team.captain == User.id))
+                .where(Team.id == invitation.team)
+                .get())
+  email.send(to_emails=captain.email,
+    subject='Your crew is growing!',
+    html_content=render_template('crew_growing_email.html',
+      team_id=invitation.team,
+      name=user.name, _external=True))
 
 @app.route('/logout')
 def logout():
@@ -643,6 +702,8 @@ def gravatar():
 
 @app.before_request
 def cleanup_oauth_session_fields():
+  if request.path.startswith('/static'):
+    return
   if request.path not in ('/google/login', '/google/auth'):
     session.pop('oauth_next_url', None)
   if request.path not in ('/login', '/register') and not request.path.startswith('/enlist'):
