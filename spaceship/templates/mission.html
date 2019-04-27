@@ -8,6 +8,8 @@
 </h5>
 
 <h3>{{ mission.title }}</h3>
+<p><a href="{{ url_for('show_mission_info', mission_id=team.mission) }}">MISSION BRIEF HERE</a></p>
+<p>{{ mission.short_description }}</p>
 {% if week_of_mission > 0 and week_of_mission <= 4 %}
 <p>Click "Pledge" below for any goals you want to complete. Afterwards, click the "Done" checkbox to mark goals you have completed.
 <p>In week {{ week_of_mission }}!

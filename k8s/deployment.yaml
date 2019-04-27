@@ -28,6 +28,11 @@ spec:
               secretKeyRef:
                 name: pyspaceship-mysql
                 key: host
+          - name: MYSQL_PORT
+            valueFrom:
+              secretKeyRef:
+                name: pyspaceship-mysql
+                key: port
           - name: MYSQL_USERNAME
             valueFrom:
               secretKeyRef:
