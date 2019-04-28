@@ -35,8 +35,28 @@ def mysql_secret(ctx, host, password, port=3306, username = 'spaceship-app', db 
 
   utils.k8s_apply(secret, dry_run = False)
 
+@task(
+  help={
+    'host': 'Redis host',
+    'port': 'Redis port (default: 6379)',
+    'db': "Number of the Redis DB (default: '0')",
+  }
+)
+def redis_secret(ctx, host, port=3306, db=0):
+  """Create a secret containing redis credentials"""
+  secret = utils.load_manifest('redis_secret', {
+    'host': host,
+    'port': str(port),
+    'db': str(db),
+  })
+
+  utils.k8s_apply(secret, dry_run = False)
+
 @task()
 def session_secret(ctx, secret_key = None):
+  """Creates a secret containing a session key
+
+  Running this will invalidate all exising sessions and log out all users"""
   def random_string(length):
     return "".join( random.SystemRandom().choices(string.ascii_letters + string.digits, k=length))
 
@@ -51,6 +71,7 @@ def session_secret(ctx, secret_key = None):
 
 @task()
 def sendgrid_secret(ctx, secret_key = None):
+  """creates secret containing key to authenticate with sendgrid"""
   secret = utils.load_manifest('sendgrid_secret', {
     'secret_key': secret_key,
   })
@@ -69,7 +90,6 @@ def google_app_secret(ctx, keyfile):
   })
 
   utils.k8s_apply(secret, dry_run = False)
-
 
 @task()
 def run_migrations(ctx):
