@@ -31,5 +31,9 @@ class Config:
   SQLALCHEMY_ECHO = True if not IN_PRODUCTION else False
   SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+  REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
+  REDIS_PORT = int(os.environ.get('REDIS_PORT', 9878))
+  REDIS_DB = int(os.environ.get('REDIS_DB', 0))
+
   GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '700492634886-qbhv3gss1a59lm5p93gr7plo872auaba.apps.googleusercontent.com')
   GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', 'c1PSnZoSuVTOtta-g-OH_3ZL')

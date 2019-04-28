@@ -56,11 +56,17 @@ def namespace(ctx, namespace):
     else:
       print('mysql user already initialized')
 
-    exiting = ns.get_secret('pyspaceship-session')
+    existing = ns.get_secret('pyspaceship-session')
     if not existing:
       session_secret(ctx, namespace=namespace)
     else:
       print('session already initialized')
+
+    existing = ns.get_secret('pyspaceship-redis')
+    if not existing:
+      redis_secret(ctx, db=0, namespace=namespace)
+    else:
+      print('redis already initialized')
 
   # copy the google and sendgrid secrets from prod
   for secret_name in ['pyspaceship-google-oauth', 'pyspaceship-sendgrid', 'google-app-creds']:
@@ -161,6 +167,25 @@ def mysql_secret(
     'username': username,
     'password': password,
     'db': db,
+  })
+
+  with K8SNamespace(namespace) as ns:
+    ns.apply(secret)
+
+@task(
+  help={
+    'host': "Redis host (default: '10.0.0.3')",
+    'port': 'Redis port (default: 6379)',
+    'db': "Number of the Redis DB (default: '0')",
+    'namespace': f"Version of the site (default: {TEST_NAMESPACE})",
+  }
+)
+def redis_secret(ctx, host='10.0.0.3', port=3306, db=0, namespace=TEST_NAMESPACE):
+  """Create a secret containing redis credentials"""
+  secret = load_manifest('redis_secret', {
+    'host': host,
+    'port': str(port),
+    'db': str(db),
   })
 
   with K8SNamespace(namespace) as ns:

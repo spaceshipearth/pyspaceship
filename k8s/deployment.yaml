@@ -48,6 +48,21 @@ spec:
               secretKeyRef:
                 name: pyspaceship-mysql
                 key: db
+          - name: REDIS_HOST
+            valueFrom:
+              secretKeyRef:
+                name: pyspaceship-redis
+                key: host
+          - name: REDIS_PORT
+            valueFrom:
+              secretKeyRef:
+                name: pyspaceship-redis
+                key: port
+          - name: REDIS_DB
+            valueFrom:
+              secretKeyRef:
+                name: pyspaceship-redis
+                key: db
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:

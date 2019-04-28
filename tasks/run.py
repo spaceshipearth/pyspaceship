@@ -57,7 +57,7 @@ def gunicorn(ctx):
   },
 )
 def mysql(ctx, stop=False):
-  """Runs mysql in docker-compose"""
+  """Runs mysql (and redis!) in docker-compose"""
   if stop:
     run('docker-compose stop')
   else:
