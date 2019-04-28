@@ -2,10 +2,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pyspaceship-service
+  labels:
+    app: pyspaceship
 spec:
   type: NodePort
   selector:
     app: pyspaceship
+    component: webserver
   ports:
   - name: spaceship-port
     protocol: TCP
