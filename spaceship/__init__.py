@@ -11,8 +11,9 @@ csrf = CSRFProtect(app)
 
 from . import enforce_ssl
 from . import enforce_www
-from . import google_auth
 from . import db
+from . import redis
+from . import google_auth
 from . import login
 from . import views
 
