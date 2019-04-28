@@ -42,7 +42,9 @@ python-http-client==3.1.0
 pytz==2019.1
 pytzdata==2018.9
 PyYAML==5.1
+redis==3.2.1
 requests==2.21.0
+rq==1.0
 rsa==4.0
 sendgrid==6.0.4
 six==1.12.0
