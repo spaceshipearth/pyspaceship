@@ -62,17 +62,16 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-  oauth_user_info = session.pop('oauth_user_info', None)
   if current_user.is_authenticated:
     return redirect_for_logged_in()
 
-  session['oauth_next_url'] = url_for('login')
+  oauth_user_info = session.pop('oauth_user_info', None)
   login = Login()
 
-  email_address = ''
+  email_address = None
   password = None
   if oauth_user_info:
-    email_address = oauth_user_info.get('email', '')
+    email_address = oauth_user_info.get('email')
   elif login.validate_on_submit():
     email_address = login.data['email']
     password = login.data['password']
@@ -108,6 +107,7 @@ def login():
     else:
       flash({'msg':'Incorrect email or password. Try again?', 'level':'danger'})
 
+  session['oauth_next_url'] = url_for('login')
   return render_template('login.html', login=login)
 
 @app.route('/about')
@@ -293,18 +293,15 @@ def confirm_token(token, expiration=3600):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
   oauth_user_info = session.pop('oauth_user_info', None)
-  session['oauth_next_url'] = url_for('register')
-
   register = Register()
 
-  name = ''
-  email_address = ''
+  name = None
+  email_address = None
   email_confirmed = False
   password = None
-
   if oauth_user_info:
-    name = oauth_user_info.get('name', '')
-    email_address = oauth_user_info.get('email', '')
+    name = oauth_user_info.get('name')
+    email_address = oauth_user_info.get('email')
     email_confirmed = True
   elif register.validate_on_submit():
     name = register.data['name']
@@ -347,6 +344,7 @@ def register():
 
     return redirect_for_logged_in()
 
+  session['oauth_next_url'] = url_for('register')
   return render_template('register.html', register=register)
 
 @app.route('/confirm_email/<token>', methods=['GET'])
@@ -466,6 +464,7 @@ def enlist(key):
         flash({'msg':f'Invitation declined', 'level':'success'})
     return redirect(url_for('home'))
 
+  oauth_user_info = session.pop('oauth_user_info', None)
   register = None
 
   if current_user.is_authenticated:
@@ -483,15 +482,12 @@ def enlist(key):
       # auto populate the email from the invitation but allow the user to change it
       register.email.process_data(invitation.invited_email)
 
-  oauth_user_info = session.pop('oauth_user_info', None)
-  session['oauth_next_url'] = url_for('enlist', key=invitation.key_for_sharing)
-
-  name = ''
-  email_address = ''
+  name = None
+  email_address = None
   password = None
   if oauth_user_info:
-    name = oauth_user_info.get('name', '')
-    email_address = oauth_user_info.get('email', '')
+    name = oauth_user_info.get('name')
+    email_address = oauth_user_info.get('email')
   elif register and register.validate_on_submit():
     name = register.data['name']
     email_address = register.data['email']
@@ -522,6 +518,7 @@ def enlist(key):
         return redirect_for_logged_in()
     return redirect(url_for('dashboard'))
 
+  session['oauth_next_url'] = url_for('enlist', key=invitation.key_for_sharing)
   return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), decline=decline, register=register)
 
 @app.route('/rsvp/<key>/<status>', methods=['POST'])
