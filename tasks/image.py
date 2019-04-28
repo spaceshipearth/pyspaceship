@@ -56,10 +56,13 @@ def do_push(tag):
 
 def do_deploy(tag, dry_run = False):
   """actually perform a deploy of the manifests"""
+  container_environment = load_manifest('container_environment')
+
   deployment = load_manifest(
     'deployment',
     {
       'image': tag,
+      'container_environment': container_environment,
     }
   )
   k8s_apply(deployment, dry_run)
@@ -81,9 +84,10 @@ def do_deploy(tag, dry_run = False):
   default=True,
   help={
     'version': "Proposed version for the release (default: hash of repo state)",
+    'dry-run': "Just display the configuration to apply without invoking kubectl",
   },
 )
-def release(ctx, version = None):
+def release(ctx, version = None, dry_run = False):
   """Releases a new version of the site"""
   # default to a hash of the repo state
   if not version:
@@ -113,11 +117,14 @@ def release(ctx, version = None):
 
   # mark the git repo as corresponding to that tag
   if do_tag:
-    run('git tag -a %s -m "Releasing image %s"' % (version, docker_tag))
-    run('git push --tags')
+    if dry_run:
+      print(f"Would've added a git tag '{version}' pointing at image '{docker_tag}'")
+    else:
+      run(f'git tag -a {version} -m "Releasing image {docker_tag}"')
+      run(f'git push --tags')
 
   # do the deploy
-  do_deploy(docker_tag)
+  do_deploy(docker_tag, dry_run)
 
 @task(
   help={
