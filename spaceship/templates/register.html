@@ -3,14 +3,19 @@
 {% block title %}Register - {{ super() }}{% endblock %}
 
 {% block content %}
-<h3>Spaceship Earth needs you to become a captain!</h3>
+<h3 class="text-center">Spaceship Earth needs you to become a captain!</h3>
 
-<section>
+{% include 'social-buttons.html' %}
+
+<div class="row justify-content-center">
+<section class="help col-md-5">
+<h5 class="text-center">...or, register manually</h5>
 <form method="POST" class="needs-validation" novalidate>
 {% set form = register %}
 {% include 'form_fields.html' %}
 </form>
 </section>
+</div>
 
 <section>
 <p>Captaining is the biggest contribution you can make to this project.

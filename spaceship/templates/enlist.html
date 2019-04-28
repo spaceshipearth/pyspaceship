@@ -6,19 +6,38 @@
 
 <h3><span class="font-weight-bold">{{ invitation.inviter.name }}</span> invited you to join
     <span class="font-weight-bold">{{ invitation.team.name }}</span>!</h3>
-<h4>Welcome!</h4>
-
-<p>Spaceship Earth is a community organizing platform for climate change
-action. You and your friends join up together as a &ldquo;crew&rdquo;, then
-work on a few goals together every month.
-
-<p><em>{{ invitation.inviter.name }}</em> has started a crew and, as its
-captain, has asked you to join.
 
 <blockquote class="blockquote">{{ invitation.message|e }}</blockquote>
 
-{% set form=enlist %}
+<section>
+<h5>Yes, sign me up!</h5>
+{% if register %}
+{% include 'social-buttons.html' %}
+<div class="row justify-content-center">
+<section class="help col-md-5">
+<h5 class="text-center">...or, register manually</h5>
+<form method="POST" class="needs-validation" novalidate>
+{% set form = register %}
+{% include 'form_fields.html' %}
+</form>
+</section>
+</div>
+{% else %}
+{% set form=accept %}
+<form action="{{url_for('rsvp', key=invitation.key_for_sharing, status='accepted')}}"
+      method="POST"
+      class="needs-validation" novalidate>
+  {% include 'form_fields.html' %}
+</form>
+{% endif %}
+</section>
+
+<section>
+<h5>No, thanks.</h5>
+{% set form=decline %}
 <form method="POST" class="needs-validation" novalidate>
   {% include 'form_fields.html' %}
 </form>
+</section>
+
 {% endblock %}

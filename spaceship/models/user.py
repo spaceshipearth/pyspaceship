@@ -12,7 +12,7 @@ class User(BaseModel):
   id = AutoField(primary_key=True)
   email = CharField(unique=True)
   name = CharField(default='')
-  password_hash = CharField()
+  password_hash = CharField(null=True)
   created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
   deleted_at = PendulumDateTimeField(null=True)
   email_confirmed = BooleanField(default=False)
@@ -36,4 +36,3 @@ class User(BaseModel):
     return False
   def get_id(self):
     return str(self.id)
-

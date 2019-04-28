@@ -13,3 +13,6 @@ class Config:
   MYSQL_USERNAME = os.environ.get('MYSQL_USERNAME', 'spaceship-app')
   MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', 'aa7925b6f7b')
   MYSQL_DB = os.environ.get('MYSQL_DB', 'spaceship')
+
+  GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '700492634886-qbhv3gss1a59lm5p93gr7plo872auaba.apps.googleusercontent.com')
+  GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', 'c1PSnZoSuVTOtta-g-OH_3ZL')

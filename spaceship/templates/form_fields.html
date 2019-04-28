@@ -11,11 +11,11 @@
     {% set class="form-control" %}
     {% endif %}
 
-    <div class="row">
-      <span class="col-md-3">{{ field.label() }}</span>
+    <div>
+      <span>{{ field.label() }}</span>
     </div>
-    <div class="row form-box">
-      <span class="col-md-6">
+    <div class="form-box">
+      <span>
       {{ field(class=class) }}
       <div class="invalid-feedback">
         {{ ';'.join(errors) }}

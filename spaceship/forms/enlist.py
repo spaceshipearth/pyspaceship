@@ -1,13 +1,8 @@
-
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import Email, EqualTo, Length
+from wtforms import SubmitField
 
-from .register import Register
-
-class EnlistNewUser(Register):
-  decline = SubmitField('Decline')
-
-class EnlistExistingUser(FlaskForm):
+class AcceptInvitation(FlaskForm):
   accept = SubmitField('Accept')
+
+class DeclineInvitation(FlaskForm):
   decline = SubmitField('Decline')
