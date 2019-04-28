@@ -1,7 +1,8 @@
+import logging
+
 from rq import Queue
 
 from .. import app
-
 from ..redis import store
 
 class BaseJob:
@@ -39,6 +40,12 @@ class BaseJob:
 
     # we're not returning the job for now; hopefully we won't need it?
     return None
+
+  @classmethod
+  def log(cls):
+    if not hasattr(cls, '_logger'):
+      cls._logger = logging.getLogger(cls.__name__)
+    return cls._logger
 
   @classmethod
   def perform(cls, *args, **kwargs):

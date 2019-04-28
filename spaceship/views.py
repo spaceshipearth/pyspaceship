@@ -6,7 +6,6 @@ from peewee import DatabaseError, IntegrityError, fn
 from urllib.parse import urlparse
 
 from . import app
-from . import email
 from . import names
 from . import achievements
 from . import calendar
@@ -25,6 +24,7 @@ from .forms.invite import Invite
 from .forms.enlist import AcceptInvitation, DeclineInvitation
 from .forms.start_mission import StartMission
 from .forms.create_crew import CreateCrew
+from .jobs.email_job import EmailJob
 
 import hashlib
 import logging
@@ -353,10 +353,13 @@ def register():
 
     if not email_confirmed:
       token = generate_confirmation_token(email_address)
-      email.send(to_emails=email_address,
-          subject='Please verify you email for Spaceship Earth',
-          html_content=render_template('confirm_email.html',
-          confirmation_url=url_for('confirm_email', token=token, _external=True)))
+      EmailJob.enqueue(
+        to_emails=email_address,
+        subject='Please verify you email for Spaceship Earth',
+        html_content=render_template(
+          'confirm_email.html',
+          confirmation_url=url_for('confirm_email', token=token, _external=True)),
+      )
 
     return redirect_for_logged_in()
 
@@ -420,10 +423,16 @@ def roster(team_id):
                           message=message,
                           status='sent')
           iv.save()
-          # TODO probably should queue this instead
-          email.send(to_emails=invited_email,
-              subject='Invitation to join',
-              html_content=render_template('invite_email.html', inviter=current_user.name, message=message, key_for_sharing=key_for_sharing))
+
+          EmailJob.enqueue(
+            to_emails=invited_email,
+            subject='Invitation to join',
+            html_content=render_template(
+              'invite_email.html',
+              inviter=current_user.name,
+              message=message,
+              key_for_sharing=key_for_sharing),
+          )
         achievements.invite_crew(current_user)
       except DatabaseError:
         transaction.rollback()
@@ -590,15 +599,21 @@ def accept_invitation(invitation, user):
 
   # tell captain about new user
   captain = (User
-                .select()
-                .join(Team, on=(Team.captain == User.id))
-                .where(Team.id == invitation.team)
-                .get())
-  email.send(to_emails=captain.email,
+             .select()
+             .join(Team, on=(Team.captain == User.id))
+             .where(Team.id == invitation.team)
+             .get())
+
+  EmailJob.enqueue(
+    to_emails=captain.email,
     subject='Your crew is growing!',
-    html_content=render_template('crew_growing_email.html',
+    html_content=render_template(
+      'crew_growing_email.html',
       team_id=invitation.team,
-      name=user.name, _external=True))
+      name=user.name,
+      _external=True,
+    ),
+  )
 
 @app.route('/logout')
 def logout():

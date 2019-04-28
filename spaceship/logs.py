@@ -10,7 +10,7 @@ if app.config['IN_PRODUCTION']:
   client.setup_logging()
 
   # set gunicorn logging to what google set up
-  logger = logging.getLogger('spaceship')
+  logger = logging.getLogger()
   google_handlers = logger.handlers
 
   gunicorn_logger = logging.getLogger('gunicorn.error')
@@ -19,7 +19,7 @@ if app.config['IN_PRODUCTION']:
 # if google logging is not available, set up our own (to stdout)
 else:
   # get our own logger that uses the same level as the app
-  logger = logging.getLogger('spaceship')
+  logger = logging.getLogger()
   logger.setLevel(logging.INFO)
 
   # send output to stdout
