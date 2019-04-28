@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Plant-Rich Diet - {{ super() }}{% endblock %}
+
+{% block content %}
+
+<h3>Mission: Plant-Rich Diet</h3>
+<section>
+<h5>(work in progress)</h5>
+
+<p> Reducing the amount of meat you eat is one of the best ways you can alter your habits to help 
+reduce emissions. Not only that, eating less meat can significantly improve your personal health.</p>
+
+<p>Most Americans eat more meat protein than our bodies need. Also, eating more meat increases your 
+ risk of having a heart attack or a stroke. If you reduce the amount of meat you eat, you will help
+ yourself be healthier in the long run.</p>
+ 
+<p>Meat has a massive impact on emissions&mdash;if cows were their own country, they would be the 3rd-highest 
+in greenhouse gas emissions in the world! Why? First of all, a massive amount of land is 
+used for feeding livestock (both for grazing and growing feed)&mdash;this land is often deforested, so the 
+trees and soil that would be natural carbon sinks are eliminated from the ecosystem. Second, significant 
+amounts of fossil fuels are used to power farm machinery. Finally, manure and cow farts product methane 
+and other gases that have a negative impact on the climate.</p>
+    
+<p>So, what’s the impact of eating a hamburger? What would be the impact if all Americans ate …. X less meat?
+<ul>
+    <li>The average impact of an average American meal with beef is 10kg of CO2</li>
+    <li>If all Americans continue to eat the average amount of beef per meal, we will generate 108 Gt
+         (gigatons) of CO2 over 30 years&mdash;and for every meal where we choose to eat plants (assuming tofu) 
+         instead of beef, we will generate 4.9Gt less of CO2</li>
+</ul>
+</p>
+
+<h5>References</h5>
+<p>Plant-rich diet is the #4 solution to climate change from Project Drawdown. <a href="https://www.drawdown.org/solutions/food/plant-rich-diet">Read more here</a></p>
+{% if team %}
+<p><a href="{{ url_for('mission', team_id=team, mission_id=team.mission) }}">Back to mission page</a></p>
+{% endif %}
+</section>
+
+{% endblock %}

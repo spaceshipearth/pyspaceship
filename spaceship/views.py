@@ -27,8 +27,11 @@ from .forms.start_mission import StartMission
 from .forms.create_crew import CreateCrew
 
 import hashlib
+import logging
 import pendulum
 import uuid
+
+logger = logging.getLogger('views')
 
 def teams(user):
   return (Team
@@ -36,6 +39,9 @@ def teams(user):
           .join(TeamUser)
           .join(User)
           .where(User.id == user.id))
+
+def get_mission_title(mission_id):
+  return Mission.get(Mission.id == mission_id).title
 
 def get_team_if_member(team_id):
   try:
@@ -113,6 +119,15 @@ def login():
 @app.route('/about')
 def about():
   return render_template('about.html')
+
+@app.route('/mission/<mission_id>', methods=['GET', 'POST'])
+def show_mission_info(mission_id):
+  # use the mission's title (lowercase, replacing spaces with underscores)
+  # as the filename of the mission info template
+  mission_title = get_mission_title(mission_id)
+  info_file = mission_title.lower().replace(" ", "_")
+  mission_info_path = "mission_info/" + info_file + ".html"
+  return render_template(mission_info_path)
 
 @app.route('/mission/<team_id>/<mission_id>', methods=['GET', 'POST'])
 @login_required
@@ -325,10 +340,11 @@ def register():
         # don't automatically log in existing oauth users because we want login to trigger a password reset
         flash({'msg':f'Email already registered. Please sign-in'})
         return redirect(url_for('login'))
-      except DatabaseError:
+      except DatabaseError as e:
         # TODO: docs mention ErrorSavingData but I cannot find wtf they are talking about
         transaction.rollback()
         flash({'msg':f'Error registering', 'level':'danger'})
+        logger.exception(e)
         return redirect(url_for('home'))
 
     login_user(u)
@@ -727,5 +743,4 @@ def unmock_time(response):
 
 @app.route('/health')
 def health():
-  db.connect(reuse_if_open=True)
   return jsonify({'OK': True})
