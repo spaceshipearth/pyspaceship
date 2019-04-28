@@ -47,7 +47,7 @@
     {% if not current_user.is_anonymous %}
       {% set target = url_for('dashboard') %}
     {% else %}
-      {% set target = '/' %}
+      {% set target = url_for('home') %}
     {% endif %}
     <a class="navbar-brand" href="{{ target }}">
       <img src="/static/sship-152.png" width="30" height="30" class="d-inline-block align-top" alt="Spaceship!">
