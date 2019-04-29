@@ -16,10 +16,10 @@ brew install pyenv
 brew install pyenv-virtualenvwrapper
 ```
 
-Add the following to your `~/.bash_profile`
+Add the following to your shell initialization config (e.g. `~/.bash_profile`, `~/.zshrc`, etc.)
 
 ```
-PYENV_VIRTUALENVWRAPPER_PREFER_PYVENV="true"
+export PYENV_VIRTUALENVWRAPPER_PREFER_PYVENV="true"
 if command -v pyenv 1>/dev/null 2>&1
 then
   eval "$(pyenv init -)"
@@ -32,6 +32,7 @@ Run the following to install a couple Python versions:
 pyenv install 2.7.14
 pyenv install 3.7.2
 ```
+(Note: on macOS X Mojave you may have to run these commands as follows: `CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install ...`. See https://github.com/pyenv/pyenv/issues/1219 for details)
 
 From the project directory, run the following command:
 ```
