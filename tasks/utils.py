@@ -113,5 +113,3 @@ def load_manifest(mtype, context = {}):
 
 def random_string(length):
   return "".join( random.SystemRandom().choices(string.ascii_letters + string.digits, k=length))
-
-

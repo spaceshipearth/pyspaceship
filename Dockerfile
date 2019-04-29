@@ -39,6 +39,7 @@ RUN IN_BUILD=True FLASK_APP=spaceship flask assets build
 # set this to 'production' in production deploys
 ENV ENVIRONMENT dev
 
-ENTRYPOINT ["inv", "run.gunicorn"]
+ENTRYPOINT ["inv"]
+CMD ["--list"]
 
 EXPOSE 9876/tcp
