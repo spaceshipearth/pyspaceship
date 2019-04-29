@@ -32,6 +32,7 @@ COPY . $CODE_DIR
 # set this to 'production' in production deploys
 ENV ENVIRONMENT dev
 
-ENTRYPOINT ["inv", "run.gunicorn"]
+ENTRYPOINT ["inv"]
+CMD ["--list"]
 
 EXPOSE 9876/tcp

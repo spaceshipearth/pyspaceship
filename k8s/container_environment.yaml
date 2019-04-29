@@ -1,5 +1,9 @@
 - name: IN_PRODUCTION
   value: 'True'
+- name: COMPONENT
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.labels['component']
 - name: MYSQL_HOST
   valueFrom:
     secretKeyRef:

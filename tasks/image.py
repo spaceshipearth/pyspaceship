@@ -58,6 +58,7 @@ def do_deploy(tag, dry_run = False):
   """actually perform a deploy of the manifests"""
   container_environment = load_manifest('container_environment')
 
+  # the webserver deployment
   deployment = load_manifest(
     'deployment',
     {
@@ -67,12 +68,26 @@ def do_deploy(tag, dry_run = False):
   )
   k8s_apply(deployment, dry_run)
 
+  # the worker deployment
+  worker_deployment = load_manifest(
+    'worker_deployment',
+    {
+      'image': tag,
+      'container_environment': container_environment,
+    }
+  )
+  k8s_apply(worker_deployment, dry_run)
+
+  # the service that maps webserver pods to addresses/ports
   service = load_manifest('service')
   k8s_apply(service, dry_run)
 
+  # ingress maps addresses/ports to names/ssl certs
   ingress = load_manifest('ingress')
   k8s_apply(ingress, dry_run)
 
+  # print out information about the load balancer ip
+  # this should be set in DNS
   info = json.loads(run('kubectl get ingress pyspaceship-ingress -o=json', hide=True).stdout)
   ingress = info['status']['loadBalancer']['ingress']
   print("Load balancer IPs:")
