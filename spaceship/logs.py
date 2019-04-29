@@ -31,4 +31,5 @@ else:
   handler.setFormatter(formatter)
 
 # output a message indicating we're booting up
-logging.getLogger('spaceship').warn('spaceship is launching...')
+logger = logging.getLogger('spaceship')
+logger.warn(f"launching in an {app.config['COMPONENT']} environment...")
