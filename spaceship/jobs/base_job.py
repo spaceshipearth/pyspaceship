@@ -26,7 +26,7 @@ class BaseJob:
       connection=store,
 
       # in dev, we won't use queues but invoke the job here-and-now
-      is_async=app.config['IN_PRODUCTION'],
+      is_async=app.config['USE_WORK_QUEUE'],
     )
 
     job = q.enqueue_call(

@@ -29,9 +29,6 @@ RUN pip install --user -r requirements.txt
 # copy the code into the image!
 COPY . $CODE_DIR
 
-# set this to 'production' in production deploys
-ENV ENVIRONMENT dev
-
 ENTRYPOINT ["inv"]
 CMD ["--list"]
 

@@ -5,7 +5,7 @@ from . import app
 
 # enable google cloud logging
 # from: https://cloud.google.com/logging/docs/setup/python
-if app.config['IN_PRODUCTION']:
+if app.config['USE_GOOGLE_LOGGING']:
   client = google.cloud.logging.Client()
   client.setup_logging()
 

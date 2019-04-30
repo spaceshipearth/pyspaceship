@@ -1,4 +1,6 @@
-- name: IN_PRODUCTION
+- name: USE_GOOGLE_LOGGING
+  value: 'True'
+- name: USE_WORK_QUEUE
   value: 'True'
 - name: COMPONENT
   valueFrom:

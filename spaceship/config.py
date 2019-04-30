@@ -3,8 +3,9 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-  IN_PRODUCTION = bool(os.environ.get('IN_PRODUCTION', False))
   COMPONENT = os.environ.get('COMPONENT', 'unknown')
+  USE_WORK_QUEUE = bool(os.environ.get('USE_WORK_QUEUE', ''))
+  USE_GOOGLE_LOGGING = bool(os.environ.get('USE_GOOGLE_LOGGING', ''))
 
   SECRET_KEY = os.environ.get('SECRET_KEY', 'develoment')
   SENDGRID_KEY = os.environ.get('SENDGRID_KEY', None)

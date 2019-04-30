@@ -43,18 +43,12 @@ def shell(ctx):
   with ctx.cd(ROOT_REPO_DIR):
     ctx.run(f'flask shell', env=FLASK_ENV, pty=True)
 
-@task(
-  help={
-    'force_prod': 'Set the IN_PRODUCTION variable to emulate production',
-  }
-)
-def gunicorn(ctx, force_prod=False):
+@task
+def gunicorn(ctx):
   """Runs the server via gunicorn"""
   print(f"Running gunicorn on localhost:{PORT}...")
-
-  env = {'IN_PRODUCTION':'True'} if force_prod else {}
   with ctx.cd(ROOT_REPO_DIR):
-    ctx.run(f'gunicorn spaceship:app --bind 0.0.0.0:{PORT} --access-logfile -', env=env)
+    ctx.run(f'gunicorn spaceship:app --bind 0.0.0.0:{PORT} --access-logfile -')
 
 @task(
   help={
