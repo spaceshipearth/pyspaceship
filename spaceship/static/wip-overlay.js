@@ -26,7 +26,7 @@
     return null;
   };
   window.addEventListener('load', () => {
-    if (getCookie('displayWIP') != 'false') {
+    if (getCookie('spaceshipearth_display_wip') != 'false') {
       document.getElementById('overlay-background').style.display = 'block';
       document.getElementById('overlay').style.display = 'block';
       const elmts = document.getElementsByClassName('close-overlay');
@@ -39,7 +39,7 @@
           closeOverlay(e);
         }
       }, false);
-      setCookie('displayWIP', 'false', 90);
+      setCookie('spaceshipearth_display_wip', 'false', 90);
     }
   }, false);
 })();
