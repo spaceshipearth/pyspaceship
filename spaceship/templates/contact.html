@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Contact - {{ super() }}{% endblock %}
+
+{% block content %}
+
+<h3>Contact Us</h3>
+
+<p>
+Spaceship Earth is a volunteer-driven project created by a group of friends who are concerned about climate change.
+We want to take positive action that leads to real change.
+More importantly, we want to inspire and enable others to do the same.
+</p>
+
+<div class="row">
+  <div class="card border-light m-3" style="max-width: 18rem;">
+    <div class="card-header">Email</div>
+    <div class="card-body">
+      <h5 class="card-title"><a href="mailto:hello@spaceshipearth.org">hello@spaceshipearth.org</a></h5>
+      <p class="card-text">
+      Ping us and let us know how you can help!
+      </p>
+    </div>
+  </div>
+
+  <div class="card border-light m-3" style="max-width: 18rem;">
+    <div class="card-header">Code Contributions</div>
+    <div class="card-body">
+      <h5 class="card-title">
+        <a href="https://github.com/spaceshipearth/pyspaceship">Fork this site!</a>
+      </h5>
+      <p class="card-text">
+      <img alt="GitHub issues" src="https://img.shields.io/github/issues-raw/spaceshipearth/pyspaceship.svg">
+      <br>
+      <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/spaceshipearth/pyspaceship.svg">
+    </div>
+  </div>
+
+  <div class="card border-light m-3" style="max-width: 18rem;">
+    <div class="card-header">Reddit</div>
+    <div class="card-body">
+      <h5 class="card-title">
+        <a href="https://www.reddit.com/r/spaceshipearth">Join our community</a>
+      </h5>
+      <p class="card-text">
+      Our community is new, but you can help make it grow!
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<h3>We need help!</h3>
+
+<p>
+This is a large project and we're currently building it in our spare time.
+We need help with almost everything.
+Some examples of areas where we could use your help:
+
+<dl>
+  <dt>Design and user experience</dt>
+  <dd>
+  We are mostly engineers, and would love help making this site friendly and useable for every human on the planet.
+  We need user stories to categorize the types of people likely to end up here.
+  We need to figure out how to build the site to enable them to succeed.
+  How do we inspire your vegan friend, your grandmother, and your cranky neighbor without turning anyone off?
+  </dd>
+
+  <dt>Impact research</dt>
+  <dd>
+  We want to quantify the impact that missions here have on the planet.
+  For instance, how much CO2 is saved by eating an additional vegetarian meal once a week?
+  Other groups have tried to quantify this (<a href="https://www.drawdown.org/">Project Drawdown</a> is a big inspiration), but not usually on a personal or small-group level.
+  If you are familiar with the research literature and have modeling experience, you could help.
+  </dd>
+
+  <dt>Graphic design</dt>
+  <dd>
+  What is the visual language of this project?
+  How do we make it look good as well as be usable?
+  If you love to push pixels, you can help!
+  </dd>
+
+  <dt>Content</dt>
+  <dd>
+  We need a lot of writing.
+  What do the emails we send to captains look like?
+  How do we describe ourselves and what we're trying to do?
+  How do we justify the missions that we create?
+  Besides text, we could use content in other formats, especially videos.
+  If you are a wizard with a word processor or a vibrant videographer, get in touch!
+  </dd>
+
+  <dt>Marketing and Social Media</dt>
+  <dd>
+  This project will not work if nobody uses it, and nobody will use it if nobody knows about it.
+  How do we tell people about it?
+  We could also use your skills with modern media to help spread the word.
+  If you have ideas for individual campaigns, that might be a good self-contained way to help.
+  Even better if you want to be the person coordinating our social-media outreach.
+  </dd>
+
+  <dt>Engineering</dt>
+  <dd>
+  Everything we are working on is open-source!
+  This site is <a href="https://github.com/spaceshipearth/pyspaceship">developed in GitHub</a> and we have an <a href="https://github.com/spaceshipearth/pyspaceship/issues">updated list of issues</a> that you could just pluck off the stack.
+  We welcome your PRs!
+  </dd>
+
+  <dt>Local partners</dt>
+  <dd>
+  We would like to create missions oriented around participating in local organizations.
+  For instance, what if a crew could go clean up a local beach, or build trails at a local park?
+  We also want to send pop-up missions whenever climate-relevant legislation comes up in cities or states.
+  However, we're all based in NorCal, and have little knowledge of your local organizations or issues.
+  If you'd like to be a local partner for us, please ping us.
+  We are in the very early stages of our organization and don't have any formal processes in place, but we will find a way to keep in touch with everyone.
+  </dd>
+
+  <dt>Advisers</dt>
+  <dd>
+  We have a vision and the passion to make it happen, but lack experience turning a project like this into a thriving organization and extended community.
+  If you have experience with similar organizations, we could use your help.
+  How do we organize ourselves?
+  How do we get more people involved and keep them involved and motivated?
+  Should we try to raise money?
+  Become a nonprofit or partner with an existing nonprofit?
+  Should we create a budget and start paying people?
+  We appreciate your expertise!
+  </dd>
+
+  <dt>Science Advisers</dt>
+  <dd>
+  We want to make sure that we're giving people the best information possible.
+  Do you have concerns about anything we're saying?
+  We could use people with real knowledge of the climate space to keep us on the straight-and-narrow.
+  Please <a href="mailto:hello@spaceshipearth.org?subject=correction%20needed">let us know</a> if you notice that anything we suggest or claim is dubious or needs additional caveats we've failed to mention.
+  We want to fix it!
+  </dd>
+</dl>
+</p>
+
+
+<section>
+<blockquote class="blockquote" style="text-align:center;">
+    &ldquo;
+    Anything else you are interested in is not going to happen if you cannot breathe the air and drink the water.
+    Don’t sit this one out!
+    Do something!
+    You are by accident of fate alive at an absolutely critical moment in the history of our planet.
+    &rdquo;
+    <div class="blockquote-footer">Carl Sagan</div>
+</blockquote>
+</section>
+
+{% endblock %}
