@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="/static/bootstrap.min.css">
   {% endif %}
   <link rel="stylesheet" type="text/css" href="/static/spaceship.css">
+  <link rel="stylesheet" type="text/css" href="/static/wip-overlay.css">
 </head>
 
 <body>
@@ -121,6 +122,9 @@
 
 <!-- moment -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js" integrity="sha384-fYxN7HsDOBRo1wT/NSZ0LkoNlcXvpDpFy6WzB42LxuKAX7sBwgo7vuins+E1HCaw" crossorigin="anonymous"></script>
+<!-- js-cookie -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0/js.cookie.min.js" integrity="sha384-ujpAYcyxFaJsZN5668lLgOpEH8vtWrbOq8fvj+WZ2kD71LJwGa/9QP/suPPF1hTI" crossorigin="anonymous"></script>
+
 {% else %}
 <script src="/static/jquery-3.2.1.js"></script>
 <script src="/static/bootstrap.bundle.min.js"></script>
@@ -140,6 +144,7 @@ $.ajaxSetup({
 
 <script src="/static/prevent-invalid-form-submit.js"></script>
 <script src="/static/edit.js"></script>
+<script src="/static/wip-overlay.js"></script>
 
 {% endblock %}
 
