@@ -1,10 +1,4 @@
 (function() {
-  var closeOverlay = (evnt) => {
-    document.getElementById('overlay-background').style.display = 'none';
-    document.getElementById('overlay').style.display = 'none';
-    evnt.preventDefault();
-    evnt.stopPropagation();
-  };
   // cookie functions based on https://stackoverflow.com/questions/14573223/set-cookie-and-get-cookie-with-javascript#24103596
   var setCookie = (name, value, days) => {
     var expires = '';
@@ -27,18 +21,9 @@
   };
   window.addEventListener('load', () => {
     if (getCookie('spaceshipearth_display_wip') != 'false') {
-      document.getElementById('overlay-background').style.display = 'block';
-      document.getElementById('overlay').style.display = 'block';
-      const elmts = document.getElementsByClassName('close-overlay');
-      const handleclicks = Array.prototype.filter.call(elmts, (elmt) => {
-        elmt.addEventListener('click', closeOverlay, false);
+      $('#wipOverlay').modal({
+        keyboard: true
       });
-      document.addEventListener('keydown', (e) => {
-        // close overlay when escape key is pressed
-        if (e.keyCode == 27) {
-          closeOverlay(e);
-        }
-      }, false);
       setCookie('spaceshipearth_display_wip', 'false', 90);
     }
   }, false);
