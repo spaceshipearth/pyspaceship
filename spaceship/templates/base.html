@@ -34,16 +34,13 @@
 {% block navbar %}
 
 {% macro render_nav_item(endpoint, text) %}
-  <a
-    class="nav-item nav-link {% if request.endpoint and request.endpoint == endpoint %}active{% endif %}"
-    href="{{ url_for(endpoint, **kwargs) }}"
-    >
-    {{ text }}
-  </a>
+  <li class="nav-item {% if request.endpoint and request.endpoint == endpoint %}active{% endif %}">
+    <a class="nav-link" href="{{ url_for(endpoint, **kwargs) }}">{{ text }}</a>
+  </li>
 {% endmacro %}
 
 <header>
-  <div class="navbar navbar-default navbar-static-top navbar-expand-md navbar-light" role="navigation" aria-label="main navigation">
+  <div class="navbar navbar-default navbar-expand-lg navbar-light" role="navigation" aria-label="main navigation">
     {% if not current_user.is_anonymous %}
       {% set target = url_for('dashboard') %}
     {% else %}
@@ -51,34 +48,35 @@
     {% endif %}
     <a class="navbar-brand" href="{{ target }}">
       <img src="/static/sship-152.png" width="30" height="30" class="d-inline-block align-top" alt="Spaceship!">
-      Home
+      Spaceship Earth
     </a>
 
-    <div class="navbar-nav mr-auto">
-      {{ render_nav_item('about', 'About') }}
-    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-    {% if current_user.is_anonymous %}
-    <div class="navbar-nav ml-auto">
-      {{ render_nav_item('register', 'Become a captain') }}
-    </div>
-    <div class="navbar-nav">
-      {{ render_nav_item('login', 'Log In') }}
-    </div>
-    {% else %}
-
-    <div class="nav-item dropdown">
-      <a role="button" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <img src="{{ gravatar(current_user.email, size=30) }}" width="30" height="30" alt="Profile" class="d-inline-block align-top profile-pic">
-      </a>
-      <div class="dropdown-menu dropdown-menu-right">
-        <a class="dropdown-item" href="{{ url_for('profile', user_id=current_user.id) }}">Profile</a>
-        <a class="dropdown-item" href="{{ url_for('dashboard') }}">Crews</a>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item" href="{{ url_for('logout') }}">Log Out</a>
-      </div>
-    </div>
-    {% endif %}
+    <div class="collapse navbar-collapse" id="navbarToggle">
+      <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+        {{ render_nav_item('about', 'About') }}
+      </ul>
+      <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+        {% if current_user.is_anonymous %}
+        {{ render_nav_item('register', 'Become a captain') }}
+        {{ render_nav_item('login', 'Log In') }}
+        {% else %}
+        <li class="nav-item dropdown">
+          <a role="button" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <img src="{{ gravatar(current_user.email, size=30) }}" width="24" height="24" title="Account" alt="profile picture" class="d-inline-block align-top profile-pic"> {{ current_user.name.split(" ")[0] }}
+          </a>
+          <div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" href="{{ url_for('profile', user_id=current_user.id) }}">Profile</a>
+            <a class="dropdown-item" href="{{ url_for('dashboard') }}">Crews</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="{{ url_for('logout') }}">Log Out</a>
+          </div>
+        </li>
+        {% endif %}
+      </ul>
   </div>
 </header>
 {% endblock %}
