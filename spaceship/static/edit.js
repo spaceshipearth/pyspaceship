@@ -1,6 +1,7 @@
 $(document).ready(function() {
   $('.editable').each(function() {
     var editable = $(this);
+    var textSpan = $(this).find('.edit-text');
     var title = $('<div>');
     var multiline = !!$(this).data('multiline');
     title.append('<span>' + ($(this).data('title') || 'Edit') + '</span>');
@@ -15,8 +16,8 @@ $(document).ready(function() {
       html: true,
       content: function() {
         var dialog = $('<div>');
-        var editField = multiline ? $('<textarea cols="72" rows="3" class="edit-value form-control" style="margin: 8px 0">' + $(this).text() + '</textarea>') : $('<input class="edit-value form-control d-inline-block" style="margin: 8px 0" type="text" value="' + $(this).text() + '">');
-        var editButton = $('<input class="btn" type="button" value="Update">');
+        var editField = multiline ? $('<textarea cols="72" rows="3" class="edit-value form-control" style="margin: 8px 0">' + $(textSpan).text() + '</textarea>') : $('<input class="edit-value form-control d-inline-block" style="margin: 8px 0" type="text" value="' + $(textSpan).text() + '">');
+        var editButton = $('<input class="btn btn-primary" type="button" value="Update">');
         var table = $(this).data('table');
         var id = $(this).data('id');
         var field = $(this).data('field');
@@ -29,9 +30,8 @@ $(document).ready(function() {
             'value': value
           }).done(function(json) {
             if (json['ok']) {
-              editable
-                .text(value)
-                .popover('hide');
+              textSpan.text(value);
+              editable.popover('hide');
             }
           });
         });

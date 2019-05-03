@@ -68,8 +68,9 @@ main {
 .editable {
   cursor: pointer;
 }
-.editable::after {
-  content: " ✎"
+.edit-icon {
+  font-size: 75%;
+  vertical-align: text-top;
 }
 
 .profile-pic {

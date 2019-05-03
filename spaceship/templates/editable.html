@@ -1,0 +1,16 @@
+{% macro editable_text(text, is_editable, popup_title, table, id, field, multiline=False) %}
+{% if is_editable %}
+<a role="button"
+   class="editable"
+   {% if multiline %}data-multiline="1"{% endif %}
+   data-title="{{ popup_title }}"
+   data-table="{{ table }}"
+   data-id="{{ id }}"
+   data-field="{{ field }}">
+  <span class="edit-text">{{ text }}</span>
+  <i class="edit-icon fas fa-edit"></i>
+</a>
+{% else %}
+{{ text }}
+{% endif %}
+{% endmacro %}

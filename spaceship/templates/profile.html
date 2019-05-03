@@ -1,3 +1,4 @@
+{% from 'editable.html' import editable_text %}
 {% extends "base.html" %}
 
 {% block title %}Profile - {{ super() }}{% endblock %}
@@ -11,20 +12,11 @@
     </a>
   </div>
   <div class="col">
-    <h1>
-      {% if can_edit %}
-        <a role="button" class="editable" data-title="Edit name" data-table="user" data-id="{{ user.id }}" data-field="name">{{ user.name }}</a>
-      {% else %}
-        {{ user.name }}
-      {% endif %}
-    </h1>
-    <div>
-      {# {% if can_edit %}
-        <a role="button" class="editable" data-title="Edit email" data-table="user" data-id="{{ user.id }}" data-field="email">{{ user.email }}</a>
-      {% else %} #}
-        {{ user.email }}
-      {# {% endif %} #}
-    </div>
+    <h1>{{ editable_text(text=user.name,
+                         is_editable=can_edit,
+                         popup_title="Edit name",
+                         table="user", id=user.id, field="name") }}</h1>
+    <div>{{ user.email }}</div>
   </div>
 </div>
 </section>

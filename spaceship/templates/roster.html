@@ -1,3 +1,4 @@
+{% from 'editable.html' import editable_text %}
 {% extends "base.html" %}
 
 {% block title %}Crew Nest - {{ super() }}{% endblock %}
@@ -15,22 +16,19 @@
 {% endif %}
 
 <div class="row">
-<h3 class="col">
-{% if team.captain.id == current_user.id %}
-<a role="button" class="editable" data-title="Edit crew name" data-table="team" data-id="{{ team.id }}" data-field="name">{{ team.name }}</a>
-{% else %}
-{{ team.name }}
-{% endif %}
-</h3>
+<h3 class="col">{{ editable_text(text=team.name,
+                                 is_editable=is_captain,
+                                 popup_title="Edit crew name",
+                                 table="team", id=team.id, field="name") }}</h3>
 </div>
 
 <div class="row">
-<div class="col"><p>
-{% if team.captain.id == current_user.id %}
-<a role="button" class="editable" data-title="Edit crew description" data-multiline="1" data-table="team" data-id="{{ team.id }}" data-field="description">{{ team.description }}</a>
-{% else %}
-{{ team.description }}
-{% endif %}
+<div class="col">
+<p>{{ editable_text(text=team.description,
+                    is_editable=is_captain,
+                    multiline=True,
+                    popup_title="Edit crew description",
+                    table="team", id=team.id, field="description") }}</p>
 </p></div>
 </div>
 
