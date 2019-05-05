@@ -5,7 +5,7 @@
   <div>{{ goal.short_description }}</div>
   {% if active %}
   <div class="goal-progress-wrapper"
-       data-update-url="{{ url_for('goal_progress', team_id=team.id, goal_id=goal.id, start_at=team.mission_start_at) }}">
+       data-update-url="{{ url_for('goal_progress', team_id=team.id, mission_id=team.mission.id, goal_id=goal.id) }}">
     {% set progress = goal_progress[goal.id] %}
     {% set my_pledge_id = my_pledges[goal.id].id if pledged else -1 %}
     {% include "goal_progress.html" %}

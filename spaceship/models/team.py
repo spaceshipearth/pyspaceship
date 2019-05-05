@@ -18,7 +18,6 @@ class Team(BaseModel):
   deleted_at = PendulumDateTimeField(null=True)
 
   mission = ForeignKeyField(Mission, backref='mission', null=True)
-  mission_start_at = PendulumDateTimeField(null=True)
 
   @hybrid_property
   def is_active(self):
