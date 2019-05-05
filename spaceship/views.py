@@ -157,8 +157,12 @@ def mission(team_id, mission_id):
     elif is_captain and not team.mission:
       with db.atomic() as transaction:
         try:
-          team.mission = mission
-          team.mission_start_at = pendulum.now()
+          # clone and freeze mission once it starts so it can't be edited while
+          # it's in progress (which is a product decision) or after it's done
+          # (so we can reconstruct and display what happened).
+          mission_clone = mission.start()
+          mission_id = mission_clone.id
+          team.mission = mission_clone
           team.save()
           achievements.start_mission(team)
         except (IntegrityError, DatabaseError) as e:
@@ -175,8 +179,8 @@ def mission(team_id, mission_id):
   mission_pledges = []
   mission_calendar = []
   if team.mission and team.mission.id == mission.id:
-    week_of_mission = (pendulum.now() - team.mission_start_at).in_weeks() + 1
-    if week_of_mission >= 5:
+    week_of_mission = (pendulum.now() - mission.started_at).in_weeks() + 1
+    if week_of_mission > mission.duration_in_weeks:
       with db.atomic() as transaction:
         try:
           team.mission = None
@@ -187,12 +191,13 @@ def mission(team_id, mission_id):
         else:
           flash({'msg': f'Mission has concluded.', 'level': 'success'})
     else:
-      mission_end_at = team.mission_start_at.add(weeks=4)
+      mission_end_at = mission.started_at.add(weeks=mission.duration_in_weeks)
       mission_pledges = (Pledge.select()
         .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
         .where((TeamUser.team_id == team.id) &
-               (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < team.mission_start_at)))))
-      mission_calendar = calendar.layout(pendulum.today(), team.mission_start_at, mission_end_at)
+               (~((Pledge.start_at > mission_end_at) |
+                (Pledge.end_at < team.mission.started_at)))))
+      mission_calendar = calendar.layout(pendulum.today(), mission.started_at, mission_end_at)
   goal_progress = {}
   for slot in mission.goal_slots():
     pledges = [p for p in mission_pledges if p.goal_id == slot.goal.id]
