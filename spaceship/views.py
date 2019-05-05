@@ -193,9 +193,10 @@ def mission(team_id, mission_id):
         .where((TeamUser.team_id == team.id) &
                (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < team.mission_start_at)))))
       mission_calendar = calendar.layout(pendulum.today(), team.mission_start_at, mission_end_at)
-  goal_progress = {goal.id: count_goal_progress(team_size=team_size,
-                                                pledges=[p for p in mission_pledges if p.goal_id == goal.id])
-                   for goal in mission.goals}
+  goal_progress = {}
+  for slot in mission.goal_slots():
+    pledges = [p for p in mission_pledges if p.goal_id == slot.goal.id]
+    goal_progress[slot.goal.id] = count_goal_progress(team_size=team_size, pledges=pledges)
 
   my_pledges = {p.goal_id: p for p in mission_pledges if p.user_id == current_user.id}
 

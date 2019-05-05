@@ -1,6 +1,5 @@
 {% set pledged   = goal.id in my_pledges %}
 {% set fulfilled = my_pledges[goal.id].fulfilled if pledged else False %}
-{% set active = week_of_mission > 0 and week_of_mission <= 4 and week_of_mission >= goal.week %}
 
 <div class="goal{% if active %} active-goal{% endif %}" data-goal="{{ goal.id }}">
   <div>{{ goal.short_description }}</div>
