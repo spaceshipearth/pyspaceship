@@ -179,7 +179,7 @@ def mission(team_id, mission_id):
   mission_pledges = []
   mission_calendar = []
   if team.mission and team.mission.id == mission.id:
-    week_of_mission = (pendulum.now() - mission.started_at).in_weeks() + 1
+    week_of_mission = (pendulum.now('UTC') - mission.started_at).in_weeks() + 1
     if week_of_mission > mission.duration_in_weeks:
       with db.atomic() as transaction:
         try:
@@ -216,21 +216,24 @@ def mission(team_id, mission_id):
                          my_pledges=my_pledges,
                          goal_progress=goal_progress)
 
-@app.route('/goal_progress/<team_id>/<goal_id>')
-def goal_progress(team_id, goal_id):
+@app.route('/goal_progress/<team_id>/<mission_id>/<goal_id>')
+def goal_progress(team_id, mission_id, goal_id):
   if not current_user.is_authenticated:
     raise ValueError('auth')
   team = get_team_if_member(team_id)
   if not team:
     raise ValueError('auth')
-  start_at = pendulum.parse(request.values.get('start_at'))
-  mission_end_at = start_at.add(weeks=4)
+  mission = Mission.get(Mission.id == mission_id)
+  if not mission:
+    raise ValueError('mission not found')
 
+  mission_end_at = mission.started_at.add(weeks=mission.duration_in_weeks)
   mission_pledges_for_goal = (Pledge.select()
     .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
     .where((TeamUser.team_id == team.id) &
            (Pledge.goal_id == goal_id) &
-           (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < start_at)))))
+           (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < mission.started_at)))))
+
   team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
   progress = count_goal_progress(team_size=team_size, pledges=mission_pledges_for_goal)
 
@@ -266,7 +269,7 @@ def pledge():
     return jsonify({'ok': False})
 
   # pledges last for 31 days
-  start_at = pendulum.now()
+  start_at = pendulum.now('UTC')
   end_at = start_at.add(days=31)
 
   # a user can have at most one outstanding pledge for a goal
@@ -703,7 +706,7 @@ def edit():
           fulfilled = (value == 'true')
           pledge.fulfilled = fulfilled
           if fulfilled:
-            pledge.fulfilled_at = pendulum.now()
+            pledge.fulfilled_at = pendulum.now('UTC')
             achievements.fulfill_pledge(current_user)
           pledge.save()
       except DatabaseError:
