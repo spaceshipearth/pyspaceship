@@ -8,12 +8,31 @@
 
 <div>
 {% if is_captain and not team.mission %}
+<div class="modal fade" id="confirm-start-modal" tabindex="-1" role="dialog" aria-labelledby="confirmStartOverlayTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title text-center" id="confirmStartOverlayTitle">Are you sure?</h3>
+      </div>
+      <div class="modal-body">
+        <p>Commit your team to this mission for the next {{ mission.duration_in_weeks }} weeks?
+        <p>Note: You will be unable to customize the mission after starting.
+        (You can still make a copy and customize for a later run.)
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <a id="confirm-start" class="btn btn-danger btn-ok">Start</a>
+      </div>
+    </div>
+  </div>
+</div>
 <form style="display: inline-block"
+      id="start-form"
       action="{{ url_for('mission', team_id=team, mission_id=mission) }}"
       method="POST">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="start_mission" value="1">
-  <button type="submit" class="btn btn-primary"><i class="fas fa-play"></i> Start mission</button>
+  <button id="start" type="submit" class="btn btn-primary"><i class="fas fa-play"></i>&nbsp;Start mission</button>
 </form>
 {% endif %}
 {% if is_captain and mission.frozen %}
@@ -22,7 +41,7 @@
       method="POST">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="copy" value="1">
-  <button type="submit" class="btn btn-primary"><i class="fas fa-copy"></i>&nbsp; Copy and customize</button>
+  <button type="submit" class="btn btn-primary"><i class="fas fa-copy"></i>&nbsp;Copy and customize</button>
 </form>
 {% endif %}
 </div>
@@ -95,6 +114,18 @@ completed at any time during the mission.
 {% block scripts %}
 {{ super() }}
 <script>
+{% if is_captain and not team.mission %}
+$('#start').click(function(e) {
+  $('#confirm-start-modal').modal({keyboard: true});
+  e.preventDefault();
+  return false;
+});
+
+$('#confirm-start').click(function() {
+  $('#start-form').submit();
+})
+{% endif %}
+
 function updateProgress(goalDiv) {
   var progress = goalDiv.find('.goal-progress-wrapper');
   var updateUrl = progress.data('update-url')
