@@ -22,14 +22,14 @@ class Mission(BaseModel):
     return self.deleted_at == None
 
   def start(self):
-    return self.clone(start=True)
+    return self.clone(start=True, frozen=True)
 
-  def clone(self, start=False):
+  def clone(self, start=False, frozen=False):
     clone = Mission()
     clone.title = self.title
     clone.short_description = self.short_description
+    clone.frozen = frozen
     if start:
-      clone.frozen = True
       clone.started_at = pendulum.now('UTC')
     clone.save()
     # import here instead of top-level to avoid a cycle

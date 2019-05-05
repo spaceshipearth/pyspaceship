@@ -23,7 +23,6 @@ from .forms.register import Register
 from .forms.login import Login
 from .forms.invite import Invite
 from .forms.enlist import AcceptInvitation, DeclineInvitation
-from .forms.start_mission import StartMission
 from .forms.create_crew import CreateCrew
 
 import hashlib
@@ -150,8 +149,7 @@ def mission(team_id, mission_id):
   is_captain = team.captain_id == current_user.id
   team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
 
-  start_mission = StartMission()
-  if start_mission.validate_on_submit():
+  if request.form.get('start_mission'):
     if team_size < 2:
       flash({'msg': 'Need add least one crew member.', 'level': 'danger'})
     elif is_captain and not team.mission:
@@ -173,6 +171,21 @@ def mission(team_id, mission_id):
           flash({'msg': f'Started mission!', 'level': 'success'})
     else:
       flash({'msg': 'Could not start mission', 'level': 'danger'})
+    return redirect(url_for('mission', team_id=team_id, mission_id=mission_id), code=303)
+
+  elif request.form.get('copy'):
+    if is_captain:
+      with db.atomic() as transaction:
+        try:
+          mission_clone = mission.clone(frozen=False)
+          mission_id = mission_clone.id
+        except (IntegrityError, DatabaseError) as e:
+          transaction.rollback()
+          flash({'msg': f'Database error', 'level': 'danger'})
+        else:
+          flash({'msg': f'Copied!', 'level': 'success'})
+    else:
+      flash({'msg': 'Could not copy mission', 'level': 'danger'})
     return redirect(url_for('mission', team_id=team_id, mission_id=mission_id), code=303)
 
   week_of_mission = 0
@@ -206,7 +219,6 @@ def mission(team_id, mission_id):
   my_pledges = {p.goal_id: p for p in mission_pledges if p.user_id == current_user.id}
 
   return render_template('mission.html',
-                         start_mission=start_mission,
                          week_of_mission=week_of_mission,
                          team=team,
                          team_size=team_size,
@@ -709,6 +721,26 @@ def edit():
             pledge.fulfilled_at = pendulum.now('UTC')
             achievements.fulfill_pledge(current_user)
           pledge.save()
+      except DatabaseError:
+        transaction.rollback()
+        return jsonify({'ok': False})
+      else:
+        return jsonify({'ok': True})
+
+  elif table_name == 'mission':
+    try:
+      mission = Mission.get(Mission.id == object_id)
+    except Mission.DoesNotExist:
+      return jsonify({'ok': False})
+    # TODO acl
+    with db.atomic() as transaction:
+      try:
+        if field_name == 'title':
+          mission.title = value
+          mission.save()
+        elif field_name == 'short_description':
+          mission.short_description = value
+          mission.save()
       except DatabaseError:
         transaction.rollback()
         return jsonify({'ok': False})
