@@ -25,6 +25,7 @@ from .forms.invite import Invite
 from .forms.enlist import AcceptInvitation, DeclineInvitation
 from .forms.create_crew import CreateCrew
 
+import json
 import hashlib
 import logging
 import pendulum
@@ -188,6 +189,20 @@ def mission(team_id, mission_id):
       flash({'msg': 'Could not copy mission', 'level': 'danger'})
     return redirect(url_for('mission', team_id=team_id, mission_id=mission_id), code=303)
 
+  elif request.form.get('edit'):
+    if not mission.frozen:
+      with db.atomic() as transaction:
+        try:
+          state = json.loads(request.form.get('state'))
+          mission.update_from_js(state)
+          mission.save()
+        except (json.decoder.JSONDecodeError, IntegrityError, DatabaseError) as e:
+          transaction.rollback()
+          return jsonify({'ok': False})
+        else:
+          return jsonify({'ok': True})
+    return jsonify({'ok': False})
+
   week_of_mission = 0
   mission_pledges = []
   mission_calendar = []
@@ -224,6 +239,7 @@ def mission(team_id, mission_id):
                          team_size=team_size,
                          is_captain=is_captain,
                          mission=mission,
+                         mission_js_model=mission.serialize_for_js(),
                          calendar=mission_calendar,
                          my_pledges=my_pledges,
                          goal_progress=goal_progress)
