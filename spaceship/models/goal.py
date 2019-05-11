@@ -11,6 +11,7 @@ from .mission import Mission
 class Goal(BaseModel):
   id = AutoField(primary_key=True)
   short_description = CharField()
+  category = CharField(default='diet')
   created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
   deleted_at = PendulumDateTimeField(null=True)
 

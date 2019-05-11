@@ -2,6 +2,9 @@
 {% set fulfilled = my_pledges[goal.id].fulfilled if pledged else False %}
 
 <div class="goal{% if active %} active-goal{% endif %}" data-goal="{{ goal.id }}">
+  <div class="goal-header" data-category="{{ goal.category }}">
+    <div class="goal-category">{{ goal.category }}</div>
+  </div>
   <div>{{ goal.short_description }}</div>
   {% if active %}
   <div class="goal-progress-wrapper"

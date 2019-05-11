@@ -122,6 +122,29 @@ main {
   margin: 8px;
   min-height: 100px;
 }
+.goal-category {
+  font-size: 80%;
+  position: relative;
+  top: -10px;
+  left: -4px;
+  font-style: italic;
+}
+.goal-header::before {
+  content: "";
+  display: block;
+  position: relative;
+  left: -10px;
+  top: -10px;
+  border-top-left-radius: 4px;
+  width: 25%;
+  height: 8px;
+}
+[data-category="diet"].goal-header::before {
+  background: #090;
+}
+[data-category="energy"].goal-header::before {
+  background: #900;
+}
 
 .active-goal {
   background: #fff;
