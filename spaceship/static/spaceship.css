@@ -42,7 +42,7 @@ main {
   padding-bottom: 8px;
 }
 
-.btn {
+.btn-primary {
   border-color: #ed604e;
   background-color: #ed6a5a;
 }
@@ -150,4 +150,43 @@ main {
 
 .goal-progress {
   font-size: 80%;
+}
+
+.edit-controls {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 4px;
+  margin: 8px;
+  margin-bottom: 0px;
+  background-color: #efefef;
+}
+.edit-controls .btn {
+  margin: 2px;
+}
+.make-goal-primary {
+  display: none;
+}
+[data-week="1"] .move-goal-up {
+  display: none;
+}
+[data-week="0"] .make-goal-primary {
+  display: block;
+}
+[data-week="0"] .make-goal-secondary,
+[data-week="0"] .move-goal-up,
+[data-week="0"] .move-goal-down {
+  display: none;
+}
+.unscheduled .remove-goal,
+.unscheduled .move-goal-up,
+.unscheduled .move-goal-down {
+  display: none;
+}
+.unscheduled .make-goal-primary,
+.unscheduled .make-goal-secondary {
+  display: block;
+  margin-left: 0!important;
+}
+.focused-goal {
+  background: #f4f1bb;
 }

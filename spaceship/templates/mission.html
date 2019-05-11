@@ -1,5 +1,6 @@
 {% from 'editable.html' import editable_text %}
 {% extends "base.html" %}
+{% set can_edit = is_captain and not mission.frozen %}
 
 {% block title %}Mission - {{ super() }}{% endblock %}
 
@@ -46,7 +47,6 @@
 {% endif %}
 </div>
 
-{% set can_edit = is_captain and not mission.frozen %}
 <h3>{{ editable_text(text=mission.title,
                      is_editable=can_edit,
                      popup_title="Edit title",
@@ -87,32 +87,160 @@ completed at any time during the mission.
 <div class="row">
 <section class="primary col-sm-6">
 <h4>Primary Goals</h4>
-{% for week in range(1,5): %} 
+{% for week in range(1, 1 + mission.duration_in_weeks): %}
 <h5>Week {{ week }}</h5>
-{% for slot in mission.goal_slots(week=week): %}
-{% set goal = slot.goal %}
-{% set active = week_of_mission > 0 and week_of_mission <= 4 and week_of_mission >= week %}
-{% include "goal.html" %}
-{% endfor %}
+<div data-week="{{ week }}">
+  {% for slot in mission.goal_slots(week=week): %}
+  {% set goal = slot.goal %}
+  {% set active = week_of_mission > 0 and week_of_mission <= mission.duration_in_weeks and week_of_mission >= week %}
+  {% include "goal.html" %}
+  {% endfor %}
+</div>
 {% endfor %}
 </section>
 
 <section class="bonus col-sm-6">
 <h4>Secondary Goals</h4>
 <h5>Any time</h5>
-{% for slot in mission.goal_slots(week=0): %}
-{% set goal = slot.goal %}
-{% set active = week_of_mission > 0 and week_of_mission <= 4 %}
-{% include "goal.html" %}
-{% endfor %}
+<div data-week="0">
+  {% for slot in mission.goal_slots(week=0): %}
+  {% set goal = slot.goal %}
+  {% set active = week_of_mission > 0 and week_of_mission <= mission.duration_in_weeks %}
+  {% include "goal.html" %}
+  {% endfor %}
+</div>
 </section>
 </div>
+
+{% if can_edit %}
+<div class="row">
+<section class="unscheduled col-sm-6">
+<h4>Unscheduled Goals</h4>
+<div data-week="-1">
 </div>
+</section>
+</div>
+{% endif %}
 
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
+
+{% if can_edit %}
+<script>
+(function() {
+var state = {{ mission_js_model|tojson }};
+var focusedGoalId = -1;
+render();
+
+function render() {
+  $('.goal').detach().appendTo($('[data-week="-1"]'));
+  var schedule = state['schedule'];
+  for (var week = 0; week < schedule.length; week++) {
+    var weekDiv = $('[data-week="' + week + '"]');
+    for (var i = 0; i < schedule[week].length; i++) {
+      var slot = schedule[week][i];
+      var goalId = slot['goal_id'];
+      var goal = $('.goal[data-goal="' + goalId + '"]');
+      appendEditControls(goal);
+      weekDiv.append(goal);
+    }
+  }
+  $('.goal').each(function() {
+    var goalId = parseInt($(this).data('goal'));
+    $(this).toggleClass('focused-goal', focusedGoalId == goalId);
+  });
+}
+
+function appendEditControls(goal) {
+  if (goal.find('.edit-controls').length !== 0) {
+    return;
+  }
+  var dom = goal.append(`<div class="row edit-controls">
+    <a class="move-goal-down btn btn-primary" title="Move down"><i class="fas fa-arrow-circle-down"></i></a>
+    <a class="move-goal-up btn btn-primary" title="Move up"><i class="fas fa-arrow-circle-up"></i></a>
+    <a class="make-goal-primary btn btn-primary ml-auto" title="Make primary"><i class="fas fa-calendar-plus"></i></a>
+    <a class="make-goal-secondary btn btn-primary ml-auto" title="Make secondary"><i class="fas fa-calendar-minus"></i></a>
+    <a class="remove-goal btn btn-primary" title="Remove"><i class="fas fa-times-circle"></i></a>
+  </div>`);
+  $(dom).find('.remove-goal').click(function() {
+    var context = findContext(this);
+    removeGoal(context);
+    focusedGoalId = -1;
+    sync();
+  });
+  $(dom).find('.make-goal-primary').click(function() {
+    var context = findContext(this);
+    moveGoal(context, 1);
+    focusedGoalId = context.goalId;
+    sync();
+  });
+  $(dom).find('.make-goal-secondary').click(function() {
+    var context = findContext(this);
+    moveGoal(context, 0);
+    focusedGoalId = context.goalId;
+    sync();
+  });
+  $(dom).find('.move-goal-down').click(function() {
+    var context = findContext(this);
+    moveGoal(context, context.week + 1);
+    focusedGoalId = context.goalId;
+    sync();
+  });
+  $(dom).find('.move-goal-up').click(function() {
+    var context = findContext(this);
+    moveGoal(context, context.week - 1);
+    focusedGoalId = context.goalId;
+    sync();
+  });
+  return dom;
+}
+
+function sync() {
+  $.post('{{ url_for('mission', team_id=team, mission_id=mission) }}', {
+    'edit': true,
+    'state': JSON.stringify(state)
+  }).done(function(json) {
+    if (json['ok']) {
+      render();
+    } else {
+      // TODO: handle errors
+    }
+  });
+}
+
+function removeGoal(context) {
+  state['unscheduled'] = state['unscheduled'] || [];
+  var week = context.week == -1 ? state['unscheduled'] : state['schedule'][context.week];
+  var goalIndex = week.findIndex(function(slot) {
+    return slot['goal_id'] == context.goalId;
+  });
+  if (goalIndex == -1) {
+    return;
+  }
+  var slots = week.splice(goalIndex, 1);
+  state['unscheduled'].push(slots[0]);
+}
+
+function moveGoal(fromContext, toWeek) {
+  removeGoal(fromContext);
+  var goal = state['unscheduled'].pop();
+  var schedule = state['schedule'];
+  schedule[toWeek].push(goal);
+}
+
+function findContext(element) {
+  var weekDiv = $(element).parents('[data-week]');
+  var weekNumber = parseInt($(weekDiv).data('week'), 10);
+  var goalDiv = $(element).parents('[data-goal]');
+  var goalId = parseInt($(goalDiv).data('goal'), 10);
+  return {week: weekNumber, goalId: goalId};
+}
+})();
+</script>
+{% endif %}
+
 <script>
 {% if is_captain and not team.mission %}
 $('#start').click(function(e) {
@@ -125,7 +253,6 @@ $('#confirm-start').click(function() {
   $('#start-form').submit();
 })
 {% endif %}
-
 function updateProgress(goalDiv) {
   var progress = goalDiv.find('.goal-progress-wrapper');
   var updateUrl = progress.data('update-url')
