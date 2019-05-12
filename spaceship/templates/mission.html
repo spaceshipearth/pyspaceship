@@ -203,7 +203,8 @@ function appendEditControls(goal) {
   });
   $(dom).find('.make-goal-primary').click(function() {
     var context = findContext(this);
-    moveGoal(context, 1);
+    var targetWeek = findFirstOpenWeek();
+    moveGoal(context, targetWeek);
     focusedGoalId = context.goalId;
     sync();
   });
@@ -239,6 +240,16 @@ function sync() {
       // TODO: handle errors
     }
   });
+}
+
+function findFirstOpenWeek() {
+  var schedule = state['schedule'];
+  for (var i = 1; i < schedule.length; i++) {
+    if (schedule[i].length == 0) {
+      return i;
+    }
+  }
+  return 1;
 }
 
 function changeDuration(durationInWeeks) {
