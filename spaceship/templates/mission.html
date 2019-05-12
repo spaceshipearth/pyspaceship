@@ -282,6 +282,9 @@ function moveGoal(fromContext, toWeek) {
   var goal = state['unscheduled'].pop();
   var schedule = state['schedule'];
   schedule[toWeek].push(goal);
+  while (schedule.length && schedule[schedule.length - 1].length == 0) {
+    schedule.pop();
+  }
 }
 
 function findContext(element) {
