@@ -1,0 +1,6 @@
+{% set active = false %}
+{% set my_pledges = {} %}
+{% set goal_progress = {} %}
+{% for goal in goals %}
+{% include 'goal.html' %}
+{% endfor %}

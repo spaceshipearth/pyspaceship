@@ -273,6 +273,13 @@ def goal_progress(team_id, mission_id, goal_id):
 
   return render_template('goal_progress.html', my_pledge_id=my_pledge_id, progress=progress)
 
+@app.route('/goal_search')
+def goal_search():
+  if not current_user.is_authenticated:
+    raise ValueError('auth')
+  goals = Goal.select()
+  return render_template('goal_search.html', goals=goals)
+
 def count_goal_progress(team_size=1, pledges=[]):
   progress = {'done': [], 'pledged': [], 'num_active': 0, 'num_inactive': 0}
   active = set()

@@ -134,6 +134,7 @@ during the mission.
 <div class="row">
 <section class="unscheduled col-sm-6">
 <h4>Unscheduled Goals</h4>
+<button type="button" id="search" class="btn btn-primary">Search</button>
 <div data-week="-1">
 </div>
 </section>
@@ -295,6 +296,32 @@ $('#duration').change(function() {
   var durationInWeeks = parseInt($(this).val());
   changeDuration(durationInWeeks);
   sync();
+});
+
+function getScheduledGoals() {
+  var goals = [];
+  var schedule = state['schedule'];
+  for (var week = 0; week < schedule.length; week++) {
+    for (var i = 0; i < schedule[week].length; i++) {
+      goals.push(schedule[week][i]['goal_id']);
+    }
+  }
+  return goals;
+}
+
+$('#search').click(function() {
+  var resultsDiv = $('[data-week="-1"]');
+  $.get('/goal_search', function(html) {
+    var scheduledGoals = getScheduledGoals();
+    state['unscheduled'] = [];
+    var results = $(html).filter('.goal').filter(function() {
+      return !scheduledGoals.includes($(this).data('goal'));
+    }).map(function() {
+      state['unscheduled'].push({'goal_id': $(this).data('goal')});
+      return appendEditControls($(this));
+    }).get();
+    resultsDiv.empty().append(results);
+  });
 });
 
 })();
