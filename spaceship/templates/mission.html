@@ -223,6 +223,10 @@ function appendEditControls(goal) {
   $(dom).find('.move-goal-up').click(function() {
     var context = findContext(this);
     moveGoal(context, context.week - 1);
+    var schedule = state['schedule'];
+    while (schedule.length && schedule[schedule.length - 1].length == 0) {
+      schedule.pop();
+    }
     focusedGoalId = context.goalId;
     sync();
   });
@@ -293,9 +297,6 @@ function moveGoal(fromContext, toWeek) {
   var goal = state['unscheduled'].pop();
   var schedule = state['schedule'];
   schedule[toWeek].push(goal);
-  while (schedule.length && schedule[schedule.length - 1].length == 0) {
-    schedule.pop();
-  }
 }
 
 function findContext(element) {
