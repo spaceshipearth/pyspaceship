@@ -31,8 +31,21 @@ Run the following to install a couple Python versions:
 ```
 pyenv install 2.7.14
 pyenv install 3.7.2
+
+# If you are on macOS Mojave, you may get an error about zlib being missing.
+# There are two ways to deal with this. You only need to do one of them. For
+# details, see https://github.com/pyenv/pyenv/issues/1219.
+
+# OPTION 1: Install the macOS SDK headers
+# First install the Xcode Command Line Tools if you haven't already:
+xcode-select --install
+# Then install the headers:
+sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /
+# Then re-run the `pyenv install` commands.
+
+# OPTION 2: When you run the `pyenv install` commands, set `CFLAGS` like so:
+CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install ...
 ```
-(Note: on macOS X Mojave you may have to run these commands as follows: `CFLAGS="-I$(xcrun --show-sdk-path)/usr/include" pyenv install ...`. See https://github.com/pyenv/pyenv/issues/1219 for details)
 
 From the project directory, run the following command:
 ```
