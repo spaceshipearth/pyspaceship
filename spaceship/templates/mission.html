@@ -1,7 +1,7 @@
 {% from 'editable.html' import editable_text %}
 {% extends "base.html" %}
 {% set can_edit = is_captain and not mission.frozen %}
-{% set max_weeks = 8 %};
+{% set max_weeks = 8 %}
 
 {% block title %}Mission - {{ super() }}{% endblock %}
 
