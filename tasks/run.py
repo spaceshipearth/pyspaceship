@@ -18,9 +18,10 @@ def get_db_manager():
   default=True,
   help={
     'debug': 'Whether to run flask in DEBUG mode (Default: True)',
+    'host': 'Host name to bind to (default: localhost)',
   },
 )
-def flask(ctx, debug=True):
+def flask(ctx, host='localhost', debug=True):
   """Runs the flask web server"""
   print(f"Running Flask on localhost:{PORT}...")
 
@@ -35,7 +36,7 @@ def flask(ctx, debug=True):
     pass
 
   with ctx.cd(ROOT_REPO_DIR):
-    ctx.run(f'flask run -p {PORT}', env=FLASK_ENV)
+    ctx.run(f'flask run -h {host} -p {PORT}', env=FLASK_ENV)
 
 @task
 def shell(ctx):
