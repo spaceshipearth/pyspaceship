@@ -1,16 +1,67 @@
+{% from 'editable.html' import editable_text %}
 {% extends "base.html" %}
+{% set can_edit = is_captain and not mission.frozen %}
+{% set max_weeks = 8 %}
 
 {% block title %}Mission - {{ super() }}{% endblock %}
 
 {% block content %}
-<h5>
-    <a href="{{ url_for('roster', team_id=team) }}"> {{ team.name }} </a>
-</h5>
+<h5><a href="{{ url_for('roster', team_id=team) }}">{{ team.name }}</a></h5>
 
-<h3>{{ mission.title }}</h3>
+<div>
+{% if is_captain and not team.mission %}
+<div class="modal fade" id="confirm-start-modal" tabindex="-1" role="dialog" aria-labelledby="confirmStartOverlayTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title text-center" id="confirmStartOverlayTitle">Are you sure?</h3>
+      </div>
+      <div class="modal-body">
+        <p>Commit your team to this mission for the next {{ mission.duration_in_weeks }} weeks?
+        <p>Note: You will be unable to customize the mission after starting.
+        (You can still make a copy and customize for a later run.)
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <a id="confirm-start" class="btn btn-danger btn-ok">Start</a>
+      </div>
+    </div>
+  </div>
+</div>
+<form style="display: inline-block"
+      id="start-form"
+      action="{{ url_for('mission', team_id=team, mission_id=mission) }}"
+      method="POST">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="start_mission" value="1">
+  <button id="start" type="submit" class="btn btn-primary"><i class="fas fa-play"></i>&nbsp;Start mission</button>
+</form>
+{% endif %}
+{% if is_captain and mission.frozen %}
+<form style="display: inline-block"
+      action="{{ url_for('mission', team_id=team, mission_id=mission) }}"
+      method="POST">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="copy" value="1">
+  <button type="submit" class="btn btn-primary"><i class="fas fa-copy"></i>&nbsp;Copy and customize</button>
+</form>
+{% endif %}
+</div>
+
+<h3>{{ editable_text(text=mission.title,
+                     is_editable=can_edit,
+                     popup_title="Edit title",
+                     table="mission", id=mission.id, field="title") }}</h3>
+<!--
 <p><a href="{{ url_for('show_mission_info', mission_id=mission.id) }}">MISSION BRIEF HERE</a></p>
-<p>{{ mission.short_description }}</p>
-{% if week_of_mission > 0 and week_of_mission <= 4 %}
+-->
+<p>{{ editable_text(text=mission.short_description,
+                    is_editable=can_edit,
+                    multiline=True,
+                    popup_title="Edit description",
+                    table="mission", id=mission.id, field='short_description') }}</p>
+
+{% if week_of_mission > 0 and week_of_mission <= mission.duration_in_weeks %}
 <p>Click "Pledge" below for any goals you want to complete. Afterwards, click the "Done" checkbox to mark goals you have completed.
 <p>In week {{ week_of_mission }}!
 <p><a class="btn btn-primary" data-toggle="collapse" href="#calendar" role="button" aria-expanded="false" aria-controls="calendar">Toggle calendar</a>
@@ -26,75 +77,284 @@
 <p>You need some crew before you can start a mission.
 Invite people <a href="{{ url_for('roster', team_id=team, _anchor='invite') }}">here</a>.
 {% else %}
-<p>During this month long mission, your crew will attempt the goals below. You
-should encourage each person to pledge for and complete as many goals as
-possible. At the start of every week, a new primary goal will open
-up&mdash;this is a good time to check in. Some bonus, secondary goals may be
-completed at any time during the mission.
-
-<p>Commit your crew to this mission for one month?
-<form method="POST" class="needs-validation" novalidate>
-  {% for field in start_mission %}
-  {% set errors = start_mission.errors[field.name] %}
-  {% if field.flags.hidden %}
-    {{ field(class="form-control") }}
-  {% elif field.type == "SubmitField" %}
-    {{ field(class="btn btn-primary") }}
-  {% else %}
-    {% if errors %}
-    {% set class="form-control is-invalid" %}
-    {% else %}
-    {% set class="form-control" %}
-    {% endif %}
-
-    <div class="row">
-      <span class="col-3">{{ field.label() }}</span>
-    </div>
-    <div class="row form-box">
-      <span class="col-6">
-      {{ field(class=class) }}
-      <div class="invalid-feedback">
-        {{ ';'.join(errors) }}
-      </div>
-      {{ field.description }}
-      </span>
-    </div>
-  {% endif %}
-  {% endfor %}
-</form>
+<p>During this mission, your crew will attempt the goals below. You should
+encourage each person to pledge for and complete as many goals as possible. At
+the start of every week, a new primary goal will open up&mdash;this is a good
+time to check in. Some bonus, secondary goals may be completed at any time
+during the mission.
 {% endif %}
 {% endif %}
 
 <div class="row">
 <section class="primary col-sm-6">
 <h4>Primary Goals</h4>
-{% for week in range(1,5): %} 
-<h5>Week {{ week }}</h5>
-{% for goal in mission.goals: %}
-{% if goal.week == week and goal.primary_for_mission %}
-{% include "goal.html" %}
+{% if can_edit %}
+<h5>Duration</h5>
+<p>How long should this mission last?
+<select id="duration" class="custom-select">
+  {% for n in range(1, max_weeks) %}
+  <option value="{{ n }}"{% if mission.duration_in_weeks == n %} selected{% endif %}>
+  {% if n == 1 %}{{ n }} week{% else %}{{ n }} weeks{% endif %}
+  </option>
+  {% endfor %}
+</select>
 {% endif %}
+
+{% for week in range(1, 1 + mission.duration_in_weeks): %}
+<div data-week="{{ week }}">
+<h5>Week {{ week }}</h5>
+  {% for slot in mission.goal_slots(week=week): %}
+  {% set goal = slot.goal %}
+  {% set active = week_of_mission > 0 and week_of_mission <= mission.duration_in_weeks and week_of_mission >= week %}
+  {% include "goal.html" %}
+  {% endfor %}
+</div>
 {% endfor %}
+{% for week in range(1 + mission.duration_in_weeks, 8): %}
+<div data-week="{{ week }}" style="display: none">
+<h5>Week {{ week }}</h5>
+</div>
 {% endfor %}
 </section>
 
 <section class="bonus col-sm-6">
 <h4>Secondary Goals</h4>
 <h5>Any time</h5>
-{% for goal in mission.goals: %}
-{% if not goal.primary_for_mission %}
-{% include "goal.html" %}
-{% endif %}
-{% endfor %}
+<div data-week="0">
+  {% for slot in mission.goal_slots(week=0): %}
+  {% set goal = slot.goal %}
+  {% set active = week_of_mission > 0 and week_of_mission <= mission.duration_in_weeks %}
+  {% include "goal.html" %}
+  {% endfor %}
+</div>
 </section>
 </div>
+
+{% if can_edit %}
+<div class="row">
+<section class="unscheduled col-sm-6">
+<h4>Unscheduled Goals</h4>
+<button type="button" id="search" class="btn btn-primary">Search</button>
+<div data-week="-1">
 </div>
+</section>
+</div>
+{% endif %}
 
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
+
+{% if can_edit %}
 <script>
+(function() {
+var state = {{ mission_js_model|tojson }};
+var focusedGoalId = -1;
+render();
+
+function render() {
+  $('.goal').detach().appendTo($('[data-week="-1"]'));
+  var schedule = state['schedule'];
+  for (var week = 0; week < {{ max_weeks }}; week++) {
+    var weekDiv = $('[data-week="' + week + '"]');
+    if (week >= schedule.length) {
+      $(weekDiv).hide();
+      continue;
+    }
+    $(weekDiv).show();
+    for (var i = 0; i < schedule[week].length; i++) {
+      var slot = schedule[week][i];
+      var goalId = slot['goal_id'];
+      var goal = $('.goal[data-goal="' + goalId + '"]');
+      appendEditControls(goal);
+      weekDiv.append(goal);
+    }
+  }
+  $('#duration').val('' + (schedule.length - 1));
+  $('.goal').each(function() {
+    var goalId = parseInt($(this).data('goal'));
+    $(this).toggleClass('focused-goal', focusedGoalId == goalId);
+  });
+}
+
+function appendEditControls(goal) {
+  if (goal.find('.edit-controls').length !== 0) {
+    return;
+  }
+  var dom = goal.append(`<div class="edit-controls btn-toolbar" role="toolbar" aria-label="Scheduling toolbar">
+    <div class="btn-group mr-2" role="group" aria-label="Move goals">
+      <button type="button" class="move-goal-down btn btn-primary" title="Move down"><i class="fas fa-arrow-circle-down"></i></button>
+      <button type="button" class="move-goal-up btn btn-primary" title="Move up"><i class="fas fa-arrow-circle-up"></i></button>
+    </div>
+    <div class="btn-group mr-2 ml-auto" role="group" aria-label="Change importance">
+      <button type="button" class="make-goal-primary btn btn-primary ml-auto" title="Make primary"><i class="fas fa-calendar-plus"></i></button>
+      <button type="button" class="make-goal-secondary btn btn-primary ml-auto" title="Make secondary"><i class="fas fa-calendar-minus"></i></button>
+    </div>
+    <div class="btn-group mr-2" role="group" aria-label="Remove">
+      <button type="button" class="remove-goal btn btn-primary" title="Remove"><i class="fas fa-times-circle"></i></button>
+    </div>
+  </div>`);
+  $(dom).find('.remove-goal').click(function() {
+    var context = findContext(this);
+    removeGoal(context);
+    focusedGoalId = -1;
+    sync();
+  });
+  $(dom).find('.make-goal-primary').click(function() {
+    var context = findContext(this);
+    var targetWeek = findFirstOpenWeek();
+    moveGoal(context, targetWeek);
+    focusedGoalId = context.goalId;
+    sync();
+  });
+  $(dom).find('.make-goal-secondary').click(function() {
+    var context = findContext(this);
+    moveGoal(context, 0);
+    focusedGoalId = context.goalId;
+    sync();
+  });
+  $(dom).find('.move-goal-down').click(function() {
+    var context = findContext(this);
+    moveGoal(context, context.week + 1);
+    focusedGoalId = context.goalId;
+    sync();
+  });
+  $(dom).find('.move-goal-up').click(function() {
+    var context = findContext(this);
+    moveGoal(context, context.week - 1);
+    var schedule = state['schedule'];
+    while (schedule.length && schedule[schedule.length - 1].length == 0) {
+      schedule.pop();
+    }
+    focusedGoalId = context.goalId;
+    sync();
+  });
+  return dom;
+}
+
+function sync() {
+  $.post('{{ url_for('mission', team_id=team, mission_id=mission) }}', {
+    'edit': true,
+    'state': JSON.stringify(state)
+  }).done(function(json) {
+    if (json['ok']) {
+      render();
+    } else {
+      // TODO: handle errors
+    }
+  });
+}
+
+function findFirstOpenWeek() {
+  var schedule = state['schedule'];
+  for (var i = 1; i < schedule.length; i++) {
+    if (schedule[i].length == 0) {
+      return i;
+    }
+  }
+  return 1;
+}
+
+function changeDuration(durationInWeeks) {
+  var schedule = state['schedule'];
+  for (var week = durationInWeeks + 1; week < schedule.length; week++) {
+    for (var i = 0; i < schedule[week].length; i++) {
+      var slot = schedule[week][i];
+      removeGoal({week: week, goalId: slot['goal_id']});
+    }
+  }
+  while (schedule.length > durationInWeeks + 1) {
+    schedule.pop();
+  }
+  while (schedule.length < durationInWeeks + 1) {
+    schedule.push([]);
+  }
+}
+
+function removeGoal(context) {
+  state['unscheduled'] = state['unscheduled'] || [];
+  var week = context.week == -1 ? state['unscheduled'] : state['schedule'][context.week];
+  var goalIndex = week.findIndex(function(slot) {
+    return slot['goal_id'] == context.goalId;
+  });
+  if (goalIndex == -1) {
+    return;
+  }
+  var slots = week.splice(goalIndex, 1);
+  state['unscheduled'].push(slots[0]);
+}
+
+function moveGoal(fromContext, toWeek) {
+  var schedule = state['schedule'];
+  if (toWeek >= schedule.length) {
+    if (toWeek >= {{ max_weeks }}) {
+      return;
+    }
+    changeDuration(toWeek);
+  }
+  removeGoal(fromContext);
+  var goal = state['unscheduled'].pop();
+  var schedule = state['schedule'];
+  schedule[toWeek].push(goal);
+}
+
+function findContext(element) {
+  var weekDiv = $(element).parents('[data-week]');
+  var weekNumber = parseInt($(weekDiv).data('week'), 10);
+  var goalDiv = $(element).parents('[data-goal]');
+  var goalId = parseInt($(goalDiv).data('goal'), 10);
+  return {week: weekNumber, goalId: goalId};
+}
+
+$('#duration').change(function() {
+  var durationInWeeks = parseInt($(this).val());
+  changeDuration(durationInWeeks);
+  sync();
+});
+
+function getScheduledGoals() {
+  var goals = [];
+  var schedule = state['schedule'];
+  for (var week = 0; week < schedule.length; week++) {
+    for (var i = 0; i < schedule[week].length; i++) {
+      goals.push(schedule[week][i]['goal_id']);
+    }
+  }
+  return goals;
+}
+
+$('#search').click(function() {
+  var resultsDiv = $('[data-week="-1"]');
+  $.get('/goal_search', function(html) {
+    var scheduledGoals = getScheduledGoals();
+    state['unscheduled'] = [];
+    var results = $(html).filter('.goal').filter(function() {
+      return !scheduledGoals.includes($(this).data('goal'));
+    }).map(function() {
+      state['unscheduled'].push({'goal_id': $(this).data('goal')});
+      return appendEditControls($(this));
+    }).get();
+    resultsDiv.empty().append(results);
+  });
+});
+
+})();
+</script>
+{% endif %}
+
+<script>
+{% if is_captain and not team.mission %}
+$('#start').click(function(e) {
+  $('#confirm-start-modal').modal({keyboard: true});
+  e.preventDefault();
+  return false;
+});
+
+$('#confirm-start').click(function() {
+  $('#start-form').submit();
+})
+{% endif %}
 function updateProgress(goalDiv) {
   var progress = goalDiv.find('.goal-progress-wrapper');
   var updateUrl = progress.data('update-url')

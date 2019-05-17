@@ -1,12 +1,14 @@
 {% set pledged   = goal.id in my_pledges %}
 {% set fulfilled = my_pledges[goal.id].fulfilled if pledged else False %}
-{% set active = week_of_mission > 0 and week_of_mission <= 4 and week_of_mission >= goal.week %}
 
 <div class="goal{% if active %} active-goal{% endif %}" data-goal="{{ goal.id }}">
+  <div class="goal-header" data-category="{{ goal.category }}">
+    <div class="goal-category">{{ goal.category }}</div>
+  </div>
   <div>{{ goal.short_description }}</div>
   {% if active %}
   <div class="goal-progress-wrapper"
-       data-update-url="{{ url_for('goal_progress', team_id=team.id, goal_id=goal.id, start_at=team.mission_start_at) }}">
+       data-update-url="{{ url_for('goal_progress', team_id=team.id, mission_id=team.mission.id, goal_id=goal.id) }}">
     {% set progress = goal_progress[goal.id] %}
     {% set my_pledge_id = my_pledges[goal.id].id if pledged else -1 %}
     {% include "goal_progress.html" %}

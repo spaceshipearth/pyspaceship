@@ -23,9 +23,9 @@ from .forms.register import Register
 from .forms.login import Login
 from .forms.invite import Invite
 from .forms.enlist import AcceptInvitation, DeclineInvitation
-from .forms.start_mission import StartMission
 from .forms.create_crew import CreateCrew
 
+import json
 import hashlib
 import logging
 import pendulum
@@ -150,15 +150,18 @@ def mission(team_id, mission_id):
   is_captain = team.captain_id == current_user.id
   team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
 
-  start_mission = StartMission()
-  if start_mission.validate_on_submit():
+  if request.form.get('start_mission'):
     if team_size < 2:
       flash({'msg': 'Need add least one crew member.', 'level': 'danger'})
     elif is_captain and not team.mission:
       with db.atomic() as transaction:
         try:
-          team.mission = mission
-          team.mission_start_at = pendulum.now()
+          # clone and freeze mission once it starts so it can't be edited while
+          # it's in progress (which is a product decision) or after it's done
+          # (so we can reconstruct and display what happened).
+          mission_clone = mission.start()
+          mission_id = mission_clone.id
+          team.mission = mission_clone
           team.save()
           achievements.start_mission(team)
         except (IntegrityError, DatabaseError) as e:
@@ -171,12 +174,41 @@ def mission(team_id, mission_id):
       flash({'msg': 'Could not start mission', 'level': 'danger'})
     return redirect(url_for('mission', team_id=team_id, mission_id=mission_id), code=303)
 
+  elif request.form.get('copy'):
+    if is_captain:
+      with db.atomic() as transaction:
+        try:
+          mission_clone = mission.clone(frozen=False)
+          mission_id = mission_clone.id
+        except (IntegrityError, DatabaseError) as e:
+          transaction.rollback()
+          flash({'msg': f'Database error', 'level': 'danger'})
+        else:
+          flash({'msg': f'Copied!', 'level': 'success'})
+    else:
+      flash({'msg': 'Could not copy mission', 'level': 'danger'})
+    return redirect(url_for('mission', team_id=team_id, mission_id=mission_id), code=303)
+
+  elif request.form.get('edit'):
+    if not mission.frozen:
+      with db.atomic() as transaction:
+        try:
+          state = json.loads(request.form.get('state'))
+          mission.update_from_js(state)
+          mission.save()
+        except (json.decoder.JSONDecodeError, IntegrityError, DatabaseError) as e:
+          transaction.rollback()
+          return jsonify({'ok': False})
+        else:
+          return jsonify({'ok': True})
+    return jsonify({'ok': False})
+
   week_of_mission = 0
   mission_pledges = []
   mission_calendar = []
   if team.mission and team.mission.id == mission.id:
-    week_of_mission = (pendulum.now() - team.mission_start_at).in_weeks() + 1
-    if week_of_mission >= 5:
+    week_of_mission = (pendulum.now('UTC') - mission.started_at).in_weeks() + 1
+    if week_of_mission > mission.duration_in_weeks:
       with db.atomic() as transaction:
         try:
           team.mission = None
@@ -187,44 +219,49 @@ def mission(team_id, mission_id):
         else:
           flash({'msg': f'Mission has concluded.', 'level': 'success'})
     else:
-      mission_end_at = team.mission_start_at.add(weeks=4)
+      mission_end_at = mission.started_at.add(weeks=mission.duration_in_weeks)
       mission_pledges = (Pledge.select()
         .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
         .where((TeamUser.team_id == team.id) &
-               (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < team.mission_start_at)))))
-      mission_calendar = calendar.layout(pendulum.today(), team.mission_start_at, mission_end_at)
-  goal_progress = {goal.id: count_goal_progress(team_size=team_size,
-                                                pledges=[p for p in mission_pledges if p.goal_id == goal.id])
-                   for goal in mission.goals}
+               (~((Pledge.start_at > mission_end_at) |
+                (Pledge.end_at < team.mission.started_at)))))
+      mission_calendar = calendar.layout(pendulum.today(), mission.started_at, mission_end_at)
+  goal_progress = {}
+  for slot in mission.goal_slots():
+    pledges = [p for p in mission_pledges if p.goal_id == slot.goal.id]
+    goal_progress[slot.goal.id] = count_goal_progress(team_size=team_size, pledges=pledges)
 
   my_pledges = {p.goal_id: p for p in mission_pledges if p.user_id == current_user.id}
 
   return render_template('mission.html',
-                         start_mission=start_mission,
                          week_of_mission=week_of_mission,
                          team=team,
                          team_size=team_size,
                          is_captain=is_captain,
                          mission=mission,
+                         mission_js_model=mission.serialize_for_js(),
                          calendar=mission_calendar,
                          my_pledges=my_pledges,
                          goal_progress=goal_progress)
 
-@app.route('/goal_progress/<team_id>/<goal_id>')
-def goal_progress(team_id, goal_id):
+@app.route('/goal_progress/<team_id>/<mission_id>/<goal_id>')
+def goal_progress(team_id, mission_id, goal_id):
   if not current_user.is_authenticated:
     raise ValueError('auth')
   team = get_team_if_member(team_id)
   if not team:
     raise ValueError('auth')
-  start_at = pendulum.parse(request.values.get('start_at'))
-  mission_end_at = start_at.add(weeks=4)
+  mission = Mission.get(Mission.id == mission_id)
+  if not mission:
+    raise ValueError('mission not found')
 
+  mission_end_at = mission.started_at.add(weeks=mission.duration_in_weeks)
   mission_pledges_for_goal = (Pledge.select()
     .join(TeamUser, on=(Pledge.user_id == TeamUser.user_id))
     .where((TeamUser.team_id == team.id) &
            (Pledge.goal_id == goal_id) &
-           (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < start_at)))))
+           (~((Pledge.start_at > mission_end_at) | (Pledge.end_at < mission.started_at)))))
+
   team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
   progress = count_goal_progress(team_size=team_size, pledges=mission_pledges_for_goal)
 
@@ -235,6 +272,13 @@ def goal_progress(team_id, goal_id):
       break
 
   return render_template('goal_progress.html', my_pledge_id=my_pledge_id, progress=progress)
+
+@app.route('/goal_search')
+def goal_search():
+  if not current_user.is_authenticated:
+    raise ValueError('auth')
+  goals = Goal.select()
+  return render_template('goal_search.html', goals=goals)
 
 def count_goal_progress(team_size=1, pledges=[]):
   progress = {'done': [], 'pledged': [], 'num_active': 0, 'num_inactive': 0}
@@ -260,7 +304,7 @@ def pledge():
     return jsonify({'ok': False})
 
   # pledges last for 31 days
-  start_at = pendulum.now()
+  start_at = pendulum.now('UTC')
   end_at = start_at.add(days=31)
 
   # a user can have at most one outstanding pledge for a goal
@@ -697,9 +741,29 @@ def edit():
           fulfilled = (value == 'true')
           pledge.fulfilled = fulfilled
           if fulfilled:
-            pledge.fulfilled_at = pendulum.now()
+            pledge.fulfilled_at = pendulum.now('UTC')
             achievements.fulfill_pledge(current_user)
           pledge.save()
+      except DatabaseError:
+        transaction.rollback()
+        return jsonify({'ok': False})
+      else:
+        return jsonify({'ok': True})
+
+  elif table_name == 'mission':
+    try:
+      mission = Mission.get(Mission.id == object_id)
+    except Mission.DoesNotExist:
+      return jsonify({'ok': False})
+    # TODO acl
+    with db.atomic() as transaction:
+      try:
+        if field_name == 'title':
+          mission.title = value
+          mission.save()
+        elif field_name == 'short_description':
+          mission.short_description = value
+          mission.save()
       except DatabaseError:
         transaction.rollback()
         return jsonify({'ok': False})
