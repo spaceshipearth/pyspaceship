@@ -37,22 +37,30 @@ def namespace(ctx, namespace):
     else:
       raise
 
-  # create the db user
-  password = random_string(12)
-  run(
-    f"gcloud sql users create {user} --host='%' --instance=spaceshipdb --password={password}",
-    hide=True
-  )
-  print(f'created user {user}')
-
   # create the namespace
   with K8SNamespace('default') as ns:
     nsmanifest = load_manifest('namespace', {'namespace': namespace})
     ns.apply(nsmanifest)
 
-  # create db and session credentials
-  mysql_secret(ctx, username=user, password=password, namespace=namespace)
-  session_secret(ctx, namespace=namespace)
+  # create the db user and session secrets if they don't exist
+  with K8SNamespace(namespace) as default:
+    existing = default.get_secret('pyspaceship-mysql')
+    if not existing:
+      password = random_string(12)
+      run(
+        f"gcloud sql users create {user} --host='%' --instance=spaceshipdb --password={password}",
+        hide=True
+      )
+      print(f'created db user {user}')
+      mysql_secret(ctx, username=user, password=password, namespace=namespace)
+    else:
+      print('mysql user already initialized')
+
+    exiting = default.get_secret('pyspaceship-session')
+    if not existing:
+      session_secret(ctx, namespace=namespace)
+    else:
+      print('session already initialized')
 
   # copy the google and sendgrid secrets from default
   for secret_name in ['pyspaceship-google-oauth', 'pyspaceship-sendgrid', 'google-app-creds']:
@@ -91,7 +99,7 @@ def namespace(ctx, namespace):
       existing = set()
       existing_data = json.loads(
         run(
-          'gcloud dns record-sets list -z spaceshipearth-org --name {dns_name} --format json',
+          f'gcloud dns record-sets list -z spaceshipearth-org --name "{dns_name}" --format json',
           hide=True
         ).stdout
       )
@@ -100,6 +108,9 @@ def namespace(ctx, namespace):
           existing.add(addr)
 
       to_add = ips - existing
+      if len(to_add) == 0:
+        print('all ip addresses already in DNS')
+
       for addr in to_add:
         print(f'adding {addr} as an A record for {dns_name}')
 
