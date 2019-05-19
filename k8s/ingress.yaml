@@ -5,10 +5,6 @@ metadata:
   namespace: {$eval: namespace}
 spec:
   tls:
-    - hosts:
-      - spaceshipearth.org
-      - www.spaceshipearth.org
-      - "${namespace}.spaceshipearth.org"
     - secretName: spaceshipearth-org-tls
   rules:
   - host: spaceshipearth.org

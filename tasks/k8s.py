@@ -80,9 +80,38 @@ def namespace(ctx, namespace):
     except KeyError:
       print("None assigned (yet?) -- re-run later to get IP address")
     else:
+      ips = set()
       for i in ingress:
         ip = i['ip']
+        ips.add(ip)
         print(f'- {ip}')
+
+      dns_name = f'{namespace}.spaceshipearth.org.'
+
+      existing = set()
+      existing_data = json.loads(
+        run(
+          'gcloud dns record-sets list -z spaceshipearth-org --name {dns_name} --format json',
+          hide=True
+        ).stdout
+      )
+      for record in existing_data:
+        for addr in record['rrdatas']:
+          existing.add(addr)
+
+      to_add = ips - existing
+      for addr in to_add:
+        print(f'adding {addr} as an A record for {dns_name}')
+
+        def dns_trans(cmd):
+          base_cmd = 'gcloud dns record-sets transaction'
+          suffix = '--zone spaceshipearth-org'
+          return run(f"{base_cmd} {cmd} {suffix}", hide=True)
+
+        dns_trans('start')
+        dns_trans(f'add --name="{dns_name}" --type=A --ttl 300 "{addr}"')
+        dns_trans('execute')
+
 
 @task(
   help={
