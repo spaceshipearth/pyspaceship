@@ -1,11 +1,10 @@
 
 from invoke import task, run
+from invoke.exceptions import UnexpectedExit
 
 import json
-import random
-import string
 
-from .utils import load_manifest, K8SNamespace, TEST_NAMESPACE
+from .utils import load_manifest, K8SNamespace, TEST_NAMESPACE, random_string
 
 @task(
   help={
@@ -27,12 +26,44 @@ def pods(ctx, namespace=TEST_NAMESPACE):
 )
 def namespace(ctx, namespace):
   """initializes a namespace, like a site version"""
+  # create a db with a user for the namespace
+  user = f"spaceship-{namespace}"
+  try:
+    run(f"gcloud sql databases create {user} --instance=spaceshipdb", hide=True)
+    print(f"created db {user}")
+  except UnexpectedExit as e:
+    if 'database exists' in e.result.stderr:
+      print(f'db {user} already existed')
+    else:
+      raise
+
+  # create the db user
+  password = random_string(12)
+  run(
+    f"gcloud sql users create {user} --host='%' --instance=spaceshipdb --password={password}",
+    hide=True
+  )
+  print(f'created user {user}')
+
   # create the namespace
   with K8SNamespace('default') as ns:
     nsmanifest = load_manifest('namespace', {'namespace': namespace})
     ns.apply(nsmanifest)
 
-  # now that it exists, the rest can take place inside there
+  # create db and session credentials
+  mysql_secret(ctx, username=user, password=password, namespace=namespace)
+  session_secret(ctx, namespace=namespace)
+
+  # copy the google and sendgrid secrets from default
+  for secret_name in ['pyspaceship-google-oauth', 'pyspaceship-sendgrid', 'google-app-creds']:
+    with K8SNamespace('default') as default:
+      data = default.get_secret(secret_name)
+
+    secret = load_manifest('generic_secret', {'name': secret_name, 'data': data})
+    with K8SNamespace(namespace) as ns:
+      ns.apply(secret)
+
+  # create an ssl cert and ingress for the namespace
   with K8SNamespace(namespace) as ns:
     ssl_cert = load_manifest('cert', {'namespace': namespace})
     ns.apply(ssl_cert)
@@ -42,12 +73,28 @@ def namespace(ctx, namespace):
 
     info = json.loads(
       run(f'{ns.kubecmd} get ingress pyspaceship-ingress -o=json', hide=True).stdout)
-    ingress = info['status']['loadBalancer']['ingress']
 
     print("Load balancer IPs:")
-    for i in ingress:
-      ip = i['ip']
-      print(f'- {ip}')
+    try:
+      ingress = info['status']['loadBalancer']['ingress']
+    except KeyError:
+      print("None assigned (yet?) -- re-run later to get IP address")
+    else:
+      for i in ingress:
+        ip = i['ip']
+        print(f'- {ip}')
+
+@task(
+  help={
+    'secret-name': "Name of the secret to output",
+    'namespace': f"Version of the site (default: {TEST_NAMESPACE})",
+  }
+)
+def show_secret(ctx, secret_name, namespace=TEST_NAMESPACE):
+  """Displays the contents of a kubernetes secret"""
+  with K8SNamespace(namespace) as ns:
+    data = ns.get_secret(secret_name)
+    print(json.dumps(data, indent=4))
 
 @task(
   help={
@@ -61,8 +108,8 @@ def namespace(ctx, namespace):
 )
 def mysql_secret(
     ctx,
-    host,
     password,
+    host='10.82.64.3',
     port=3306,
     username='spaceship-app',
     db='spaceship',
@@ -86,9 +133,6 @@ def mysql_secret(
 )
 def session_secret(ctx, secret_key = None, namespace = TEST_NAMESPACE):
   """Creates a new session secret; this will invalidate existing sessions"""
-  def random_string(length):
-    return "".join( random.SystemRandom().choices(string.ascii_letters + string.digits, k=length))
-
   if not secret_key:
     secret_key = random_string(24)
 

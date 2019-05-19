@@ -1,10 +1,14 @@
 
 from invoke import run
+from invoke.exceptions import UnexpectedExit
 
+import base64
 import contextlib
 import json
 import jsone
 import os, os.path
+import random
+import string
 import tempfile
 import yaml
 
@@ -13,11 +17,6 @@ ROOT_REPO_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 DEFAULT_NAMESPACE = 'default'
 TEST_NAMESPACE = 'test'
 PROD_NAMESPACE = 'prod'
-NAMESPACES = [
-  DEFAULT_NAMESPACE,
-  TEST_NAMESPACE,
-  PROD_NAMESPACE,
-]
 
 class K8SNamespace:
   def __init__(self, namespace, dry_run = False):
@@ -51,10 +50,24 @@ class K8SNamespace:
 
   @property
   def kubecmd(self):
-    if self.namespace not in NAMESPACES:
-      raise ValueError(f"invalid namespace '{self.namespace}'")
-
     return f"kubectl --namespace={self.namespace}"
+
+  def get_secret(self, secret_name):
+    try:
+      secret = json.loads(
+        run(f'{self.kubecmd} get secret {secret_name} -o json', hide=True).stdout)
+    except UnexpectedExit as e:
+      if 'not found' in e.result.stderr:
+        return None
+      else:
+        raise
+
+    data = {}
+    for key, val in secret['data'].items():
+      data[key] = base64.b64decode(val).decode('utf-8')
+
+    return data
+
 
   def apply(self, manifest):
     """run `kubectl apply` on the specified manifest"""
@@ -90,3 +103,8 @@ def load_manifest(mtype, context = {}):
   with open(manifest_path) as mt:
     manifest_template = yaml.safe_load(mt.read())
     return jsone.render(manifest_template, context)
+
+def random_string(length):
+  return "".join( random.SystemRandom().choices(string.ascii_letters + string.digits, k=length))
+
+
