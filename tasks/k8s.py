@@ -1,6 +1,7 @@
 
 from invoke import task, run
 
+import json
 import random
 import string
 
@@ -19,19 +20,34 @@ def pods(ctx, namespace=TEST_NAMESPACE):
     for pod in ns.get_pods():
       print(f'{pod["phase"]}\t{pod["image"]}\t{pod["name"]}')
 
-@task
-def ingress(ctx):
-  """configure the ingress resource for all namespaces"""
-  raise NotImplementedError('this does not work right now')
-  ingress = load_manifest('ingress')
-  ns.apply(ingress)
+@task(
+  help={
+    'namespace': f'Name of the namespace to initialize (default: {TEST_NAMESPACE})',
+  }
+)
+def namespace(ctx, namespace):
+  """initializes a namespace, like a site version"""
+  # create the namespace
+  with K8SNamespace('default') as ns:
+    nsmanifest = load_manifest('namespace', {'namespace': namespace})
+    ns.apply(nsmanifest)
 
-  info = json.loads(run('kubectl get ingress pyspaceship-ingress -o=json', hide=True).stdout)
-  ingress = info['status']['loadBalancer']['ingress']
-  print("Load balancer IPs:")
-  for i in ingress:
-    ip = i['ip']
-    print(f'- {ip}')
+  # now that it exists, the rest can take place inside there
+  with K8SNamespace(namespace) as ns:
+    ssl_cert = load_manifest('cert', {'namespace': namespace})
+    ns.apply(ssl_cert)
+
+    ingress = load_manifest('ingress', {'namespace': namespace})
+    ns.apply(ingress)
+
+    info = json.loads(
+      run(f'{ns.kubecmd} get ingress pyspaceship-ingress -o=json', hide=True).stdout)
+    ingress = info['status']['loadBalancer']['ingress']
+
+    print("Load balancer IPs:")
+    for i in ingress:
+      ip = i['ip']
+      print(f'- {ip}')
 
 @task(
   help={

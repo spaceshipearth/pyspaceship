@@ -1,0 +1,23 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: spaceshipearth-org-certificate
+  namespace: {$eval: namespace}
+spec:
+  secretName: spaceshipearth-org-tls
+  acme:
+    config:
+    - dns01:
+        provider: cloud-dns-provider
+      domains:
+      - "spaceshipearth.org"
+      - "www.spaceshipearth.org"
+      - "${namespace}.spaceshipearth.org"
+  commonName: "spaceshipearth.org"
+  dnsNames:
+  - "spaceshipearth.org"
+  - "www.spaceshipearth.org"
+  - "${namespace}.spaceshipearth.org"
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-issuer
