@@ -49,6 +49,10 @@ class K8SNamespace:
     return [p['name'] for p in self.get_pods() if p['phase'] == 'Running'].pop()
 
   @property
+  def is_prod(self):
+    return self.namespace == PROD_NAMESPACE
+
+  @property
   def kubecmd(self):
     return f"kubectl --namespace={self.namespace}"
 

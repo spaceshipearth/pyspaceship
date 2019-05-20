@@ -55,10 +55,15 @@ def do_push(tag):
 
 def do_deploy(tag, ns):
   """actually perform a deploy of the manifests"""
+  replicas = 1
+  if ns.is_prod:
+    replicas = 3
+
   deployment = load_manifest(
     'deployment',
     {
       'image': tag,
+      'replicas': replicas,
     }
   )
 
