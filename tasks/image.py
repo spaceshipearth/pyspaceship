@@ -1,10 +1,9 @@
 from invoke import task, run
 from invoke.exceptions import Exit
 
-import json
 import tempfile
 
-from .utils import load_manifest, k8s_apply, in_repo_root
+from .utils import load_manifest, in_repo_root, K8SNamespace, TEST_NAMESPACE
 
 REPO = "us.gcr.io"
 PROJECT = "spaceshipearthprod"
@@ -54,36 +53,33 @@ def do_push(tag):
   print(f"Pushing docker tag {tag}...")
   run('docker push %s' % tag)
 
-def do_deploy(tag, dry_run = False):
+def do_deploy(tag, ns):
   """actually perform a deploy of the manifests"""
+  replicas = 1
+  if ns.is_prod:
+    replicas = 3
+
   deployment = load_manifest(
     'deployment',
     {
       'image': tag,
+      'replicas': replicas,
     }
   )
-  k8s_apply(deployment, dry_run)
+
+  ns.apply(deployment)
 
   service = load_manifest('service')
-  k8s_apply(service, dry_run)
-
-  ingress = load_manifest('ingress')
-  k8s_apply(ingress, dry_run)
-
-  info = json.loads(run('kubectl get ingress pyspaceship-ingress -o=json', hide=True).stdout)
-  ingress = info['status']['loadBalancer']['ingress']
-  print("Load balancer IPs:")
-  for i in ingress:
-    ip = i['ip']
-    print(f'- {ip}')
+  ns.apply(service)
 
 @task(
   default=True,
   help={
     'version': "Proposed version for the release (default: hash of repo state)",
+    'namespace': f"Namespace to release to (default: {TEST_NAMESPACE})",
   },
 )
-def release(ctx, version = None):
+def release(ctx, version = None, namespace = TEST_NAMESPACE):
   """Releases a new version of the site"""
   # default to a hash of the repo state
   if not version:
@@ -117,7 +113,8 @@ def release(ctx, version = None):
     run('git push --tags')
 
   # do the deploy
-  do_deploy(docker_tag)
+  with K8SNamespace(namespace) as ns:
+    do_deploy(docker_tag, ns)
 
 @task(
   help={
@@ -144,9 +141,11 @@ def build(ctx, version=None, push=True):
 @task(
   help={
     'version': "Just the version part of the image tag",
-    'dry-run': "Just display the configuration to apply without invoking kubectl",
+    'namespace': f"Namespace to deploy into (default: {TEST_NAMESPACE}",
+    'dry-run': "Display the configuration that would be applied",
   })
-def deploy(ctx, version, dry_run = False):
+def deploy(ctx, version, namespace = TEST_NAMESPACE, dry_run = False):
   """Generates and applies k8s configuration (second part of `release`)"""
   tag = generate_tag(version)
-  do_deploy(tag)
+  with K8SNamespace(namespace, dry_run) as ns:
+    do_deploy(tag, ns)

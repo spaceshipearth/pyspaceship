@@ -2,14 +2,10 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: pyspaceship-ingress
+  namespace: {$eval: namespace}
 spec:
   tls:
-    - hosts:
-      - spaceshipearth.org
-      - www.spaceshipearth.org
-      - test.spaceshipearth.org
-    - secretName: wildcard-spaceshipearth-org-tls
-
+    - secretName: spaceshipearth-org-tls
   rules:
   - host: spaceshipearth.org
     http:
@@ -17,13 +13,13 @@ spec:
       - backend:
           serviceName: pyspaceship-service
           servicePort: spaceship-port
-  - host: test.spaceshipearth.org
+  - host: www.spaceshipearth.org
     http:
       paths:
       - backend:
           serviceName: pyspaceship-service
           servicePort: spaceship-port
-  - host: www.spaceshipearth.org
+  - host: "${namespace}.spaceshipearth.org"
     http:
       paths:
       - backend:

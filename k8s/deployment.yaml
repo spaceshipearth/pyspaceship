@@ -6,7 +6,7 @@ spec:
   selector:
     matchLabels:
       app: pyspaceship
-  replicas: 1
+  replicas: {$eval: replicas}
   template:
     metadata:
       labels:
