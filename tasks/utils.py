@@ -14,11 +14,14 @@ import yaml
 
 ROOT_REPO_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-DEFAULT_NAMESPACE = 'default'
 TEST_NAMESPACE = 'test'
 PROD_NAMESPACE = 'prod'
 
 class K8SNamespace:
+  @classmethod
+  def prod(cls):
+    return cls(PROD_NAMESPACE)
+
   def __init__(self, namespace, dry_run = False):
     self.namespace = namespace
     self.dry_run = dry_run

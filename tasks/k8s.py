@@ -38,13 +38,13 @@ def namespace(ctx, namespace):
       raise
 
   # create the namespace
-  with K8SNamespace('default') as ns:
+  with K8SNamespace.prod() as prod:
     nsmanifest = load_manifest('namespace', {'namespace': namespace})
-    ns.apply(nsmanifest)
+    prod.apply(nsmanifest)
 
   # create the db user and session secrets if they don't exist
-  with K8SNamespace(namespace) as default:
-    existing = default.get_secret('pyspaceship-mysql')
+  with K8SNamespace(namespace) as ns:
+    existing = ns.get_secret('pyspaceship-mysql')
     if not existing:
       password = random_string(12)
       run(
@@ -56,16 +56,16 @@ def namespace(ctx, namespace):
     else:
       print('mysql user already initialized')
 
-    exiting = default.get_secret('pyspaceship-session')
+    exiting = ns.get_secret('pyspaceship-session')
     if not existing:
       session_secret(ctx, namespace=namespace)
     else:
       print('session already initialized')
 
-  # copy the google and sendgrid secrets from default
+  # copy the google and sendgrid secrets from prod
   for secret_name in ['pyspaceship-google-oauth', 'pyspaceship-sendgrid', 'google-app-creds']:
-    with K8SNamespace('default') as default:
-      data = default.get_secret(secret_name)
+    with K8SNamespace.prod() as prod:
+      data = prod.get_secret(secret_name)
 
     secret = load_manifest('generic_secret', {'name': secret_name, 'data': data})
     with K8SNamespace(namespace) as ns:
