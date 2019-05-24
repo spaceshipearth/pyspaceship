@@ -8,6 +8,9 @@ from spaceship.models import Mission
 
 log = logging.getLogger('spaceship.email')
 
+from .celery import celery
+
+@celery.task
 def send(to_emails, subject, html_content, from_email='gaia@spaceshipearth.org'):
   if not app.config['IN_PRODUCTION']:
     log.info("Sending email:")

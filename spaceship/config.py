@@ -37,3 +37,5 @@ class Config:
 
   GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '700492634886-qbhv3gss1a59lm5p93gr7plo872auaba.apps.googleusercontent.com')
   GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', 'c1PSnZoSuVTOtta-g-OH_3ZL')
+
+  USE_CELERY_WORKERS = bool(int(os.environ.get('USE_CELERY_WORKERS', '0')))
