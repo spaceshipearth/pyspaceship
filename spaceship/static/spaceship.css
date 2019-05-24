@@ -51,18 +51,21 @@ main {
   margin-bottom: 16px;
 }
 
+.splash-page {
+  background: #000 url(/static/earth.jpg) center bottom no-repeat;
+  background-size: 100vw;
+  color: #efefef;
+}
+
+.splash-page .navbar {
+  background-color: #fff;
+}
+
 .splash-banner {
   padding: 64px 0 8px 0;
 }
-
 .splash-title {
-}
-
-.splash-tag {
-}
-
-.splash-stat {
-  font-size: 150%;
+  text-shadow: 2px 0px 2px #000;
 }
 
 .editable {
