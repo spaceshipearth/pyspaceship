@@ -7,10 +7,11 @@ import pendulum
 @task(
   help={
     'freshness': 'Interval over which to look at logs (default: "1h")',
+    'namespace': 'Version of the site',
     'agent': 'Print the user agent',
   },
 )
-def lb(ctx, freshness='1h', agent=False):
+def lb(ctx, namespace, freshness='1h', agent=False):
   """Logs from the load balancer (ingress)"""
   output = json.loads(
     run("gcloud logging read 'resource.type=http_load_balancer'"
@@ -44,13 +45,14 @@ def lb(ctx, freshness='1h', agent=False):
   default=True,
   help={
     'freshness': 'Interval over which to look at logs (default: "1h")',
+    'namespace': 'Version of the site to view logs for',
   }
 )
-def container(ctx, freshness='1h'):
+def container(ctx, namespace, freshness='1h'):
   """Logs from our containers"""
   log_filter = ' AND '.join([
     'resource.type=container',
-    'resource.labels.namespace_id=default',
+    f'resource.labels.namespace_id={namespace}',
     'resource.labels.container_name=pyspaceship',
   ])
 

@@ -52,7 +52,7 @@ def namespace(ctx, namespace):
         hide=True
       )
       print(f'created db user {user}')
-      mysql_secret(ctx, username=user, password=password, namespace=namespace)
+      mysql_secret(ctx, username=user, password=password, namespace=namespace, db=user)
     else:
       print('mysql user already initialized')
 
