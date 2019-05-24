@@ -54,7 +54,6 @@ main {
 .splash-page {
   background: #000 url(/static/earth.jpg) center bottom no-repeat;
   background-size: 100vw;
-  color: #efefef;
 }
 
 .splash-page .navbar {
@@ -66,6 +65,7 @@ main {
 }
 .splash-title {
   text-shadow: 2px 0px 2px #000;
+  color: #efefef;
 }
 
 .editable {
