@@ -64,6 +64,12 @@ def mysql(ctx, stop=False):
     run('docker-compose up -d')
 
 @task
+def celery_worker(ctx):
+  """run the celery worker"""
+  with ctx.cd(ROOT_REPO_DIR):
+    ctx.run(f'celery worker -A spaceship.celery.celery')
+
+@task
 def mysql_client(ctx):
   """Run a MySQL client connected to local dev DB"""
   from spaceship.config import Config

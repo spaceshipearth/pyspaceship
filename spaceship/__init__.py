@@ -27,3 +27,6 @@ from spaceship import redis
 from spaceship import login
 from spaceship import google_auth
 from spaceship import views
+
+# celery configuration
+from spaceship import celery
