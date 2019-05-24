@@ -111,3 +111,6 @@ sendgrid.key
 spaceship/static/bootstrap.bundle.min.js
 spaceship/static/bootstrap.min.css
 spaceship/static/jquery-3.2.1.js
+
+# generated asset bundles
+spaceship/static/gen

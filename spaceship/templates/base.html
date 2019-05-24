@@ -130,9 +130,9 @@ $.ajaxSetup({
 });
 </script>
 
-<script src="/static/prevent-invalid-form-submit.js"></script>
-<script src="/static/edit.js"></script>
-<script src="/static/wip-overlay.js"></script>
+{% assets "js_all" %}
+<script src="{{ ASSET_URL }}"></script>
+{% endassets %}
 
 {% endblock %}
 
