@@ -4,6 +4,10 @@ from flask_assets import Environment, Bundle
 app = Flask(__name__)
 assets = Environment(app)
 
+# If you need the HTML to include each JS file via its own <script> tag,
+# uncomment this line:
+# assets.debug = True
+
 js = Bundle('edit.js',
             'prevent-invalid-form-submit.js',
             'wip-overlay.js',
