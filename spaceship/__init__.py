@@ -14,6 +14,11 @@ js = Bundle('edit.js',
             output='gen/all.%(version)s.js')
 assets.register('js_all', js)
 
+css = Bundle('spaceship.css',
+             'wip-overlay.css',
+             output='gen/all.%(version)s.css')
+assets.register('css_all', css)
+
 from .config import Config
 app.config.from_object(Config)
 
