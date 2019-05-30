@@ -26,7 +26,7 @@
   <link rel="stylesheet" type="text/css" href="/static/wip-overlay.css">
 </head>
 
-<body>
+<body {% if request.endpoint and request.endpoint == 'home' %}class="splash-page"{% endif %}>
 
 {% block navbar %}
 
