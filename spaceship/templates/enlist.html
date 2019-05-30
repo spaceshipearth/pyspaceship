@@ -10,6 +10,15 @@
 <blockquote class="blockquote">{{ invitation.message|e }}</blockquote>
 
 <section>
+<h5>People who already joined</h5>
+<ul class="crew-list">
+{% for user in roster: %}
+  <li class="crew-list-item"><img class="profile-pic" src="{{ gravatar(user.email, size=48) }}" width="48" height="48"> {{ user.name }}
+{% endfor %}
+</ul>
+</section>
+
+<section>
 <h5>Yes, sign me up!</h5>
 {% if register %}
 {% include 'social-buttons.html' %}

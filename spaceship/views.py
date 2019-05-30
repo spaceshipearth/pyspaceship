@@ -582,8 +582,14 @@ def enlist(key):
         return redirect_for_logged_in()
     return redirect(url_for('dashboard'))
 
+  roster = (User
+            .select()
+            .join(TeamUser)
+            .join(Team)
+            .where(Team.id == invitation.team_id))
+
   session['oauth_next_url'] = url_for('enlist', key=invitation.key_for_sharing)
-  return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), decline=decline, register=register)
+  return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), decline=decline, register=register, roster=roster)
 
 @app.route('/rsvp/<key>/<status>', methods=['POST'])
 @login_required

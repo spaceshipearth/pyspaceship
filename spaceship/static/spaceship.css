@@ -217,3 +217,11 @@ main {
 .focused-goal {
   background: #f4f1bb;
 }
+
+.crew-list-item {
+  padding: 8px;
+  list-style: none;
+}
+.crew-list-item .profile-pic {
+  margin: 8px;
+}
