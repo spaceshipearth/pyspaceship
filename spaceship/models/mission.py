@@ -22,3 +22,24 @@ class Mission(BaseModel):
   @hybrid_property
   def is_active(self):
     return self.deleted_at == None
+
+  @hybrid_property
+  def start_time(self):
+    return self.started_at.format('dddd [the] Do [of] MMMM')
+  
+  @hybrid_property
+  def is_over(self):
+    now = pendulum.now('UTC')
+    mission_end_time = self.started_at.add(weeks=self.duration_in_weeks)
+    return now >= mission_end_time
+
+  @hybrid_property
+  def is_running(self):
+    now = pendulum.now('UTC')
+    mission_end_time = self.started_at.add(weeks=self.duration_in_weeks)
+    return now >= self.started_at and now <= mission_end_time
+
+  @hybrid_property
+  def is_upcoming(self):
+    now = pendulum.now('UTC')
+    return now < self.started_at
