@@ -13,7 +13,7 @@
     {% if not team.mission_id %}
       <em>No current mission</em>
     {% else %}
-        <div><a href="{{ url_for('mission', team_id=team.id, mission_id=team.mission_id) }}">{{ team.mission.title }}</a></div>
+        <div>{{ team.mission.title }}</div>
         <div>{{ team.mission.short_description }}</div>
     {% endif %}
     </div>
