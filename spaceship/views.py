@@ -312,7 +312,7 @@ def crew(team_id):
   invitations = (Invitation
                  .select()
                  .where(Invitation.team_id == team_id))
-  missions = Mission.select().where(Mission.team_id==team_id).join()
+  missions = Mission.select().where(Mission.team_id==team_id)
   return render_template('crew.html',
                          is_captain=is_captain,
                          team=team,
