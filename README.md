@@ -124,13 +124,25 @@ $ inv run.upgrade
 
 If you need to back down again, run `inv run.downgrade`.
 
+## Deploying
 
-## In production ##
+First ask someone (probably Igor S.) to add you to the Google Cloud team.
 
-You need `kubectl` set up to talk to our K8S cluster.
-You might need the following:
+Then install the `gcloud` command-line tool. On macOS, you can do this:
 
 ```bash
+$ brew cask install google-cloud-sdk
+```
+
+Then configure shtuff:
+
+```bash
+$ gcloud init
+
+# Log in with your Google credentials, then choose the spaceshipearthprod project.
+# If asked to set a default Compute Region and Zone, you can choose
+# us-central1-a or just not choose one.
+
 $ gcloud components install kubectl
 $ gcloud container clusters get-credentials default --region us-central1-a
 $ gcloud auth configure-docker
@@ -142,9 +154,26 @@ Run this just to make sure you're set up to talk to the cluster:
 $ kubectl get nodes
 ```
 
-### Building an image ###
+You should see something like this:
 
-Run `inv image.build`
+```
+NAME                                     STATUS    ROLES     AGE       VERSION
+gke-default-default-pool-a7d246e3-0sg6   Ready     <none>    63d       v1.12.5-gke.5
+gke-default-default-pool-a7d246e3-c432   Ready     <none>    32d       v1.12.5-gke.5
+gke-default-default-pool-a7d246e3-q80g   Ready     <none>    32d       v1.12.5-gke.5
+```
+
+### Deploying to test
+
+To deploy to the test environment:
+
+    inv image
+
+See results at https://test.spaceshipearth.org
+
+### Deploying to production
+
+    inv image --namespace prod
 
 ### Manual steps in production ###
 
