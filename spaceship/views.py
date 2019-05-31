@@ -18,8 +18,10 @@ from .models.team_user import TeamUser
 from .models.invitation import Invitation
 from .models.goal import Goal
 from .models.mission import Mission
+from .models.mission_goal import MissionGoal
 from .models.pledge import Pledge
 from .forms.register import Register
+from .forms.create_mission import CreateMissionForm
 from .forms.login import Login
 from .forms.invite import Invite
 from .forms.enlist import AcceptInvitation, DeclineInvitation
@@ -57,7 +59,7 @@ def redirect_for_logged_in():
   current_user_teams = teams(current_user)
   if len(current_user_teams) > 1:
     return redirect(url_for('dashboard'))
-  return redirect(url_for('roster', team_id=current_user_teams[0].id))
+  return redirect(url_for('crew', team_id=current_user_teams[0].id))
 
 @app.route('/')
 def home():
@@ -353,6 +355,36 @@ def confirm_token(token, expiration=3600):
         return False
     return email
 
+@app.route('/crew/<team_id>/create-mission', methods=['GET', 'POST'])
+@login_required
+def create_mission(team_id):
+  create_mission_form = CreateMissionForm(team_id=team_id)
+  if create_mission_form.validate_on_submit():
+    with db.atomic() as transaction:
+      try:
+        mission = Mission(title="Plant based diet", 
+                          short_description="Save the planet by eating more plants",
+                          duration_in_weeks=1,
+                          started_at=create_mission_form.data['start'],
+                          team_id=team_id)
+        mission.save()    
+        goal = Goal(short_description=create_mission_form.data['goal'],
+                    category='diet')
+        goal.save()
+        missiongoal = MissionGoal( 
+          mission=mission.id,
+          goal=goal.id,
+          week=1)
+        missiongoal.save()
+      except (IntegrityError, DatabaseError) as e:
+        transaction.rollback()
+        logger.exception(e)
+        flash({'msg':f'Error creating mission'})
+        return redirect(url_for('dashboard'))
+
+    return redirect(url_for('dashboard'))
+  return render_template('create_mission.html', create_mission_form=create_mission_form)
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
   oauth_user_info = session.pop('oauth_user_info', None)
@@ -442,9 +474,9 @@ def create_crew():
 
   return redirect(url_for('dashboard'))
 
-@app.route('/roster/<team_id>', methods=['GET', 'POST'])
+@app.route('/crew/<team_id>', methods=['GET', 'POST'])
 @login_required
-def roster(team_id):
+def crew(team_id):
   team = get_team_if_member(team_id)
   if not team:
     flash({'msg': 'Could not find team', 'level': 'danger'})
@@ -478,9 +510,9 @@ def roster(team_id):
         flash({'msg':f'Error sending invitations', 'level':'danger'})
       else:
         flash({'msg':'Invitations are on the way!', 'level':'success'})
-    return redirect(url_for('roster', team_id=team_id), code=303)
+    return redirect(url_for('crew', team_id=team_id), code=303)
 
-  roster = (User
+  crew = (User
             .select()
             .join(TeamUser)
             .join(Team)
@@ -489,12 +521,12 @@ def roster(team_id):
                  .select()
                  .where(Invitation.team_id == team_id))
 
-  return render_template('roster.html',
+  return render_template('crew.html',
                          is_captain=is_captain,
                          team=team,
                          team_size=team_size,
                          missions=Mission.select(),
-                         roster=roster,
+                         crew=crew,
                          invitations=invitations,
                          invite=invite,
                          achievements=achievements.for_team(team))
@@ -582,14 +614,14 @@ def enlist(key):
         return redirect_for_logged_in()
     return redirect(url_for('dashboard'))
 
-  roster = (User
+  crew = (User
             .select()
             .join(TeamUser)
             .join(Team)
             .where(Team.id == invitation.team_id))
 
   session['oauth_next_url'] = url_for('enlist', key=invitation.key_for_sharing)
-  return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), decline=decline, register=register, roster=roster)
+  return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), decline=decline, register=register, crew=crew)
 
 @app.route('/rsvp/<key>/<status>', methods=['POST'])
 @login_required

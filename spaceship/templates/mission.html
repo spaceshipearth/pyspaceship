@@ -6,7 +6,7 @@
 {% block title %}Mission - {{ super() }}{% endblock %}
 
 {% block content %}
-<h5><a href="{{ url_for('roster', team_id=team) }}">{{ team.name }}</a></h5>
+<h5><a href="{{ url_for('crew', team_id=team) }}">{{ team.name }}</a></h5>
 
 <div>
 {% if is_captain and not team.mission %}
@@ -75,7 +75,7 @@
 {% elif is_captain and not team.mission %}
 {% if team_size < 2 %}
 <p>You need some crew before you can start a mission.
-Invite people <a href="{{ url_for('roster', team_id=team, _anchor='invite') }}">here</a>.
+Invite people <a href="{{ url_for('crew', team_id=team, _anchor='invite') }}">here</a>.
 {% else %}
 <p>During this mission, your crew will attempt the goals below. You should
 encourage each person to pledge for and complete as many goals as possible. At

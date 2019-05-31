@@ -5,7 +5,7 @@
 
 {% block content %}
 
-{% if team_size < 2 %}
+{% if team_size < 2 && false %}
 <div class="help">
 <p><b>Getting started</b>
 <ol>
@@ -32,6 +32,8 @@
 </p></div>
 </div>
 
+<hr/>
+
 <div class="row">
 <div class="col-sm-6">
 <section class="missions">
@@ -43,11 +45,16 @@
         <div style="color:green;">ACTIVE MISSION: <a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}</a></div>
       </div>
     {% else %}
-      <div>
-        <div><a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}: {{ mission.short_description }}</a></div>
+      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
+        <!-- div><a href="{{ url_for('mission', team_id=team.id, mission_id=mission.id) }}">{{ mission.title }}: {{ mission.short_description }}</a></div-->
+        <h5>{{ mission.title }} </h5>
+        <p>{{ mission.short_description }}</p>
+        <p>Starting on: {{mission.started_at}}</p>
       </div>
     {% endif %}
   {% endfor %}
+
+  <a href="{{ url_for('create_mission', team_id=team.id) }}" class="btn btn-primary btn-lg" role="button">Plan a mission</a>
 </section>
 <section>
   <h4>Achievements</h4>
@@ -66,26 +73,22 @@
 <div class="col-sm-6">
 <section>
   <h4>Crew Members</h4>
-  <table class="table table-secondary table-bordered">
-    <thead class="thead-dark">
-      <tr>
-        <th>Profile
-        <th>Name
-        <th>Email
-    </thead>
+
+  <table class="table table-borderless">
     <tbody>
-    {% for user in roster: %}
+    {% for user in crew: %}
       <tr>
         <td>
           <a href="{{ url_for('profile', user_id=user.id) }}">
             <img src="{{ gravatar(user.email, size=48) }}" width="48" height="48">
           </a>
-        <td>{% if user.id == team.captain_id %}
+        </td>
+        <td style='vertical-align: middle'>{% if user.id == team.captain_id %}
               {{ user.name }} (Captain)
             {% else %}
               {{ user.name }}
             {% endif %}
-        <td>{{ user.email }}
+        </tr>
     {% endfor %}
     </tbody>
   </table>
@@ -108,7 +111,6 @@
 <section class="invite">
 <a name="invite"></a>
 <h4>Invite Crew</h4>
-<p>Send email to invite people to join your crew.
 <form method="post" class="needs-validation" novalidate>
   {% for field in invite %}
   {% set errors = invite.errors[field.name] %}
