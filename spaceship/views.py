@@ -41,9 +41,6 @@ def teams(user):
           .join(User)
           .where(User.id == user.id))
 
-def get_mission_title(mission_id):
-  return Mission.get(Mission.id == mission_id).title
-
 def get_team_if_member(team_id):
   try:
     team = Team.get(Team.id == team_id)
