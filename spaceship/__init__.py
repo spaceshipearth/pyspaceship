@@ -1,4 +1,5 @@
 from flask import Flask
+
 app = Flask(__name__)
 
 from .config import Config
@@ -9,6 +10,7 @@ from . import logs
 from flask_wtf.csrf import CSRFProtect
 csrf = CSRFProtect(app)
 
+from . import assets
 from . import enforce_ssl
 from . import enforce_www
 from . import google_auth

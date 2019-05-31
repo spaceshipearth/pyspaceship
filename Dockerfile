@@ -27,7 +27,14 @@ COPY ./requirements.txt .
 RUN pip install --user -r requirements.txt
 
 # copy the code into the image!
-COPY . $CODE_DIR
+# We have to hardcode the user name because Docker doesn't expand variables
+# within the chown flag. This is fixed in Docker master but needs to be
+# released. See https://github.com/moby/moby/issues/35018.
+# TODO: Use the $USER variable after updating Docker.
+COPY --chown=pyspaceship:pyspaceship . $CODE_DIR
+
+# build the assets and asset manifest
+RUN IN_BUILD=True FLASK_APP=spaceship flask assets build
 
 # set this to 'production' in production deploys
 ENV ENVIRONMENT dev

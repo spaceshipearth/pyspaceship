@@ -3,6 +3,7 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
+  IN_BUILD = bool(os.environ.get('IN_BUILD', False))
   IN_PRODUCTION = bool(os.environ.get('IN_PRODUCTION', False))
   SECRET_KEY = os.environ.get('SECRET_KEY', 'develoment')
   SENDGRID_KEY = os.environ.get('SENDGRID_KEY', None)
