@@ -48,3 +48,7 @@ class Mission(BaseModel):
   def is_upcoming(self):
     now = pendulum.now('UTC')
     return now < self.started_at
+
+  @property
+  def mission_day(self):
+    return (pendulum.now('UTC') - self.started_at).in_days() 
