@@ -560,49 +560,6 @@ def edit():
       else:
         return jsonify({'ok': True})
 
-  elif table_name == 'pledge':
-    try:
-      pledge = Pledge.get(Pledge.id == object_id)
-    except Pledge.DoesNotExist:
-      return jsonify({'ok': False})
-    if current_user.id != pledge.user_id:
-      return jsonify({'ok': False})
-
-    with db.atomic() as transaction:
-      try:
-        if field_name == 'fulfilled':
-          fulfilled = (value == 'true')
-          pledge.fulfilled = fulfilled
-          if fulfilled:
-            pledge.fulfilled_at = pendulum.now('UTC')
-            achievements.fulfill_pledge(current_user)
-          pledge.save()
-      except DatabaseError:
-        transaction.rollback()
-        return jsonify({'ok': False})
-      else:
-        return jsonify({'ok': True})
-
-  elif table_name == 'mission':
-    try:
-      mission = Mission.get(Mission.id == object_id)
-    except Mission.DoesNotExist:
-      return jsonify({'ok': False})
-    # TODO acl
-    with db.atomic() as transaction:
-      try:
-        if field_name == 'title':
-          mission.title = value
-          mission.save()
-        elif field_name == 'short_description':
-          mission.short_description = value
-          mission.save()
-      except DatabaseError:
-        transaction.rollback()
-        return jsonify({'ok': False})
-      else:
-        return jsonify({'ok': True})
-
   return jsonify({'ok': False})
 
 @app.context_processor
