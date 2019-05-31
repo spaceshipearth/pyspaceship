@@ -112,5 +112,6 @@ spaceship/static/bootstrap.bundle.min.js
 spaceship/static/bootstrap.min.css
 spaceship/static/jquery-3.2.1.js
 
-# generated asset bundles
+# auto-generated asset bundles and manifest
+spaceship/static/.webassets-manifest
 spaceship/static/gen
