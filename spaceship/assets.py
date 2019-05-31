@@ -3,10 +3,10 @@ from flask_assets import Environment, Bundle
 
 assets = Environment(app)
 
-assets.manifest = 'file'
-
-if app.config['IN_PRODUCTION']:
+if app.config['IN_BUILD']:
     assets.auto_build = False
+    assets.cache = False
+    assets.manifest = 'file'
 
 js = Bundle('edit.js',
             'prevent-invalid-form-submit.js',
