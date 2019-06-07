@@ -1,21 +1,25 @@
 
-from peewee import *
-from playhouse.hybrid import hybrid_property
 import pendulum
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from ..db import BaseModel
-
+from ..db import db
 from .custom_fields import PendulumDateTimeField
 
-class User(BaseModel):
-  id = AutoField(primary_key=True)
-  email = CharField(unique=True)
-  name = CharField(default='')
-  password_hash = CharField(null=True)
-  created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
-  deleted_at = PendulumDateTimeField(null=True)
-  email_confirmed = BooleanField(default=False)
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.associationproxy import association_proxy
+
+class User(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  email = db.Column(db.String(127), unique=True)
+  name = db.Column(db.String(127), default='')
+  password_hash = db.Column(db.String(127), nullable=True)
+
+  email_confirmed = db.Column(db.Boolean, default=False)
+
+  teams = association_proxy('team_users', 'team')
+
+  created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
+  deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
 
   def set_password(self, password):
     self.password_hash = generate_password_hash(password)

@@ -1,23 +1,24 @@
-
-from peewee import *
-from playhouse.hybrid import hybrid_property
 import pendulum
 
-from ..db import BaseModel
-
+from ..db import db
 from .custom_fields import PendulumDateTimeField
-from .user import User
 
-class Team(BaseModel):
-  id = AutoField(primary_key=True)
-  captain = ForeignKeyField(User, backref='teams')
-  name = CharField()
-  description = TextField(default='Best. Crew. Ever.')
-  created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
-  deleted_at = PendulumDateTimeField(null=True)
-  mission = DeferredForeignKey('Mission', backref='mission', null=True)
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.associationproxy import association_proxy
+
+class Team(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  name = db.Column(db.String(127))
+  description = db.Column(db.Text, default='Best. Crew. Ever.')
+
+  captain_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+  captain = db.relationship('User', backref='captain_of')
+
+  members = association_proxy('team_users', 'user')
+
+  created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
+  deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
 
   @hybrid_property
   def is_active(self):
     return self.deleted_at == None
-

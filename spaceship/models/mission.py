@@ -1,23 +1,28 @@
-
-from peewee import *
-from playhouse.hybrid import hybrid_property
 import pendulum
 
-from ..db import BaseModel
-from .team import Team
-
+from ..db import db
 from .custom_fields import PendulumDateTimeField
 
-class Mission(BaseModel):
-  id = AutoField(primary_key=True)
-  title = CharField()
-  short_description = CharField()
-  duration_in_weeks = SmallIntegerField(default=4)
-  frozen = BooleanField(default=False)
-  started_at = PendulumDateTimeField(null=True)
-  team_id = ForeignKeyField(Team, backref='missions')
-  created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
-  deleted_at = PendulumDateTimeField(null=True)
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.associationproxy import association_proxy
+
+class Mission(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+
+  title = db.Column(db.String(127))
+  short_description = db.Column(db.String(127))
+  duration_in_weeks = db.Column(db.SmallInteger, default=4)
+  frozen = db.Column(db.Boolean, default=False)
+
+  started_at = db.Column(PendulumDateTimeField(), nullable=True)
+
+  team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+  team = db.relationship('Team', backref='missions')
+
+  goals = association_proxy('mission_goal', 'goal')
+
+  created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
+  deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
 
   @property
   def is_active(self):
