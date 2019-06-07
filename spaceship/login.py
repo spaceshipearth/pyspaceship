@@ -11,10 +11,7 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-  try:
-    return User.get_by_id(int(user_id))
-  except User.DoesNotExist:
-    return None
+  return User.query.get(int(user_id))
 
 @login_manager.unauthorized_handler
 def handle_needs_login():

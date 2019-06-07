@@ -32,28 +32,21 @@ import uuid
 
 logger = logging.getLogger('views')
 
-def teams(user):
-  return (Team
-          .select()
-          .join(TeamUser)
-          .join(User)
-          .where(User.id == user.id))
-
 def get_team_if_member(team_id):
-  try:
-    team = Team.get(Team.id == team_id)
-  except Team.DoesNotExist:
+  team = Team.query.get(team_id)
+  if not team:
     return None
-  if not any(t.id == int(team_id) for t in set(teams(current_user))):
+
+  if not team not in current_user.teams:
     return None
+
   return team
 
 def redirect_for_logged_in():
   # take the user directly to their team if they only have one, dashboard otherwise
-  current_user_teams = teams(current_user)
-  if len(current_user_teams) != 1:
+  if len(current_user.teams) != 1:
     return redirect(url_for('dashboard'))
-  return redirect(url_for('crew', team_id=current_user_teams[0].id))
+  return redirect(url_for('crew', team_id=current_user.teams[0].id))
 
 @app.route('/')
 def home():
@@ -79,11 +72,9 @@ def login():
     password = login.data['password']
 
   if email_address:
-    try:
-      user = User.get(User.email == email_address)
-    except User.DoesNotExist:
-      user = None
-    else:
+    user = User.query.filter(User.email == email_address).first()
+
+    if user:
       if oauth_user_info:
         # clear password in case someone else claimed this email
         user.password_hash = None
@@ -124,10 +115,9 @@ def contact():
 @login_required
 def dashboard():
   # to avoid redirect loops, this view does not redirect
-  current_user_teams = teams(current_user)
   return render_template('dashboard.html',
-                         teams=current_user_teams,
-                         missions=Mission.select(),
+                         teams=current_user.teams,
+                         missions=Mission.query.all(),
                          create_crew=CreateCrew())
 
 
@@ -203,7 +193,8 @@ def register():
       t.save()
       tu = TeamUser(team=t, user=u)
       tu.save()
-    except IntegrityError:
+    except IntegrityError as e:
+      logger.exception(e)
       db.session.rollback()
       # don't automatically log in existing oauth users because we want login to trigger a password reset
       flash({'msg':f'Email already registered. Please sign-in'})
