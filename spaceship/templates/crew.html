@@ -43,7 +43,7 @@
       <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
         <h5>{{ mission.title }} </h5>
         <p>{{ mission.short_description }}</p>
-        <p>Started on {{ mission.start_time }}</p>
+        <p>Started on {{ mission.start_time_str }}</p>
       </div>
     {% else %}
       <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
@@ -55,7 +55,7 @@
       <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
         <h5>{{ mission.title }} </h5>
         <p>{{ mission.short_description }}</p>
-        <p>Will start on {{ mission.start_time }}</p>
+        <p>Will start on {{ mission.start_time_str }}</p>
       </div>
     {% else%}
       <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
@@ -68,6 +68,7 @@
       <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
         <h5>{{ mission.title|e }} </h5>
         <p>{{ mission.short_description|e }}</p>
+        <p>Completed on {{ mission.end_time_str }}</p>
       </div>
     {% else %}
       <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
