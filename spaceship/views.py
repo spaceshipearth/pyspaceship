@@ -30,14 +30,14 @@ import logging
 import pendulum
 import uuid
 
-logger = logging.getLogger('views')
+logger = logging.getLogger('spaceship.views')
 
 def get_team_if_member(team_id):
   team = Team.query.get(team_id)
   if not team:
     return None
 
-  if not team not in current_user.teams:
+  if team not in current_user.teams:
     return None
 
   return team
@@ -261,7 +261,7 @@ def crew(team_id):
     return redirect(url_for('dashboard'))
 
   is_captain = team.captain_id == current_user.id
-  team_size = TeamUser.select(fn.COUNT(TeamUser.user_id)).where(TeamUser.team_id == team_id).scalar()
+  team_size = len(team.members)
 
   invite = Invite()
   if is_captain and invite.validate_on_submit():
