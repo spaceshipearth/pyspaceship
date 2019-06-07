@@ -302,7 +302,12 @@ def invite(team_id):
       iv.save()
 
       # each recipient sees a unique invite link
-      html_content = f'{message}<p><a href="{url_for("enlist", key=iv.key_for_sharing, _external=True)}">Click here to join</a>'
+      invite_url = url_for('enlist', key=iv.key_for_sharing, _external=True)
+      if 'href="join"' in message:
+        html_content = message.replace('href="join"', f'href="{invite_url}"')
+      else:
+        # if the user deleted the invite link, put it at the bottom
+        html_content = f'{message}<p><a href="{invite_url}">Click here to join</a>'
 
       # TODO probably should queue this instead
       email.send(
