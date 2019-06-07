@@ -4,6 +4,9 @@ $(document).ready(function() {
     $('#email-send').click(function() {
       var endpoint = $('#email-send').data('endpoint');
       var emails = $('#emails').val();
+      if (!$('#subject').val().length) {
+        $('#subject').val($('#subject').data('default'));
+      }
       var subject = $('#subject').val();
       var message = $('#email-editor .ql-editor').html();
       $.post(endpoint, {

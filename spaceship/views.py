@@ -285,8 +285,6 @@ def invite(team_id):
   if not subject:
     return jsonify({'error': 'Subject cannot be blank.'})
   message = request.form.get('message', '')
-  if not 'href="join"' in message:
-    return jsonify({'error': 'Message must contain a link with the target "join".'})
   # quilljs needs <p><br></p> to show line breaks even though everything is in a paragraph
   # this creates extra line breaks in gmail so just strip it out
   message = message.replace('<p><br></p>', '')
@@ -304,7 +302,7 @@ def invite(team_id):
       iv.save()
 
       # each recipient sees a unique invite link
-      html_content = message.replace('href="join"', f'href="{url_for("enlist", key=iv.key_for_sharing, _external=True)}"')
+      html_content = f'{message}<p><a href="{url_for("enlist", key=iv.key_for_sharing, _external=True)}">Click here to join</a>'
 
       # TODO probably should queue this instead
       email.send(

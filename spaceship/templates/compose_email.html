@@ -3,7 +3,11 @@
 <small>Enter one or more emails separated by spaces</small>
 
 <p>Subject
-<input type="text" value="{% block subject %}{% endblock %}" class="form-control" id="subject">
+<input id="subject"
+       type="text"
+       value="{% block subject %}{% endblock %}"
+       data-default="{{ self.subject() }}"
+       class="form-control">
 
 <style>
 .email-editor {
