@@ -21,5 +21,6 @@ class CreateMissionForm(FlaskForm):
                                   ('vegeterian', 'Eat a vegeterian diet'),
                                   ('vegan', 'Eat a vegan diet')])
   start = DateField(label='Mission start date', default=next_monday)
+  duration = wtforms.SelectField(label='Mission duration', choices=[('1', 'One week')])
   create = wtforms.SubmitField('Create Mission')
   team_id = wtforms.HiddenField()

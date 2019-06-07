@@ -53,7 +53,7 @@ def get_team_if_member(team_id):
 def redirect_for_logged_in():
   # take the user directly to their team if they only have one, dashboard otherwise
   current_user_teams = teams(current_user)
-  if len(current_user_teams) > 1:
+  if len(current_user_teams) != 1:
     return redirect(url_for('dashboard'))
   return redirect(url_for('crew', team_id=current_user_teams[0].id))
 
@@ -172,9 +172,9 @@ def create_mission(team_id):
         transaction.rollback()
         logger.exception(e)
         flash({'msg':f'Error creating mission'})
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('crew', team_id=team_id))
 
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('crew', team_id=team_id))
   return render_template('create_mission.html', create_mission_form=create_mission_form)
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -312,12 +312,12 @@ def crew(team_id):
   invitations = (Invitation
                  .select()
                  .where(Invitation.team_id == team_id))
-
+  missions = Mission.select().where(Mission.team_id==team_id)
   return render_template('crew.html',
                          is_captain=is_captain,
                          team=team,
                          team_size=team_size,
-                         missions=Mission.select(),
+                         missions=missions,
                          crew=crew,
                          invitations=invitations,
                          invite=invite,
