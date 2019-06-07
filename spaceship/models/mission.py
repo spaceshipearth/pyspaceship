@@ -6,6 +6,8 @@ from .custom_fields import PendulumDateTimeField
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
 
+from .mission_goal import MissionGoal
+
 class Mission(db.Model):
   id = db.Column(db.Integer, primary_key=True)
 
@@ -19,7 +21,8 @@ class Mission(db.Model):
   team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
   team = db.relationship('Team', backref='missions')
 
-  goals = association_proxy('mission_goal', 'goal')
+  goals = association_proxy(
+    'mission_goals', 'goal', creator=lambda goal: MissionGoal(goal=goal))
 
   created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
   deleted_at = db.Column(PendulumDateTimeField(), nullable=True)

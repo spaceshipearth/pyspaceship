@@ -141,20 +141,22 @@ def create_mission(team_id):
   create_mission_form = CreateMissionForm(team_id=team_id)
   if create_mission_form.validate_on_submit():
     try:
-      mission = Mission(title="Plant based diet",
-                        short_description="Save the planet by eating more plants",
-                        duration_in_weeks=1,
-                        started_at=create_mission_form.data['start'],
-                        team_id=team_id)
+      mission = Mission(
+        title="Plant based diet",
+        short_description="Save the planet by eating more plants",
+        duration_in_weeks=1,
+        started_at=create_mission_form.data['start'],
+        team_id=team_id,
+      )
       mission.save()
-      goal = Goal(short_description=create_mission_form.data['goal'],
-                  category='diet')
+
+      goal = Goal(
+        short_description=create_mission_form.data['goal'],
+        category='diet',
+      )
       goal.save()
-      missiongoal = MissionGoal(
-        mission=mission.id,
-        goal=goal.id,
-        week=1)
-      missiongoal.save()
+
+      mission.goals.append(goal)
     except (IntegrityError, DatabaseError) as e:
       db.session.rollback()
       logger.exception(e)

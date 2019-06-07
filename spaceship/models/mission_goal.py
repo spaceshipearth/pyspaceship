@@ -9,7 +9,7 @@ class MissionGoal(db.Model):
   mission = db.relationship('Mission', backref='mission_goals', single_parent=True, cascade='all, delete-orphan')
 
   goal_id = db.Column(db.Integer, db.ForeignKey('goal.id'), primary_key=True)
-  goal = db.relationship('Goal', backref='goal_missions')
+  goal = db.relationship('Goal', backref='goal_mission')
 
   week = db.Column(db.SmallInteger)
 
