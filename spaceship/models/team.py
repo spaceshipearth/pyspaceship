@@ -6,6 +6,8 @@ from .custom_fields import PendulumDateTimeField
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
 
+from .team_user import TeamUser
+
 class Team(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   name = db.Column(db.String(127))
@@ -14,7 +16,8 @@ class Team(db.Model):
   captain_id = db.Column(db.Integer, db.ForeignKey('user.id'))
   captain = db.relationship('User', backref='captain_of')
 
-  members = association_proxy('team_users', 'user')
+  members = association_proxy(
+    'team_users', 'user', creator=lambda member: TeamUser(user=member))
 
   created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
   deleted_at = db.Column(PendulumDateTimeField(), nullable=True)

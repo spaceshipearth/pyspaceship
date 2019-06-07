@@ -240,11 +240,11 @@ def create_crew():
   create_crew = CreateCrew()
   if create_crew.validate_on_submit():
     try:
-      u = current_user.id
-      t = Team(captain=u, name=names.name_team())
+      t = Team(
+        captain=current_user,
+        name=names.name_team())
+      t.members.append(current_user)
       t.save()
-      tu = TeamUser(team=t, user=u)
-      tu.save()
       achievements.become_captain(current_user)
     except (IntegrityError, DatabaseError) as e:
       db.session.rollback()
