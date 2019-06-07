@@ -228,10 +228,7 @@ def register():
 @login_required
 def confirm_email(token):
   if confirm_token(token) == current_user.email:
-    user = (User
-                .select()
-                .where(User.email == current_user.email)
-                .get())
+    user = User.query.filter(User.email == current_user.email).first()
     user.email_confirmed = True
     user.save()
   return redirect(url_for('dashboard'))
