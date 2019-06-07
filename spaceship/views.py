@@ -269,18 +269,25 @@ def crew(team_id):
     emails = invite.data['emails'].split()
     try:
       for invited_email in emails:
-        key_for_sharing = uuid.uuid4()
-        iv = Invitation(inviter_id=current_user.id,
-                        key_for_sharing=key_for_sharing,
-                        team_id=team_id,
-                        invited_email=invited_email,
-                        message=message,
-                        status='sent')
+        iv = Invitation(
+          inviter_id=current_user.id,
+          team_id=team_id,
+          invited_email=invited_email,
+          message=message,
+          status='sent')
         iv.save()
+
         # TODO probably should queue this instead
-        email.send(to_emails=invited_email,
-            subject='Invitation to join',
-            html_content=render_template('invite_email.html', inviter=current_user.name, message=message, key_for_sharing=key_for_sharing))
+        email.send(
+          to_emails=invited_email,
+          subject='Invitation to join',
+          html_content=render_template(
+            'invite_email.html',
+            inviter=current_user.name,
+            message=message,
+            key_for_sharing=iv.key_for_sharing,
+          )
+        )
       achievements.invite_crew(current_user)
     except DatabaseError:
       flash({'msg':f'Error sending invitations', 'level':'danger'})
