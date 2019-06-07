@@ -307,13 +307,7 @@ def crew(team_id):
 
 @app.route('/enlist/<key>', methods=['GET', 'POST'])
 def enlist(key):
-  try:
-    invitation = (Invitation
-                  .select()
-                  .where(Invitation.key_for_sharing == key)
-                  .get())
-  except Invitation.DoesNotExist:
-    invitation = None
+  invitation = Invitation.query.filter(Invitation.key_for_sharing == key).first()
   if not invitation:
     flash({'msg':f'Could not find invitation', 'level':'danger'})
     return redirect(url_for('home'))
@@ -342,7 +336,7 @@ def enlist(key):
     if email_mismatch:
       # could have gotten the invite via an alias? but also maybe multiple accounts. let them decide
       flash({'msg':f'Invitation was for ' + invitation.invited_email + ' but you are logged in as ' + current_user.email, 'level':'warning'})
-  elif User.select().where(User.email == invitation.invited_email):
+  elif User.query.filter(User.email == invitation.invited_email).count():
     # assume cookies were cleared
     flash({'msg':f'Please log in as ' + invitation.invited_email, 'level':'warning'})
     return redirect(url_for('login', next=url_for('enlist', key=key)))
@@ -387,11 +381,8 @@ def enlist(key):
       return redirect_for_logged_in()
     return redirect(url_for('dashboard'))
 
-  crew = (User
-            .select()
-            .join(TeamUser)
-            .join(Team)
-            .where(Team.id == invitation.team_id))
+  team = Team.query.get(invitation.team_id)
+  crew = team.members if team else []
 
   session['oauth_next_url'] = url_for('enlist', key=invitation.key_for_sharing)
   return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), decline=decline, register=register, crew=crew)
@@ -399,23 +390,17 @@ def enlist(key):
 @app.route('/rsvp/<key>/<status>', methods=['POST'])
 @login_required
 def rsvp(key, status):
-  try:
-    invitation = (Invitation
-                  .select()
-                  .where(Invitation.key_for_sharing == key)
-                  .get())
-  except Invitation.DoesNotExist:
-    invitation = None
+  invitation = Invitation.query.filter(Invitation.key_for_sharing == key).first()
   if not invitation:
-    flash({'msg':f'Could not find invitation', 'level':'danger'})
+    flash({'msg':f'Could not find invitation', 'level': 'danger'})
     return redirect(url_for('home'))
   if invitation.status == 'accepted':
-    flash({'msg':f'Invitation was already accepted.', 'level':'danger'})
+    flash({'msg':f'Invitation was already accepted.', 'level': 'danger'})
     return redirect(url_for('home'))
 
   try:
     if status == 'accepted':
-      accept_invitation(invitation, User.get(User.id == current_user.id))
+      accept_invitation(invitation, current_user)
     elif status == 'declined':
       invitation.status = 'declined'
       invitation.save()
@@ -434,10 +419,9 @@ def rsvp(key, status):
   return redirect(url_for('home'))
 
 def accept_invitation(invitation, user):
-  already_on_team = (TeamUser
-      .select()
-      .where((TeamUser.user_id == user.id) &
-             (TeamUser.team_id == invitation.team)))
+  already_on_team = (TeamUser.query.filter(
+      (TeamUser.user_id == user.id) &
+      (TeamUser.team_id == invitation.team_id))).count()
   if already_on_team:
     raise ValueError('Already on team')
 
@@ -447,11 +431,10 @@ def accept_invitation(invitation, user):
   invitation.save()
 
   # tell captain about new user
-  captain = (User
-                .select()
-                .join(Team, on=(Team.captain == User.id))
-                .where(Team.id == invitation.team)
-                .get())
+  team = Team.query.get(invitation.team_id)
+  if not team:
+    return
+  captain = team.captain
   email.send(to_emails=captain.email,
     subject='Your crew is growing!',
     html_content=render_template('crew_growing_email.html',
