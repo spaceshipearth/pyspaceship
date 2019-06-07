@@ -15,5 +15,21 @@ class Config:
   MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', 'aa7925b6f7b')
   MYSQL_DB = os.environ.get('MYSQL_DB', 'spaceship')
 
+  SQLALCHEMY_DATABASE_URI = ''.join((
+    'mysql+pymysql://',
+    MYSQL_USERNAME,
+    ':',
+    MYSQL_PASSWORD,
+    '@',
+    MYSQL_HOST,
+    ':',
+    str(MYSQL_PORT),
+    '/',
+    MYSQL_DB,
+  ))
+
+  SQLALCHEMY_ECHO = True if not IN_PRODUCTION else False
+  SQLALCHEMY_TRACK_MODIFICATIONS = False
+
   GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '700492634886-qbhv3gss1a59lm5p93gr7plo872auaba.apps.googleusercontent.com')
   GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', 'c1PSnZoSuVTOtta-g-OH_3ZL')

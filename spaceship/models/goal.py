@@ -1,19 +1,17 @@
 
-from peewee import *
-from playhouse.hybrid import hybrid_property
 import pendulum
 
-from ..db import BaseModel
-
+from ..db import db
 from .custom_fields import PendulumDateTimeField
-from .mission import Mission
+from sqlalchemy.ext.hybrid import hybrid_property
 
-class Goal(BaseModel):
-  id = AutoField(primary_key=True)
-  short_description = CharField()
-  category = CharField(default='diet')
-  created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
-  deleted_at = PendulumDateTimeField(null=True)
+class Goal(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  short_description = db.Column(db.Text)
+  category = db.Column(db.String(127), default='diet')
+
+  created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
+  deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
 
   @hybrid_property
   def is_active(self):

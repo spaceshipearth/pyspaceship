@@ -1,35 +1,39 @@
 
 import logging
+import pendulum
+import pymysql.converters
 
-# rest of peewee
-from peewee import Model
-from playhouse.pool import PooledMySQLDatabase
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from sqlalchemy.exc import DatabaseError
 
-# we get configuration from the app instance
+# set up flask-sqlalchemy
 from . import app
 
+# log where we connect
 logger = logging.getLogger('spaceship.db')
 logger.info(f"Connecting to mysql at {app.config['MYSQL_HOST']}")
 
-db = PooledMySQLDatabase(
-  app.config['MYSQL_DB'],
-  host=app.config['MYSQL_HOST'],
-  port=app.config['MYSQL_PORT'],
-  user=app.config['MYSQL_USERNAME'],
-  password=app.config['MYSQL_PASSWORD'],
-  charset = 'utf8',
-)
+# connect to the DB
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-@app.before_request
-def open_db_connection():
-  db.connect()
+# fix pendulum issues with datetime conversion
+pymysql.converters.conversions[pendulum.DateTime] = pymysql.converters.escape_datetime
 
-@app.teardown_request
-def close_db_connection(exc):
-  if not db.is_closed():
-    db.close()
+# commit my session on successful requests
+# see: https://chase-seibert.github.io/blog/2016/03/31/flask-sqlalchemy-sessionless.html
+@app.after_request
+def session_commit(response):
+  if response.status_code < 400:
+    try:
+      db.session.commit()
+    except DatabaseError:
+      db.session.rollback()
+      raise
 
-# base class for all models
-class BaseModel(Model):
-  class Meta:
-    database = db
+  return response
+
+# this happens first so our models inherit from the right thing
+from .models import base
+from .models import *

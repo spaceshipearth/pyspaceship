@@ -1,5 +1,3 @@
-from .models.user import User
-from .models.team import Team
 from .models.team_achievement import TeamAchievement
 from .models.user_achievement import UserAchievement
 
@@ -16,12 +14,11 @@ class Achievement(object):
 
   def __call__(self, model):
     if self.is_team:
-      ta = TeamAchievement(team_id=model.id, name=self.name)
-      ta.save()
-      return
+      ach = TeamAchievement(team_id=model.id, name=self.name)
+    else:
+      ach = UserAchievement(user_id=model.id, name=self.name)
 
-    ua = UserAchievement(user_id=model.id, name=self.name)
-    ua.save()
+    ach.save()
 
 
 # miscellaneous placeholder for unknown achievements from db

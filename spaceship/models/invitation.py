@@ -1,24 +1,27 @@
-
-from peewee import *
-from playhouse.hybrid import hybrid_property
 import pendulum
+import uuid
 
-from ..db import BaseModel
-
+from ..db import db
 from .custom_fields import PendulumDateTimeField
-from .user import User
-from .team import Team
+from sqlalchemy.ext.hybrid import hybrid_property
 
-class Invitation(BaseModel):
-  id = AutoField(primary_key=True)
-  key_for_sharing = UUIDField()
-  inviter = ForeignKeyField(User)
-  team = ForeignKeyField(Team, backref='invitations')
-  invited_email = CharField()
-  message = TextField()
-  status = CharField()
-  created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
-  deleted_at = PendulumDateTimeField(null=True)
+class Invitation(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  key_for_sharing = db.Column(
+    db.String(40), nullable=False, unique=True, default=lambda: str(uuid.uuid4()))
+
+  inviter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+  inviter = db.relationship('User', lazy='joined', backref='invites')
+
+  team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
+  team = db.relationship('Team', lazy='joined', backref='invitations')
+
+  invited_email = db.Column(db.String(127))
+  message = db.Column(db.Text)
+  status = db.Column(db.String(127))
+
+  created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
+  deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
 
   @hybrid_property
   def is_active(self):

@@ -1,19 +1,23 @@
-
-from peewee import *
-from playhouse.hybrid import hybrid_property
 import pendulum
 
-from ..db import BaseModel
-
+from ..db import db
 from .custom_fields import PendulumDateTimeField
-from .user import User
-from .goal import Goal
+from sqlalchemy.ext.hybrid import hybrid_property
 
-class Pledge(BaseModel):
-  user = ForeignKeyField(User, backref='pledges')
-  goal = ForeignKeyField(Goal, backref='pledges')
-  fulfilled = BooleanField()
-  start_at = PendulumDateTimeField(null=True)
-  end_at = PendulumDateTimeField(null=True)
-  created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
-  deleted_at = PendulumDateTimeField(null=True)
+class Pledge(db.Model):
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+  mission = db.relationship('Mission', backref='pledges')
+
+  goal_id = db.Column(db.Integer, db.ForeignKey('goal.id'), primary_key=True)
+  goal = db.relationship('Goal', backref='pledges')
+
+  fulfilled = db.Column(db.Boolean, default=False)
+  start_at = db.Column(PendulumDateTimeField, nullable=True, default=None)
+  end_at = db.Column(PendulumDateTimeField, nullable=True, default=None)
+
+  created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
+  deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
+
+  @hybrid_property
+  def is_active(self):
+    return self.deleted_at == None

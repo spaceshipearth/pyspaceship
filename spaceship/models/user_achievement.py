@@ -1,21 +1,21 @@
 
-from peewee import *
-from playhouse.hybrid import hybrid_property
 import pendulum
 
-from ..db import BaseModel
-
+from ..db import db
 from .custom_fields import PendulumDateTimeField
-from .user import User
+from sqlalchemy.ext.hybrid import hybrid_property
 
-class UserAchievement(BaseModel):
-  id = AutoField(primary_key=True)
-  user = ForeignKeyField(User, backref='achievements')
-  name = CharField()
-  created_at = PendulumDateTimeField(default=lambda: pendulum.now('UTC'))
-  deleted_at = PendulumDateTimeField(null=True)
+class UserAchievement(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+
+  name = db.Column(db.String(127))
+
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+  user = db.relationship('User', backref='achievements')
+
+  created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
+  deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
 
   @hybrid_property
   def is_active(self):
     return self.deleted_at == None
-
