@@ -1,0 +1,21 @@
+<p>To
+<input type="text" placeholder="bob@example.com mary@example.com" class="form-control" id="emails">
+<small>Enter one or more emails separated by spaces</small>
+
+<p>Subject
+<input type="text" value="{% block subject %}{% endblock %}" class="form-control" id="subject">
+
+<style>
+.email-editor {
+  background: #fff;
+}
+.ql-toolbar {
+  background: #efefef;
+}
+</style>
+<div id="email-editor" class="email-editor">
+{% block message %}{% endblock %}
+</div>
+
+<br>
+<button id="email-send" class="btn btn-primary" data-endpoint="{% block endpoint %}{% endblock %}">Send</button>

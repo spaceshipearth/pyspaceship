@@ -8,7 +8,8 @@ if app.config['IN_BUILD']:
     assets.cache = False
     assets.manifest = 'file'
 
-js = Bundle('edit.js',
+js = Bundle('compose_email.js',
+            'edit.js',
             'prevent-invalid-form-submit.js',
             'wip-overlay.js',
             output='gen/all.%(version)s.js')
