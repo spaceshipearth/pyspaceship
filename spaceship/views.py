@@ -287,23 +287,12 @@ def crew(team_id):
     else:
       flash({'msg':'Invitations are on the way!', 'level':'success'})
     return redirect(url_for('crew', team_id=team_id), code=303)
-
-  crew = (User
-            .select()
-            .join(TeamUser)
-            .join(Team)
-            .where(Team.id == team_id))
-  invitations = (Invitation
-                 .select()
-                 .where(Invitation.team_id == team_id))
-  missions = Mission.select().where(Mission.team_id==team_id)
   return render_template('crew.html',
                          is_captain=is_captain,
                          team=team,
                          team_size=team_size,
-                         missions=missions,
-                         crew=crew,
-                         invitations=invitations,
+                         missions=team.missions,
+                         crew=team.members,
                          invite=invite,
                          achievements=achievements.for_team(team))
 
