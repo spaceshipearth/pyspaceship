@@ -38,16 +38,43 @@
 <div class="col-sm-6">
 <section class="missions">
   <a name="missions">
-  <h4>Missions</h4>
-  {% for mission in missions: %}
-    <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
-      <h5>{{ mission.title }} </h5>
-      <p>{{ mission.short_description }}</p>
-      <p>Starting on: {{mission.started_at}}</p>
-    </div>
-  {% endfor %}
-
-  <a href="{{ url_for('create_mission', team_id=team.id) }}" class="btn btn-primary btn-lg" role="button">Plan a mission</a>
+  <h4>Active Missions</h4>
+    {% for mission in missions if mission.is_running %}
+      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
+        <h5>{{ mission.title }} </h5>
+        <p>{{ mission.short_description }}</p>
+        <p>Started on {{ mission.start_time_str }}</p>
+      </div>
+    {% else %}
+      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
+        <h5>None yet</h5>
+      </div>
+    {% endfor %}
+  <h4>Upcoming Missions</h4>
+    {% for mission in missions if mission.is_upcoming %}
+      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
+        <h5>{{ mission.title }} </h5>
+        <p>{{ mission.short_description }}</p>
+        <p>Will start on {{ mission.start_time_str }}</p>
+      </div>
+    {% else%}
+      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
+        <h5>None yet</h5>
+      </div>
+    {% endfor %}
+    <a href="{{ url_for('create_mission', team_id=team.id) }}" class="btn btn-primary btn-lg" role="button">Plan a mission</a>
+  <h4>Completed Missions</h4>
+    {% for mission in missions if mission.is_over %}
+      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
+        <h5>{{ mission.title|e }} </h5>
+        <p>{{ mission.short_description|e }}</p>
+        <p>Completed on {{ mission.end_time_str }}</p>
+      </div>
+    {% else %}
+      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
+        <h5>None yet</h5>
+      </div>
+    {% endfor %}
 </section>
 <section>
   <h4>Achievements</h4>
