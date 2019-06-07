@@ -465,13 +465,12 @@ def logout():
 @app.route('/profile/<user_id>')
 @login_required
 def profile(user_id):
-  try:
-    user = User.get(User.id == user_id)
-  except User.DoesNotExist:
+  user = User.query.filter(User.id == user_id).first()
+  if user is None:
     return redirect(url_for('dashboard'))
 
   is_me = current_user.id == int(user_id)
-  if not is_me and not (set(teams(current_user)) & set(teams(user))):
+  if not is_me and not (set(current_user.teams) & set(user.teams)):
     # only allow looking at own and teammates' profiles to prevent enumerating users
     return redirect(url_for('dashboard'))
 
@@ -494,9 +493,8 @@ def edit():
   value = request.form['value']
 
   if table_name == 'team':
-    try:
-      team = Team.get(Team.id == object_id)
-    except Team.DoesNotExist:
+    team = Team.query.filter(Team.id == object_id).first()
+    if team is None:
       return jsonify({'ok': False})
     if current_user.id != team.captain.id:
       return jsonify({'ok': False})
@@ -514,9 +512,8 @@ def edit():
       return jsonify({'ok': True})
 
   elif table_name == 'user':
-    try:
-      user = User.get(User.id == object_id)
-    except User.DoesNotExist:
+    user = User.query.filter(User.id == object_id).first()
+    if user is None:
       return jsonify({'ok': False})
     if current_user.id != user.id:
       return jsonify({'ok': False})
