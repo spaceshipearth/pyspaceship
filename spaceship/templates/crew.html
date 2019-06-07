@@ -44,8 +44,8 @@
         <h5>{{ mission.title }} </h5>
         <p>{{ mission.short_description }}</p>
         <p>Started on {{ mission.start_time_str }}</p>
-        {% if mission.mission_day() > 0 and mission.mission_day() < 7 %}
-          Day {{mission.mission_day()}} of 7
+        {% if mission.mission_day > 0 and mission.mission_day < 7 %}
+          Day {{mission.mission_day}} of 7
         {% endif %}
       </div>
     {% else %}
