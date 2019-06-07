@@ -150,27 +150,26 @@ def confirm_token(token, expiration=3600):
 def create_mission(team_id):
   create_mission_form = CreateMissionForm(team_id=team_id)
   if create_mission_form.validate_on_submit():
-    with db.atomic() as transaction:
-      try:
-        mission = Mission(title="Plant based diet",
-                          short_description="Save the planet by eating more plants",
-                          duration_in_weeks=1,
-                          started_at=create_mission_form.data['start'],
-                          team_id=team_id)
-        mission.save()
-        goal = Goal(short_description=create_mission_form.data['goal'],
-                    category='diet')
-        goal.save()
-        missiongoal = MissionGoal(
-          mission=mission.id,
-          goal=goal.id,
-          week=1)
-        missiongoal.save()
-      except (IntegrityError, DatabaseError) as e:
-        transaction.rollback()
-        logger.exception(e)
-        flash({'msg':f'Error creating mission'})
-        return redirect(url_for('crew', team_id=team_id))
+    try:
+      mission = Mission(title="Plant based diet",
+                        short_description="Save the planet by eating more plants",
+                        duration_in_weeks=1,
+                        started_at=create_mission_form.data['start'],
+                        team_id=team_id)
+      mission.save()
+      goal = Goal(short_description=create_mission_form.data['goal'],
+                  category='diet')
+      goal.save()
+      missiongoal = MissionGoal(
+        mission=mission.id,
+        goal=goal.id,
+        week=1)
+      missiongoal.save()
+    except (IntegrityError, DatabaseError) as e:
+      db.session.rollback()
+      logger.exception(e)
+      flash({'msg':f'Error creating mission'})
+      return redirect(url_for('crew', team_id=team_id))
 
     return redirect(url_for('crew', team_id=team_id))
   return render_template('create_mission.html', create_mission_form=create_mission_form)
@@ -194,28 +193,27 @@ def register():
     password = register.data['password']
 
   if name and email_address:
-    with db.atomic() as transaction:
-      try:
-        u = User(name=name, email=email_address, email_confirmed=email_confirmed)
-        if password:
-          u.set_password(password)
-        u.save()
+    try:
+      u = User(name=name, email=email_address, email_confirmed=email_confirmed)
+      if password:
+        u.set_password(password)
+      u.save()
 
-        t = Team(captain=u, name=names.name_team())
-        t.save()
-        tu = TeamUser(team=t, user=u)
-        tu.save()
-      except IntegrityError:
-        transaction.rollback()
-        # don't automatically log in existing oauth users because we want login to trigger a password reset
-        flash({'msg':f'Email already registered. Please sign-in'})
-        return redirect(url_for('login'))
-      except DatabaseError as e:
-        # TODO: docs mention ErrorSavingData but I cannot find wtf they are talking about
-        transaction.rollback()
-        flash({'msg':f'Error registering', 'level':'danger'})
-        logger.exception(e)
-        return redirect(url_for('home'))
+      t = Team(captain=u, name=names.name_team())
+      t.save()
+      tu = TeamUser(team=t, user=u)
+      tu.save()
+    except IntegrityError:
+      db.session.rollback()
+      # don't automatically log in existing oauth users because we want login to trigger a password reset
+      flash({'msg':f'Email already registered. Please sign-in'})
+      return redirect(url_for('login'))
+    except DatabaseError as e:
+      # TODO: docs mention ErrorSavingData but I cannot find wtf they are talking about
+      db.session.rollback()
+      flash({'msg':f'Error registering', 'level':'danger'})
+      logger.exception(e)
+      return redirect(url_for('home'))
 
     login_user(u)
 
@@ -250,17 +248,16 @@ def confirm_email(token):
 def create_crew():
   create_crew = CreateCrew()
   if create_crew.validate_on_submit():
-    with db.atomic() as transaction:
-      try:
-        u = current_user.id
-        t = Team(captain=u, name=names.name_team())
-        t.save()
-        tu = TeamUser(team=t, user=u)
-        tu.save()
-        achievements.become_captain(current_user)
-      except (IntegrityError, DatabaseError) as e:
-        transaction.rollback()
-        flash({'msg':f'Error creating a new crew', 'level':'danger'})
+    try:
+      u = current_user.id
+      t = Team(captain=u, name=names.name_team())
+      t.save()
+      tu = TeamUser(team=t, user=u)
+      tu.save()
+      achievements.become_captain(current_user)
+    except (IntegrityError, DatabaseError) as e:
+      db.session.rollback()
+      flash({'msg':f'Error creating a new crew', 'level':'danger'})
 
   return redirect(url_for('dashboard'))
 
@@ -279,27 +276,25 @@ def crew(team_id):
   if is_captain and invite.validate_on_submit():
     message = invite.data['message']
     emails = invite.data['emails'].split()
-    with db.atomic() as transaction:
-      try:
-        for invited_email in emails:
-          key_for_sharing = uuid.uuid4()
-          iv = Invitation(inviter_id=current_user.id,
-                          key_for_sharing=key_for_sharing,
-                          team_id=team_id,
-                          invited_email=invited_email,
-                          message=message,
-                          status='sent')
-          iv.save()
-          # TODO probably should queue this instead
-          email.send(to_emails=invited_email,
-              subject='Invitation to join',
-              html_content=render_template('invite_email.html', inviter=current_user.name, message=message, key_for_sharing=key_for_sharing))
-        achievements.invite_crew(current_user)
-      except DatabaseError:
-        transaction.rollback()
-        flash({'msg':f'Error sending invitations', 'level':'danger'})
-      else:
-        flash({'msg':'Invitations are on the way!', 'level':'success'})
+    try:
+      for invited_email in emails:
+        key_for_sharing = uuid.uuid4()
+        iv = Invitation(inviter_id=current_user.id,
+                        key_for_sharing=key_for_sharing,
+                        team_id=team_id,
+                        invited_email=invited_email,
+                        message=message,
+                        status='sent')
+        iv.save()
+        # TODO probably should queue this instead
+        email.send(to_emails=invited_email,
+            subject='Invitation to join',
+            html_content=render_template('invite_email.html', inviter=current_user.name, message=message, key_for_sharing=key_for_sharing))
+      achievements.invite_crew(current_user)
+    except DatabaseError:
+      flash({'msg':f'Error sending invitations', 'level':'danger'})
+    else:
+      flash({'msg':'Invitations are on the way!', 'level':'success'})
     return redirect(url_for('crew', team_id=team_id), code=303)
 
   crew = (User
@@ -339,15 +334,15 @@ def enlist(key):
 
   decline = DeclineInvitation()
   if decline.decline.data and decline.validate():
-    with db.atomic() as transaction:
-      try:
-        invitation.status = 'declined'
-        invitation.save()
-      except DatabaseError:
-        transaction.rollback()
-        flash({'msg':f'Database error', 'level':'danger'})
-      else:
-        flash({'msg':f'Invitation declined', 'level':'success'})
+    try:
+      invitation.status = 'declined'
+      invitation.save()
+    except DatabaseError:
+      db.session.rollback()
+      flash({'msg':f'Database error', 'level':'danger'})
+    else:
+      flash({'msg':f'Invitation declined', 'level':'success'})
+
     return redirect(url_for('home'))
 
   oauth_user_info = session.pop('oauth_user_info', None)
@@ -380,28 +375,27 @@ def enlist(key):
     password = register.data['password']
 
   if name and email_address:
-    with db.atomic() as transaction:
-      try:
-        u = User(name=name, email=email_address, email_confirmed=True)
-        if password:
-          u.set_password(password)
-        u.save()
-        accept_invitation(invitation, u)
-      except IntegrityError:
-        transaction.rollback()
-        flash({'msg':f'Email already registered. Please sign-in', 'level': 'danger'})
-        return redirect(url_for('login'))
-      except DatabaseError:
-        transaction.rollback()
-        flash({'msg':f'Database error', 'level':'danger'})
-        return redirect(url_for('home'))
-      except ValueError as err:
-        flash({'msg':f'{str(err)}', 'level':'danger'})
-        return redirect(url_for('home'))
-      else:
-        if not current_user.is_authenticated:
-          login_user(u)
-        return redirect_for_logged_in()
+    try:
+      u = User(name=name, email=email_address, email_confirmed=True)
+      if password:
+        u.set_password(password)
+      u.save()
+      accept_invitation(invitation, u)
+    except IntegrityError:
+      db.session.rollback()
+      flash({'msg':f'Email already registered. Please sign-in', 'level': 'danger'})
+      return redirect(url_for('login'))
+    except DatabaseError:
+      db.session.rollback()
+      flash({'msg':f'Database error', 'level':'danger'})
+      return redirect(url_for('home'))
+    except ValueError as err:
+      flash({'msg':f'{str(err)}', 'level':'danger'})
+      return redirect(url_for('home'))
+    else:
+      if not current_user.is_authenticated:
+        login_user(u)
+      return redirect_for_logged_in()
     return redirect(url_for('dashboard'))
 
   crew = (User
@@ -430,24 +424,23 @@ def rsvp(key, status):
     flash({'msg':f'Invitation was already accepted.', 'level':'danger'})
     return redirect(url_for('home'))
 
-  with db.atomic() as transaction:
-    try:
-      if status == 'accepted':
-        accept_invitation(invitation, User.get(User.id == current_user.id))
-      elif status == 'declined':
-        invitation.status = 'declined'
-        invitation.save()
-      else:
-        raise ValueError(f'Invalid rsvp {status}')
-    except DatabaseError:
-      transaction.rollback()
-      flash({'msg':f'Database error', 'level':'danger'})
-    except ValueError as err:
-      flash({'msg':f'{str(err)}', 'level':'danger'})
-      return redirect(url_for('home'))
+  try:
+    if status == 'accepted':
+      accept_invitation(invitation, User.get(User.id == current_user.id))
+    elif status == 'declined':
+      invitation.status = 'declined'
+      invitation.save()
     else:
-      flash({'msg':f'Invitation {status}', 'level':'success'})
-      return redirect(url_for('home'))
+      raise ValueError(f'Invalid rsvp {status}')
+  except DatabaseError:
+    db.session.rollback()
+    flash({'msg':f'Database error', 'level':'danger'})
+  except ValueError as err:
+    flash({'msg':f'{str(err)}', 'level':'danger'})
+    return redirect(url_for('home'))
+  else:
+    flash({'msg':f'Invitation {status}', 'level':'success'})
+    return redirect(url_for('home'))
 
   return redirect(url_for('home'))
 
@@ -520,19 +513,18 @@ def edit():
       return jsonify({'ok': False})
     if current_user.id != team.captain.id:
       return jsonify({'ok': False})
-    with db.atomic() as transaction:
-      try:
-        if field_name == 'name':
-          team.name = value
-          team.save()
-        elif field_name == 'description':
-          team.description = value
-          team.save()
-      except DatabaseError:
-        transaction.rollback()
-        return jsonify({'ok': False})
-      else:
-        return jsonify({'ok': True})
+    try:
+      if field_name == 'name':
+        team.name = value
+        team.save()
+      elif field_name == 'description':
+        team.description = value
+        team.save()
+    except DatabaseError:
+      db.session.rollback()
+      return jsonify({'ok': False})
+    else:
+      return jsonify({'ok': True})
 
   elif table_name == 'user':
     try:
@@ -541,19 +533,18 @@ def edit():
       return jsonify({'ok': False})
     if current_user.id != user.id:
       return jsonify({'ok': False})
-    with db.atomic() as transaction:
-      try:
-        if field_name == 'name':
-          user.name = value
-          user.save()
-        #elif field_name == 'email':
-        #  user.email = value
-        #  user.save()
-      except DatabaseError:
-        transaction.rollback()
-        return jsonify({'ok': False})
-      else:
-        return jsonify({'ok': True})
+    try:
+      if field_name == 'name':
+        user.name = value
+        user.save()
+      #elif field_name == 'email':
+      #  user.email = value
+      #  user.save()
+    except DatabaseError:
+      db.session.rollback()
+      return jsonify({'ok': False})
+    else:
+      return jsonify({'ok': True})
 
   return jsonify({'ok': False})
 
