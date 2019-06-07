@@ -1,6 +1,5 @@
 
 from invoke import task, run, Responder
-from peewee_moves import DatabaseManager
 
 from .utils import ROOT_REPO_DIR, in_repo_root
 
@@ -85,55 +84,24 @@ def mysql_client(ctx):
 
   run(mysql_cmd, pty=True, watchers=[responder])
 
+@task(
+  help={
+    'desc': 'Description of the migration',
+  }
+)
+def prep_migration(ctx, desc):
+  """Creates a migration based on changes to model files"""
+  with ctx.cd(ROOT_REPO_DIR):
+    run(f'flask db migrate -m "{desc}"', env=FLASK_ENV)
+
 @task
-def migration_status(ctx):
-  """Show the status of current migrations"""
-  with in_repo_root():
-    manager = get_db_manager()
-    manager.status()
+def upgrade(ctx):
+  """Runs pending migrations"""
+  with ctx.cd(ROOT_REPO_DIR):
+    run(f'flask db upgrade', env=FLASK_ENV)
 
-@task(
-  help={
-    'name': 'A name for the migration (like "adding col X to table Y")',
-    'model': 'A model name (like "spaceship.models.user.User")',
-  },
-)
-def migration_prep(ctx, name = None, model = None):
-  """Create a migration file to alter DB schema"""
-  with in_repo_root():
-    manager = get_db_manager()
-
-    if model:
-      manager.create(model)
-    elif name:
-      manager.revision(name)
-    else:
-      raise ValueError("You must pass in either 'name' or 'model'")
-
-@task(
-  help={
-    'target': 'The max version to apply (see run.migration-status)',
-  }
-)
-def upgrade(ctx, target = None):
-  """Apply pending migrations (or, optionally, only up to given target version)"""
-  with in_repo_root():
-    manager = get_db_manager()
-    if target:
-      manager.upgrade(target)
-    else:
-      manager.upgrade()
-
-@task(
-  help={
-    'target': 'The version to migrate to (see run.migration-status)',
-  }
-)
-def downgrade(ctx, target = None):
-  """Undo last migration (or optionally, all since given target version)"""
-  with in_repo_root():
-    manager = get_db_manager()
-    if target:
-      manager.downgrade(target)
-    else:
-      manager.downgrade()
+@task
+def downgrade(ctx):
+  """Removes the last migration that ran"""
+  with ctx.cd(ROOT_REPO_DIR):
+    run(f'flask db downgrade', env=FLASK_ENV)

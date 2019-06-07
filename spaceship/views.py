@@ -2,7 +2,7 @@
 from itsdangerous import URLSafeTimedSerializer
 from flask import render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_user, logout_user, login_required, current_user
-from peewee import DatabaseError, IntegrityError, fn
+from sqlalchemy.exc import DatabaseError, IntegrityError
 from urllib.parse import urlparse
 
 from . import app
@@ -18,7 +18,6 @@ from .models.invitation import Invitation
 from .models.goal import Goal
 from .models.mission import Mission
 from .models.mission_goal import MissionGoal
-from .models.pledge import Pledge
 from .forms.register import Register
 from .forms.create_mission import CreateMissionForm
 from .forms.login import Login
@@ -26,7 +25,6 @@ from .forms.invite import Invite
 from .forms.enlist import AcceptInvitation, DeclineInvitation
 from .forms.create_crew import CreateCrew
 
-import json
 import hashlib
 import logging
 import pendulum
@@ -154,16 +152,16 @@ def create_mission(team_id):
   if create_mission_form.validate_on_submit():
     with db.atomic() as transaction:
       try:
-        mission = Mission(title="Plant based diet", 
+        mission = Mission(title="Plant based diet",
                           short_description="Save the planet by eating more plants",
                           duration_in_weeks=1,
                           started_at=create_mission_form.data['start'],
                           team_id=team_id)
-        mission.save()    
+        mission.save()
         goal = Goal(short_description=create_mission_form.data['goal'],
                     category='diet')
         goal.save()
-        missiongoal = MissionGoal( 
+        missiongoal = MissionGoal(
           mission=mission.id,
           goal=goal.id,
           week=1)
