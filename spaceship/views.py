@@ -53,7 +53,7 @@ def get_team_if_member(team_id):
 def redirect_for_logged_in():
   # take the user directly to their team if they only have one, dashboard otherwise
   current_user_teams = teams(current_user)
-  if len(current_user_teams) > 1:
+  if len(current_user_teams) != 1:
     return redirect(url_for('dashboard'))
   return redirect(url_for('crew', team_id=current_user_teams[0].id))
 
