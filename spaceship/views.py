@@ -277,9 +277,6 @@ def invite(team_id):
   team = get_team_if_member(team_id)
   if not team:
     return jsonify({'error': 'Must be a member of team.'})
-  is_captain = team.captain_id == current_user.id
-  if not is_captain:
-    return jsonify({'error': 'Only team captain can invite.'})
 
   subject = request.form.get('subject', '')
   if not subject:
