@@ -21,7 +21,6 @@ from .models.mission_goal import MissionGoal
 from .forms.register import Register
 from .forms.create_mission import CreateMissionForm
 from .forms.login import Login
-from .forms.invite import Invite
 from .forms.enlist import AcceptInvitation, DeclineInvitation
 from .forms.create_crew import CreateCrew
 
@@ -262,37 +261,6 @@ def crew(team_id):
   is_captain = team.captain_id == current_user.id
   team_size = len(team.members)
 
-  invite = Invite()
-  if is_captain and invite.validate_on_submit():
-    message = invite.data['message']
-    emails = invite.data['emails'].split()
-    try:
-      for invited_email in emails:
-        iv = Invitation(
-          inviter_id=current_user.id,
-          team_id=team_id,
-          invited_email=invited_email,
-          message=message,
-          status='sent')
-        iv.save()
-
-        # TODO probably should queue this instead
-        email.send(
-          to_emails=invited_email,
-          subject='Invitation to join',
-          html_content=render_template(
-            'invite_email.html',
-            inviter=current_user.name,
-            message=message,
-            key_for_sharing=iv.key_for_sharing,
-          )
-        )
-      achievements.invite_crew(current_user)
-    except DatabaseError:
-      flash({'msg':f'Error sending invitations', 'level':'danger'})
-    else:
-      flash({'msg':'Invitations are on the way!', 'level':'success'})
-    return redirect(url_for('crew', team_id=team_id), code=303)
   return render_template('crew.html',
                          is_captain=is_captain,
                          team=team,
@@ -301,6 +269,54 @@ def crew(team_id):
                          crew=team.members,
                          invite=invite,
                          achievements=achievements.for_team(team))
+
+@app.route('/invite/<team_id>', methods=['POST'])
+def invite(team_id):
+  if not current_user:
+    return jsonify({'error': 'Must be logged in.'})
+  team = get_team_if_member(team_id)
+  if not team:
+    return jsonify({'error': 'Must be a member of team.'})
+
+  subject = request.form.get('subject', '')
+  if not subject:
+    return jsonify({'error': 'Subject cannot be blank.'})
+  message = request.form.get('message', '')
+  # quilljs needs <p><br></p> to show line breaks even though everything is in a paragraph
+  # this creates extra line breaks in gmail so just strip it out
+  message = message.replace('<p><br></p>', '')
+  emails = request.form.get('emails', '').split()
+  if not emails:
+    return jsonify({'error': 'Need at least one email in To: line.'})
+  try:
+    for invited_email in emails:
+      iv = Invitation(
+        inviter_id=current_user.id,
+        team_id=team_id,
+        invited_email=invited_email,
+        message=message,
+        status='sent')
+      iv.save()
+
+      # each recipient sees a unique invite link
+      invite_url = url_for('enlist', key=iv.key_for_sharing, _external=True)
+      if 'href="join"' in message:
+        html_content = message.replace('href="join"', f'href="{invite_url}"')
+      else:
+        # if the user deleted the invite link, put it at the bottom
+        html_content = f'{message}<p><a href="{invite_url}">Click here to join</a>'
+
+      # TODO probably should queue this instead
+      email.send(
+        to_emails=invited_email,
+        subject=subject,
+        html_content=html_content,
+      )
+    achievements.invite_crew(current_user)
+  except:
+    return jsonify({'error': 'Error sending invitations.'})
+
+  return jsonify({'ok': True})
 
 @app.route('/enlist/<key>', methods=['GET', 'POST'])
 def enlist(key):
