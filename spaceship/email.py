@@ -46,3 +46,33 @@ def send_mission_start(mission_id, started_at):
     subject=subject,
     html_content=content,
   )
+
+def send_mission_end(mission_id, end_time):
+  mission = Mission.query.get(mission_id)
+  if not (mission and mission.is_active):
+    log.warning(f'not sending mission end email for inactive mission {mission_id}')
+    return
+
+  # the end time has changed, so a different thing will actually
+  # send the email
+  if mission.end_time != end_time:
+    log.warning(f'not sending mission end email for {mission} since end time has changed')
+    return
+
+  # if we got here, we should actually send an email
+  emails = [m.email for m in mission.team.members]
+  subject = 'The mission is complete!'
+
+  upcoming_missions = [m for m in mission.team.missions if m.is_upcoming]
+  if any(upcoming_missions):
+    next_upcoming = sorted(upcoming_missions, key=lambda m: m.started_at)[0]
+  else:
+    next_upcoming = None
+
+  content = render_template('email_mission_end.html', mission=mission, next_upcoming=next_upcoming)
+
+  send(
+    to_emails=emails,
+    subject=subject,
+    html_content=content,
+  )

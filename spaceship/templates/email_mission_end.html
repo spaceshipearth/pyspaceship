@@ -1,0 +1,26 @@
+
+<h1>LOGO</h1>
+
+<h3>Hi Team {{ mission.team.name }}!</h3>
+
+<p>
+Our mission to {{ mission.short_description }} is now complete.
+Time to check in to see how you did!
+</p>
+
+<p>
+Please fill out the post-mission survey here:
+</p>
+
+
+<p>
+{% if next_upcoming %}
+Your next mission will be starting in {{ next_upcoming.diff_for_humans }}!
+{% else %}
+Your captain has not yet planned your next mission!
+The United Earth Council will be in touch with them re: this matter, but feel free to poke 'em, too.
+{% endif %}
+</p>
+
+<p>© SpaceshipEarth</p>
+
