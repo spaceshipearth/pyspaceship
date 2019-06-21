@@ -27,6 +27,21 @@ def send(to_emails, subject, html_content, from_email='gaia@spaceshipearth.org')
     # TODO: instrument send failures
     log.error('Unhandled exception sending email: %s', e)
 
+def schedule_mission_emails(mission):
+  """sets mission start/end emails to be sent at the correct time"""
+  send_mission_start.apply_async(
+    args=(mission.id, mission.started_at),
+    eta=mission.started_at,
+    expires=mission.started_at.add(days=1),  # don't bother sending past a day late
+  )
+
+  send_mission_end.apply_async(
+    args=(mission.id, mission.end_time),
+    eta=mission.end_time,
+    expires=mission.end_time.add(days=1),    # don't bother sending past a day late
+  )
+
+@celery.task
 def send_mission_start(mission_id, started_at):
   mission = Mission.query.get(mission_id)
   if not (mission and mission.is_active):
@@ -50,6 +65,7 @@ def send_mission_start(mission_id, started_at):
     html_content=content,
   )
 
+@celery.task
 def send_mission_end(mission_id, end_time):
   mission = Mission.query.get(mission_id)
   if not (mission and mission.is_active):

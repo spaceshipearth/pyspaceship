@@ -143,13 +143,17 @@ def create_mission(team_id):
       goal.save()
 
       mission.goals.append(goal)
+
     except (IntegrityError, DatabaseError) as e:
       db.session.rollback()
       logger.exception(e)
       flash({'msg':f'Error creating mission'})
       return redirect(url_for('crew', team_id=team_id))
 
+    # schedule emails
+    emails.schedule_mission_emails(mission)
     return redirect(url_for('crew', team_id=team_id))
+
   return render_template('create_mission.html', create_mission_form=create_mission_form)
 
 @app.route('/register', methods=['GET', 'POST'])
