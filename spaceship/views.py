@@ -204,7 +204,7 @@ def register():
     if not email_confirmed:
       token = generate_confirmation_token(email_address)
       email.send.delay(to_emails=email_address,
-          subject='Please verify you email for Spaceship Earth',
+          subject='Please verify your email for Spaceship Earth',
           html_content=render_template('confirm_email.html',
           confirmation_url=url_for('confirm_email', token=token, _external=True)))
 
