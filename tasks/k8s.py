@@ -71,7 +71,7 @@ def namespace(ctx, namespace):
 
     existing = ns.get_secret('pyspaceship-redis')
     if not existing:
-      redis_secret(ctx, db=0, namespace=namespace)
+      redis_secret(ctx, namespace=namespace)
     else:
       print('redis already initialized')
 
@@ -183,7 +183,7 @@ def mysql_secret(
   help={
     'host': "Redis host (default: '10.0.0.3')",
     'port': 'Redis port (default: 6379)',
-    'db': "Number of the Redis DB (default: '0')",
+    'db': "Number of the Redis DB (default: generated from namespace)",
     'namespace': f"Version of the site (default: {TEST_NAMESPACE})",
   }
 )
@@ -197,7 +197,8 @@ def redis_secret(ctx, host='10.0.0.3', port=6379, db=None, namespace=TEST_NAMESP
 
   # come up with a consistent hash from the namespace, exclude reserved values
   if not db:
-    db = (hash(namespace) % 12) + max(REDIS_RESERVED_DB.values())
+    db = (hash(namespace) % 12) + 1 + max(REDIS_RESERVED_DB.values())
+    print(f"Namespace {namespace} got assigned Redis DB {db} -- this might not be unique!")
 
   secret = load_manifest('redis_secret', {
     'host': host,
