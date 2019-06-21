@@ -36,10 +36,13 @@ class Mission(db.Model):
     return self.started_at.format('dddd [the] Do [of] MMMM')
 
   @property
+  def end_time(self):
+    return self.started_at.add(weeks=self.duration_in_weeks)
+
+  @property
   def end_time_str(self):
-    mission_end_time = self.started_at.add(weeks=self.duration_in_weeks)
-    return mission_end_time.format('dddd [the] Do [of] MMMM')
-  
+    return self.end_time.format('dddd [the] Do [of] MMMM')
+
   @property
   def is_over(self):
     now = pendulum.now('UTC')
@@ -59,4 +62,4 @@ class Mission(db.Model):
 
   @property
   def mission_day(self):
-    return (pendulum.now('UTC') - self.started_at).in_days() 
+    return (pendulum.now('UTC') - self.started_at).in_days()
