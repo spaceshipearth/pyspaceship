@@ -1,10 +1,17 @@
 
+from collections import defaultdict
 from invoke import task, run
 from invoke.exceptions import UnexpectedExit
 
 import json
 
-from tasks.utils import load_manifest, K8SNamespace, TEST_NAMESPACE, random_string
+from tasks.utils import (
+  load_manifest, K8SNamespace, PROD_NAMESPACE, TEST_NAMESPACE, random_string,
+)
+
+REDIS_RESERVED_DB = defaultdict(None)
+REDIS_RESERVED_DB[PROD_NAMESPACE] = 0
+REDIS_RESERVED_DB[TEST_NAMESPACE] = 1
 
 @task(
   help={
@@ -56,11 +63,17 @@ def namespace(ctx, namespace):
     else:
       print('mysql user already initialized')
 
-    exiting = ns.get_secret('pyspaceship-session')
+    existing = ns.get_secret('pyspaceship-session')
     if not existing:
       session_secret(ctx, namespace=namespace)
     else:
       print('session already initialized')
+
+    existing = ns.get_secret('pyspaceship-redis')
+    if not existing:
+      redis_secret(ctx, namespace=namespace)
+    else:
+      print('redis already initialized')
 
   # copy the google and sendgrid secrets from prod
   for secret_name in ['pyspaceship-google-oauth', 'pyspaceship-sendgrid', 'google-app-creds']:
@@ -161,6 +174,36 @@ def mysql_secret(
     'username': username,
     'password': password,
     'db': db,
+  })
+
+  with K8SNamespace(namespace) as ns:
+    ns.apply(secret)
+
+@task(
+  help={
+    'host': "Redis host (default: '10.0.0.3')",
+    'port': 'Redis port (default: 6379)',
+    'db': "Number of the Redis DB (default: generated from namespace)",
+    'namespace': f"Version of the site (default: {TEST_NAMESPACE})",
+  }
+)
+def redis_secret(ctx, host='10.0.0.3', port=6379, db=None, namespace=TEST_NAMESPACE):
+  """Create a secret containing redis credentials"""
+  # limit usage of reserved dbs
+  if namespace in REDIS_RESERVED_DB.keys():
+    db = REDIS_RESERVED_DB[namespace]
+  if db in REDIS_RESERVED_DB.values() and REDIS_RESERVED_DB[namespace] != db:
+    raise ValueError(f"namespace {namespace} cannot use reserved DB id {db}")
+
+  # come up with a consistent hash from the namespace, exclude reserved values
+  if not db:
+    db = (hash(namespace) % 12) + 1 + max(REDIS_RESERVED_DB.values())
+    print(f"Namespace {namespace} got assigned Redis DB {db} -- this might not be unique!")
+
+  secret = load_manifest('redis_secret', {
+    'host': host,
+    'port': str(port),
+    'db': str(db),
   })
 
   with K8SNamespace(namespace) as ns:

@@ -57,11 +57,17 @@ def gunicorn(ctx):
   },
 )
 def mysql(ctx, stop=False):
-  """Runs mysql in docker-compose"""
+  """Runs mysql (and redis!) in docker-compose"""
   if stop:
     run('docker-compose stop')
   else:
     run('docker-compose up -d')
+
+@task
+def celery_worker(ctx):
+  """run the celery worker"""
+  with ctx.cd(ROOT_REPO_DIR):
+    ctx.run(f'celery worker -A spaceship.celery.celery')
 
 @task
 def mysql_client(ctx):

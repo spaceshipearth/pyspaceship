@@ -19,11 +19,14 @@ from spaceship import assets
 from spaceship import enforce_ssl
 from spaceship import enforce_www
 
-# load the db
+# load the db and redis
 from spaceship import db
+from spaceship import redis
 
 # these things depend on the db and so go after it
 from spaceship import login
 from spaceship import google_auth
 from spaceship import views
 
+# celery configuration
+from spaceship import celery

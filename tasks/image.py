@@ -59,15 +59,27 @@ def do_deploy(tag, ns):
   if ns.is_prod:
     replicas = 3
 
-  deployment = load_manifest(
-    'deployment',
+  environment = load_manifest('container_environment', {})
+
+  web = load_manifest(
+    'web_deployment',
     {
       'image': tag,
       'replicas': replicas,
+      'container_environment': environment,
     }
   )
+  ns.apply(web)
 
-  ns.apply(deployment)
+  worker = load_manifest(
+    'worker_deployment',
+    {
+      'image': tag,
+      'replicas': replicas,
+      'container_environment': environment,
+    }
+  )
+  ns.apply(worker)
 
   service = load_manifest('service')
   ns.apply(service)

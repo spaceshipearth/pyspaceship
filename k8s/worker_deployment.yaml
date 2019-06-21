@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pyspaceship-worker-deployment
+  labels:
+    app: pyspaceship
+spec:
+  selector:
+    matchLabels:
+      app: pyspaceship
+      component: worker
+  replicas: {$eval: replicas}
+  template:
+    metadata:
+      labels:
+        app: pyspaceship
+        component: worker
+    spec:
+      containers:
+      - name: pyspaceship-worker
+        image: {$eval: image}
+        args: ["run.celery-worker"]
+        imagePullPolicy: "Always"
+        env: {$eval: container_environment}
+        volumeMounts:
+          - name: google-app-creds
+            mountPath: /srv/pyspaceship/google-app-creds
+      volumes:
+        - name: google-app-creds
+          secret:
+            secretName: google-app-creds

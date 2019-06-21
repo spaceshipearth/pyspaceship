@@ -2,7 +2,6 @@
 import hashlib
 import logging
 import pendulum
-import uuid
 
 from itsdangerous import URLSafeTimedSerializer
 from flask import render_template, flash, redirect, url_for, jsonify, request, session
@@ -12,7 +11,7 @@ from urllib.parse import urlparse
 
 from spaceship import app, email, names, achievements
 from spaceship.db import db
-from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission, MissionGoal
+from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission
 from spaceship.forms import (
   Register, CreateMissionForm, Login, AcceptInvitation, DeclineInvitation, CreateCrew
 )
@@ -189,7 +188,6 @@ def register():
       flash({'msg':f'Email already registered. Please sign-in'})
       return redirect(url_for('login'))
     except DatabaseError as e:
-      # TODO: docs mention ErrorSavingData but I cannot find wtf they are talking about
       db.session.rollback()
       flash({'msg':f'Error registering', 'level':'danger'})
       logger.exception(e)
@@ -201,7 +199,7 @@ def register():
 
     if not email_confirmed:
       token = generate_confirmation_token(email_address)
-      email.send(to_emails=email_address,
+      email.send.delay(to_emails=email_address,
           subject='Please verify you email for Spaceship Earth',
           html_content=render_template('confirm_email.html',
           confirmation_url=url_for('confirm_email', token=token, _external=True)))
@@ -249,14 +247,16 @@ def crew(team_id):
   is_captain = team.captain_id == current_user.id
   team_size = len(team.members)
 
-  return render_template('crew.html',
-                         is_captain=is_captain,
-                         team=team,
-                         team_size=team_size,
-                         missions=team.missions,
-                         crew=team.members,
-                         invite=invite,
-                         achievements=achievements.for_team(team))
+  return render_template(
+    'crew.html',
+    is_captain=is_captain,
+    team=team,
+    team_size=team_size,
+    missions=team.missions,
+    crew=team.members,
+    invite=invite,
+    achievements=achievements.for_team(team),
+  )
 
 @app.route('/invite/<team_id>', methods=['POST'])
 def invite(team_id):
@@ -294,12 +294,12 @@ def invite(team_id):
         # if the user deleted the invite link, put it at the bottom
         html_content = f'{message}<p><a href="{invite_url}">Click here to join</a>'
 
-      # TODO probably should queue this instead
-      email.send(
+      email.send.delay(
         to_emails=invited_email,
         subject=subject,
         html_content=html_content,
       )
+
     achievements.invite_crew(current_user)
   except:
     return jsonify({'error': 'Error sending invitations.'})
@@ -435,8 +435,10 @@ def accept_invitation(invitation, user):
   team = Team.query.get(invitation.team_id)
   if not team:
     return
+
   captain = team.captain
-  email.send(to_emails=captain.email,
+  email.send.delay(
+    to_emails=[captain.email],
     subject='Your crew is growing!',
     html_content=render_template('crew_growing_email.html',
       team_id=invitation.team,

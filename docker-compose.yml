@@ -13,5 +13,11 @@ services:
       MYSQL_DATABASE: spaceship
       MYSQL_USER: spaceship-app
       MYSQL_PASSWORD: aa7925b6f7b
+  redis:
+    image: redis:4.0
+    ports:
+      - 9878:6379
+    volumes:
+      - db_data:/data
 volumes:
   db_data: {}
