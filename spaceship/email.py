@@ -3,8 +3,8 @@ from flask import render_template
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-from spaceship.models.mission import Mission
-from . import app
+from spaceship import app
+from spaceship.models import Mission
 
 log = logging.getLogger('spaceship.email')
 

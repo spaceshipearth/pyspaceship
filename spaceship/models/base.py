@@ -3,9 +3,9 @@ from sqlalchemy.exc import DatabaseError
 
 from flask_sqlalchemy.model import Model
 
-from ..db import db
+from spaceship.db import db
 
-class MyBase(Model):
+class Base(Model):
   @property
   def session(self):
     return db.session
@@ -37,4 +37,4 @@ class MyBase(Model):
       self.session.rollback()
       raise
 
-db.Model = db.make_declarative_base(MyBase, db.metadata)
+db.Model = db.make_declarative_base(Base, db.metadata)

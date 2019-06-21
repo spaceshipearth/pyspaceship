@@ -1,7 +1,7 @@
 import google.cloud.logging
 import logging
 
-from . import app
+from spaceship import app
 
 # enable google cloud logging
 # from: https://cloud.google.com/logging/docs/setup/python

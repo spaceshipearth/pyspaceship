@@ -1,4 +1,4 @@
-from . import app
+from spaceship import app
 from flask_assets import Environment, Bundle
 
 assets = Environment(app)

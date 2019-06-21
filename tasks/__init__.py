@@ -1,6 +1,6 @@
 from invoke import Collection
 
-from . import run, image, k8s, logs
+from tasks import run, image, k8s, logs
 
 ns = Collection()
 ns.add_collection(run)

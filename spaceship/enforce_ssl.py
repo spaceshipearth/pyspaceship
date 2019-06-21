@@ -2,7 +2,7 @@
 from flask import request, redirect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from . import app
+from spaceship import app
 
 # first, apply the proxy fix. this makes us be happy if we're behind
 # a proxy and running over https (e.g., fixes url generation)

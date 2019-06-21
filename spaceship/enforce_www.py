@@ -1,7 +1,7 @@
 
 from flask import request, redirect
 
-from . import app
+from spaceship import app
 
 # if we are on just `spaceshipearth.org` send to `www`
 @app.before_request

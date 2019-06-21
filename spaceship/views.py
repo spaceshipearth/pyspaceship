@@ -1,33 +1,21 @@
 
+import hashlib
+import logging
+import pendulum
+import uuid
+
 from itsdangerous import URLSafeTimedSerializer
 from flask import render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import DatabaseError, IntegrityError
 from urllib.parse import urlparse
 
-from . import app
-from . import email
-from . import names
-from . import achievements
-
-from .db import db
-from .models.user import User
-from .models.team import Team
-from .models.team_user import TeamUser
-from .models.invitation import Invitation
-from .models.goal import Goal
-from .models.mission import Mission
-from .models.mission_goal import MissionGoal
-from .forms.register import Register
-from .forms.create_mission import CreateMissionForm
-from .forms.login import Login
-from .forms.enlist import AcceptInvitation, DeclineInvitation
-from .forms.create_crew import CreateCrew
-
-import hashlib
-import logging
-import pendulum
-import uuid
+from spaceship import app, email, names, achievements
+from spaceship.db import db
+from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission, MissionGoal
+from spaceship.forms import (
+  Register, CreateMissionForm, Login, AcceptInvitation, DeclineInvitation, CreateCrew
+)
 
 logger = logging.getLogger('spaceship.views')
 
