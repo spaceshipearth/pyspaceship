@@ -6,6 +6,8 @@ from spaceship.models.custom_fields import PendulumDateTimeField
 
 class Pledge(db.Model):
   user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+
+  mission_id = db.Column(db.Integer, db.ForeignKey('mission.id'), primary_key=True)
   mission = db.relationship('Mission', backref='pledges')
 
   goal_id = db.Column(db.Integer, db.ForeignKey('goal.id'), primary_key=True)

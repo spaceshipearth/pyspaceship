@@ -10,7 +10,7 @@ class UserAchievement(db.Model):
 
   name = db.Column(db.String(127))
 
-  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
   user = db.relationship('User', backref='achievements')
 
   created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
