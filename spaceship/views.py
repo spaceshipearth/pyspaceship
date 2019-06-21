@@ -151,7 +151,7 @@ def create_mission(team_id):
       return redirect(url_for('crew', team_id=team_id))
 
     # schedule emails
-    emails.schedule_mission_emails(mission)
+    email.schedule_mission_emails(mission)
     return redirect(url_for('crew', team_id=team_id))
 
   return render_template('create_mission.html', create_mission_form=create_mission_form)
