@@ -2,9 +2,8 @@
 from flask import request, flash, redirect, url_for
 from flask_login import LoginManager
 
-from . import app
-
-from .models.user import User
+from spaceship import app
+from spaceship.models import User
 
 login_manager = LoginManager()
 login_manager.init_app(app)

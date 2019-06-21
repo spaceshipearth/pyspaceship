@@ -1,12 +1,10 @@
 import pendulum
-
-from ..db import db
-from .custom_fields import PendulumDateTimeField
-
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
 
-from .mission_goal import MissionGoal
+from spaceship.db import db
+from spaceship.models import MissionGoal
+from spaceship.models.custom_fields import PendulumDateTimeField
 
 class Mission(db.Model):
   id = db.Column(db.Integer, primary_key=True)

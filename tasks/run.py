@@ -1,7 +1,7 @@
 
 from invoke import task, run, Responder
 
-from .utils import ROOT_REPO_DIR, in_repo_root
+from tasks.utils import ROOT_REPO_DIR, in_repo_root
 
 PORT = 9876
 FLASK_ENV = {

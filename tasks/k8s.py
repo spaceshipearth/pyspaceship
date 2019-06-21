@@ -4,7 +4,7 @@ from invoke.exceptions import UnexpectedExit
 
 import json
 
-from .utils import load_manifest, K8SNamespace, TEST_NAMESPACE, random_string
+from tasks.utils import load_manifest, K8SNamespace, TEST_NAMESPACE, random_string
 
 @task(
   help={

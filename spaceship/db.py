@@ -8,7 +8,7 @@ from flask_migrate import Migrate
 from sqlalchemy.exc import DatabaseError
 
 # set up flask-sqlalchemy
-from . import app
+from spaceship import app
 
 # log where we connect
 logger = logging.getLogger('spaceship.db')
@@ -34,6 +34,5 @@ def session_commit(response):
 
   return response
 
-# this happens first so our models inherit from the right thing
-from .models import base
-from .models import *
+# import all models so they can be found by alembic (for migrations)
+import spaceship.models

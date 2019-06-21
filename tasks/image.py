@@ -3,7 +3,7 @@ from invoke.exceptions import Exit
 
 import tempfile
 
-from .utils import load_manifest, in_repo_root, K8SNamespace, TEST_NAMESPACE
+from tasks.utils import load_manifest, in_repo_root, K8SNamespace, TEST_NAMESPACE
 
 REPO = "us.gcr.io"
 PROJECT = "spaceshipearthprod"

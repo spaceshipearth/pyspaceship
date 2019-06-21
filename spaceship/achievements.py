@@ -1,5 +1,5 @@
-from .models.team_achievement import TeamAchievement
-from .models.user_achievement import UserAchievement
+from spaceship.models.team_achievement import TeamAchievement
+from spaceship.models.user_achievement import UserAchievement
 
 kinds = {}
 

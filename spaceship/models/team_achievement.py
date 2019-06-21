@@ -1,8 +1,8 @@
 import pendulum
-
-from ..db import db
-from .custom_fields import PendulumDateTimeField
 from sqlalchemy.ext.hybrid import hybrid_property
+
+from spaceship.db import db
+from spaceship.models.custom_fields import PendulumDateTimeField
 
 class TeamAchievement(db.Model):
   id = db.Column(db.Integer, primary_key=True)
