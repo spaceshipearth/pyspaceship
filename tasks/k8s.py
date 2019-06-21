@@ -1,5 +1,6 @@
 
 from collections import defaultdict
+from hashlib import md5
 from invoke import task, run
 from invoke.exceptions import UnexpectedExit
 
@@ -192,13 +193,16 @@ def redis_secret(ctx, host='10.0.0.3', port=6379, db=None, namespace=TEST_NAMESP
   # limit usage of reserved dbs
   if namespace in REDIS_RESERVED_DB.keys():
     db = REDIS_RESERVED_DB[namespace]
+    print(f"using reserved Redis DB '{db}' for namespace '{namespace}'")
   if db in REDIS_RESERVED_DB.values() and REDIS_RESERVED_DB[namespace] != db:
     raise ValueError(f"namespace {namespace} cannot use reserved DB id {db}")
 
   # come up with a consistent hash from the namespace, exclude reserved values
-  if not db:
-    db = (hash(namespace) % 12) + 1 + max(REDIS_RESERVED_DB.values())
-    print(f"Namespace {namespace} got assigned Redis DB {db} -- this might not be unique!")
+  if db is None:
+    min_available = max(REDIS_RESERVED_DB.values()) + 1
+    namespace_hash = int(md5(namespace.encode('utf-8')).hexdigest(), 16)
+    db = (namespace_hash % 12) + min_available
+    print(f"Namespace '{namespace}' got assigned Redis DB '{db}' -- this might not be unique!")
 
   secret = load_manifest('redis_secret', {
     'host': host,
