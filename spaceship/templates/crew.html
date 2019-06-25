@@ -3,6 +3,52 @@
 
 {% block title %}Crew Nest - {{ super() }}{% endblock %}
 
+
+{% macro render_mission(mission) -%}
+<div class="row">
+
+  <div class="col-sm-2">
+    {% if mission.is_running %}
+        <div style="margin-bottom:0px"> Day {{mission.mission_day}} </div>
+        <div style="font-size:14px; "> of {{ mission.duration_in_days}}</div>
+    {% elif mission.is_upcoming %}
+      <div class="fancy-date mt-1">
+          <div class="fancy-date-month">{{ mission.start_time.format('MMMM') }} </div>
+          <div class="fancy-date-day">{{ mission.start_time.format('Do') }} </div>
+      </div>
+    {% else %}
+      COMPLETED<br/>
+      {{ mission.start_time.format('Do MMMM') }}
+    {% endif %}
+  </div>
+
+  <div class="col-sm-10">
+    <h5 style="margin-bottom: 0px">{{ mission.title }} </h5>
+    <div>{{ mission.short_description }}</div>
+    <div> <span style='font-weight: bold'>Primary Goal</span>: {{mission.primary_goal_str}}</div>
+    {% if mission.is_running %}
+      <!--button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
+          Email the crew
+      </button-->
+    {% elif mission.is_upcoming %}
+      <div> <span style='font-weight: bold'>T-minus</span>: {{mission.days_until_start}} days</div>
+      <div> <span style='font-weight: bold'>Duration</span>: {{mission.duration_in_days}} days</div>
+      <button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
+          Invite moar crew members
+        </button>
+        <button data-mission-id={{mission.id}} type="button" class="btn btn-link mission-cancel">
+          Cancel mission
+        </button>
+    {% else %}
+      <div> <span style='font-weight: bold'>CO2 Saved</span>: {{mission.co2_saved_str}}</div>
+      <a class="btn btn-link" href="{{mission.report_url}}" onclick="alert('Report unavailable')" role="button">View mission report</a>
+    {% endif %}
+
+  </div> 
+</div>
+{%- endmacro %}
+
+
 {% block content %}
 
 {% if team_size < 2 and False %}
@@ -16,13 +62,13 @@
 {% endif %}
 
 <div class="row">
-<h3 class="col">{{ editable_text(text=team.name,
+<h1 class="col">{{ editable_text(text=team.name,
                                  is_editable=is_captain,
                                  popup_title="Edit crew name",
-                                 table="team", id=team.id, field="name") }}</h3>
+                                 table="team", id=team.id, field="name") }}</h1>
 </div>
 
-<div class="row">
+<div class="row" style="display:none">
 <div class="col">
 <p>{{ editable_text(text=team.description,
                     is_editable=is_captain,
@@ -32,53 +78,56 @@
 </p></div>
 </div>
 
+<div>
+    {% if team_size == 1 %}
+    {{ team_size }} crew member
+    {% else %}
+    {{ team_size }} crew members
+    {% endif %}
+</div>
+
+
 <hr/>
 
 <div class="row">
-<div class="col-sm-6">
-<section class="missions">
-  <a name="missions">
-  <h4>Active Missions</h4>
-    {% for mission in missions if mission.is_running %}
-      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
-        <h5>{{ mission.title }} </h5>
-        <p>{{ mission.short_description }}</p>
-        <p>Started on {{ mission.start_time_str }}</p>
-        {% if mission.mission_day > 0 and mission.mission_day < 7 %}
-          Day {{mission.mission_day}} of 7
-        {% endif %}
-      </div>
-    {% else %}
-      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
-        <h5>None yet</h5>
-      </div>
+<div class="col-sm-8">
+<div class="missions">
+
+    {% if running_missions|length %}
+      <h3>Active Mission</h3>
+      {% for mission in running_missions %}
+        {{ render_mission(mission) }}
+
+        {% else %}
+        <div>
+          <h5>None yet</h5>
+        </div>
+      {% endfor %}
+
+      {% endif %}
+    <br/><br/>
+    <h3>Upcoming Missions</h3>
+    {% for mission in upcoming_missions %}
+      {{ render_mission(mission) }}
     {% endfor %}
-  <h4>Upcoming Missions</h4>
-    {% for mission in missions if mission.is_upcoming %}
-      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
-        <h5>{{ mission.title }} </h5>
-        <p>{{ mission.short_description }}</p>
-        <p>Will start on {{ mission.start_time_str }}</p>
-      </div>
-    {% else%}
-      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
-        <h5>None yet</h5>
-      </div>
-    {% endfor %}
-    <a href="{{ url_for('create_mission', team_id=team.id) }}" class="btn btn-primary btn-lg" role="button">Plan a mission</a>
-  <h4>Completed Missions</h4>
-    {% for mission in missions if mission.is_over %}
-      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
-        <h5>{{ mission.title|e }} </h5>
-        <p>{{ mission.short_description|e }}</p>
-        <p>Completed on {{ mission.end_time_str }}</p>
-      </div>
-    {% else %}
-      <div style="border: 1px solid #ccc; padding:20px; margin-bottom:10px">
-        <h5>None yet</h5>
-      </div>
-    {% endfor %}
-</section>
+    {% if not (upcoming_missions|length) %}
+      <a href="{{ url_for('create_mission', team_id=team.id) }}" class="btn btn-primary btn-lg" role="button">Plan a mission</a>
+    {% endif %}
+
+    {% if completed_missions|length %}
+      <br/><br/>
+      <h3>Completed Missions</h3>
+      {% for mission in completed_missions %}
+        {{ render_mission(mission) }}
+      {% else %}
+        <div>
+          <p>None yet</p>
+        </div>
+      {% endfor %}
+    {% endif %}
+    
+</div>
+
 <section>
   <h4>Achievements</h4>
   {% if achievements %}
@@ -93,36 +142,54 @@
 </section>
 </div>
 
-<div class="col-sm-6">
-<section>
-  <h4>Crew Members</h4>
+<div class="col-sm-4">
+  <div style='border: 1px solid #9bc1bc; padding: 1rem'>
+    <h4 style="margin-top: 0px;">Crew</h4>
+    <h6>Captain</h6>    
+    <div>
+        <a href="{{ url_for('profile', user_id=captain.id) }}">
+            <img src="{{ gravatar(captain.email, size=32) }}"  height="32">
+        </a>
+        <span style="font-size:1.25rem; vertical-align:middle;"> {{ captain.name }} </span>
+    </div>
 
-  <table class="table table-borderless">
-    <tbody>
-    {% for user in crew: %}
-      <tr>
-        <td>
-          <a href="{{ url_for('profile', user_id=user.id) }}">
-            <img src="{{ gravatar(user.email, size=48) }}" width="48" height="48">
-          </a>
-        </td>
-        <td style='vertical-align: middle'>{% if user.id == team.captain_id %}
-              {{ user.name }} (Captain)
-            {% else %}
-              {{ user.name }}
-            {% endif %}
-        </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</section>
+    <br/>
+    {% if crew|length %}
+      <h6>Crew Members</h6>    
 
-<section class="invite">
-<a name="invite"></a>
-<h4>Invite Crew</h4>
-{% include 'compose_invite_email.html' %}
-</section>
-</div>
+      {% for user in crew: %}
+            <a href="{{ url_for('profile', user_id=user.id) }}">
+                <img src="{{ gravatar(user.email, size=32) }}"  height="32">
+            </a>
+      {% endfor %}
+    {% endif %}
+    <div style="padding-top:10px">
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#inviteCrewModal">
+          Invite crew members
+      </button>
+    </div>
+
+    <div class="modal" tabindex="-1" role="dialog" id="inviteCrewModal">
+        <div class="modal-dialog modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Invite Crew</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+                {% include 'compose_invite_email.html' %}
+            </div>
+            <div class="modal-footer">
+                <button id="email-send" class="btn btn-primary" data-endpoint="{% block endpoint %}{% endblock %}" data-dismiss="modal">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 {% endblock %}
@@ -145,5 +212,13 @@ function updateSectionHighlight() {
 
 $(window).on('hashchange', updateSectionHighlight);
 $(document).ready(updateSectionHighlight);
+
+$(".mission-cancel").click((e) => {
+  if (confirm("Are you sure?")) {
+    $.post('/mission/'+$(e.target).data('mission-id')+'/cancel').done(() => {
+      window.location.reload();
+    });
+  }
+});
 </script>
 {% endblock %}

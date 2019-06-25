@@ -14,6 +14,7 @@ html {
 body {
   background-color: #e6ebe0;
   margin-bottom: 40px;
+  font-family: 'Titillium Web', sans-serif;
 }
 
 .footer {
@@ -46,6 +47,12 @@ main {
   border-color: #ed604e;
   background-color: #ed6a5a;
 }
+
+.btn-primary:hover {
+  background-color: #C2574A;
+  border-color: #C2574A;
+}
+
 
 .form-box {
   margin-bottom: 16px;
@@ -268,3 +275,23 @@ input[type="date"]::-webkit-clear-button {
    z-index: 1;
 }
 /* End of datetime control cheesery */
+
+.fancy-date {
+  background: white; 
+  border: 1px solid black; 
+  width:40px; height:40px;
+  border-radius: 4px;
+
+}
+.fancy-date-month {
+  font-size:10px; 
+  font-weight: bold; 
+  background:red; 
+  color:white;
+  text-align: center;
+}
+
+.fancy-date-day {
+  font-size:14px;
+  text-align: center;
+}
