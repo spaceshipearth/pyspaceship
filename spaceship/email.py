@@ -15,6 +15,7 @@ def send(to_emails, subject, html_content, from_email='gaia@spaceshipearth.org')
   if not app.config['IN_PRODUCTION']:
     log.info("Sending email:")
     log.info(html_content)
+
   try:
     message = Mail(
       from_email=from_email,
