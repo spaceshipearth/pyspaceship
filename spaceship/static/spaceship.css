@@ -295,3 +295,14 @@ input[type="date"]::-webkit-clear-button {
   font-size:14px;
   text-align: center;
 }
+
+.mission-actions .btn-link:first-child {
+  padding-left: 0px;
+}
+.mission {
+  margin-bottom:20px;
+}
+
+.missions-section + .missions-section  {
+  margin-top: 40px;
+}

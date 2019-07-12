@@ -124,24 +124,25 @@ def confirm_token(token, expiration=3600):
 
 @app.route('/mission/<mission_id>/cancel', methods=['POST'])
 @login_required
-def cancel_mission(mission_id):
+def cancel_mission_ajax(mission_id):
   mission = Mission.query.filter(Mission.id == mission_id).first()
   if not mission:
-    flash({'msg':f'Could not find mission', 'level':'danger'})
-    return redirect(url_for('home'))
+    return jsonify({'error': 'Could not find mission'})
+  
+  if mission.team.captain != current_user:
+    return jsonify({'error': 'Only captains can cancel missions'})
+
   if mission.is_deleted:
-    flash({'msg':f'Mission was already cancelled.', 'level':'danger'})
-    return redirect(url_for('home'))
+    return jsonify({'error': 'Mission was already cancelled'})
 
   try:
     mission.deleted_at = pendulum.now('UTC')
     mission.save()
-  except DatabaseError:
-    flash({'msg':f'Database error', 'level':'danger'})
+  except DatabaseError as e:
+    logger.exception(e)
+    return jsonify({'error': 'Failed to cancel mission'})
 
-  flash({'msg':f'Mission cancelled', 'level':'success'})
   return jsonify({'ok': True})
-
 
 
 
