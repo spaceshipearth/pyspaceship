@@ -104,6 +104,12 @@ If you have `docker-compose` set up, you can bring one up like so:
 $ inv run.mysql
 ```
 
+You can also connect to the mysql client like this:
+```
+$ inv run.mysql-client
+```
+
+
 ### Migrations ###
 
 First, you need to create the migration.

@@ -104,7 +104,6 @@ venv.bak/
 *.sw?
 
 # a sqlite local db
-app.db
 sendgrid.key
 
 # local frameworks for offline testing

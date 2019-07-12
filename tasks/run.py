@@ -8,6 +8,13 @@ FLASK_ENV = {
   'FLASK_APP':'spaceship',
 }
 
+# load sendgrid key if present
+try:
+  file = open("sendgrid.key", "r")
+  FLASK_ENV['SENDGRID_KEY'] = file.readline().strip()
+except:
+  pass
+
 def get_db_manager():
   from spaceship.db import db
   db.connect()
@@ -27,15 +34,8 @@ def flask(ctx, host='localhost', debug=True):
   if debug:
     FLASK_ENV['FLASK_DEBUG'] = '1'
 
-  # load sendgrid key if present
-  try:
-    file = open("sendgrid.key", "r")
-    FLASK_ENV['SENDGRID_KEY'] = file.readline().strip()
-  except:
-    pass
-
   with ctx.cd(ROOT_REPO_DIR):
-    ctx.run(f'flask run -h {host} -p {PORT}', env=FLASK_ENV)
+    ctx.run(f'flask run -h {host} -p {PORT}', env=FLASK_ENV) 
 
 @task
 def shell(ctx):
@@ -67,7 +67,7 @@ def mysql(ctx, stop=False):
 def celery_worker(ctx):
   """run the celery worker"""
   with ctx.cd(ROOT_REPO_DIR):
-    ctx.run(f'celery worker -A spaceship.celery.celery')
+    ctx.run(f'celery worker -A spaceship.celery.celery', env=FLASK_ENV)
 
 @task
 def mysql_client(ctx):
