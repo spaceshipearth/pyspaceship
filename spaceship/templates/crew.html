@@ -5,43 +5,50 @@
 
 
 {% macro render_mission(mission) -%}
-<div class="row">
+<div class="row mission">
 
   <div class="col-sm-2">
     {% if mission.is_running %}
         <div style="margin-bottom:0px"> Day {{mission.mission_day}} </div>
         <div style="font-size:14px; "> of {{ mission.duration_in_days}}</div>
     {% elif mission.is_upcoming %}
-      <div class="fancy-date mt-1">
+      T-MINUS<br/>
+      {{mission.days_until_start}} days
+      <!--div class="fancy-date mt-1">
           <div class="fancy-date-month">{{ mission.start_time.format('MMMM') }} </div>
           <div class="fancy-date-day">{{ mission.start_time.format('Do') }} </div>
-      </div>
+      </div-->
     {% else %}
       COMPLETED<br/>
-      {{ mission.start_time.format('Do MMMM') }}
+      {{ mission.start_time.format('MMMM Do') }}
     {% endif %}
   </div>
 
   <div class="col-sm-10">
     <h5 style="margin-bottom: 0px">{{ mission.title }} </h5>
-    <div>{{ mission.short_description }}</div>
+    <div><span style='font-weight: bold'>Description</span>: {{ mission.short_description }}</div>
     <div> <span style='font-weight: bold'>Primary Goal</span>: {{mission.primary_goal_str}}</div>
     {% if mission.is_running %}
       <!--button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
           Email the crew
       </button-->
     {% elif mission.is_upcoming %}
-      <div> <span style='font-weight: bold'>T-minus</span>: {{mission.days_until_start}} days</div>
+      <div> <span style='font-weight: bold'>Starts on</span>: {{mission.start_time.format('MMMM DO')}}</div>
       <div> <span style='font-weight: bold'>Duration</span>: {{mission.duration_in_days}} days</div>
-      <button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
-          Invite moar crew members
-        </button>
-        <button data-mission-id={{mission.id}} type="button" class="btn btn-link mission-cancel">
-          Cancel mission
-        </button>
+      <div class="mission-actions">
+        <button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
+            Invite more crew members
+          </button>
+          <button data-mission-id={{mission.id}} type="button" class="btn btn-link mission-cancel">
+            Cancel mission
+          </button>
+      </div>
+
     {% else %}
       <div> <span style='font-weight: bold'>CO2 Saved</span>: {{mission.co2_saved_str}}</div>
-      <a class="btn btn-link" href="{{mission.report_url}}" onclick="alert('Report unavailable')" role="button">View mission report</a>
+      <div class="mission-actions">
+        <a class="btn btn-link" href="{{mission.report_url}}" onclick="alert('Report unavailable')" role="button">View mission report</a>
+      </div>
     {% endif %}
 
   </div> 
@@ -93,29 +100,30 @@
 <div class="col-sm-8">
 <div class="missions">
 
-    {% if running_missions|length %}
+  {% if running_missions|length %}
+    <div class="missions-section">
       <h3>Active Mission</h3>
       {% for mission in running_missions %}
         {{ render_mission(mission) }}
-
-        {% else %}
+      {% else %}
         <div>
           <h5>None yet</h5>
         </div>
       {% endfor %}
+    </div>
+  {% endif %}
 
-      {% endif %}
-    <br/><br/>
+  <div class="missions-section">
     <h3>Upcoming Missions</h3>
     {% for mission in upcoming_missions %}
       {{ render_mission(mission) }}
-    {% endfor %}
-    {% if not (upcoming_missions|length) %}
+    {% else %}
       <a href="{{ url_for('create_mission', team_id=team.id) }}" class="btn btn-primary btn-lg" role="button">Plan a mission</a>
-    {% endif %}
-
-    {% if completed_missions|length %}
-      <br/><br/>
+    {% endfor %}
+  </div>
+  
+  {% if completed_missions|length %}
+    <div class="missions-section">
       <h3>Completed Missions</h3>
       {% for mission in completed_missions %}
         {{ render_mission(mission) }}
@@ -124,7 +132,8 @@
           <p>None yet</p>
         </div>
       {% endfor %}
-    {% endif %}
+    </div>
+  {% endif %}
     
 </div>
 
@@ -215,7 +224,10 @@ $(document).ready(updateSectionHighlight);
 
 $(".mission-cancel").click((e) => {
   if (confirm("Are you sure?")) {
-    $.post('/mission/'+$(e.target).data('mission-id')+'/cancel').done(() => {
+    $.post('/mission/'+$(e.target).data('mission-id')+'/cancel').done((json) => {
+      if (json['error']) {
+          alert(json['error']);
+      }
       window.location.reload();
     });
   }
