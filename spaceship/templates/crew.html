@@ -14,10 +14,6 @@
     {% elif mission.is_upcoming %}
       T-MINUS<br/>
       {{mission.days_until_start}} days
-      <!--div class="fancy-date mt-1">
-          <div class="fancy-date-month">{{ mission.start_time.format('MMMM') }} </div>
-          <div class="fancy-date-day">{{ mission.start_time.format('Do') }} </div>
-      </div-->
     {% else %}
       COMPLETED<br/>
       {{ mission.start_time.format('MMMM Do') }}
@@ -26,15 +22,15 @@
 
   <div class="col-sm-10">
     <h5 style="margin-bottom: 0px">{{ mission.title }} </h5>
-    <div><span style='font-weight: bold'>Description</span>: {{ mission.short_description }}</div>
-    <div> <span style='font-weight: bold'>Primary Goal</span>: {{mission.primary_goal_str}}</div>
+    <div><b>Description</b>: {{ mission.short_description }}</div>
+    <div><b>Primary Goal</b>: {{mission.primary_goal_str}}</div>
     {% if mission.is_running %}
       <!--button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
           Email the crew
       </button-->
     {% elif mission.is_upcoming %}
-      <div> <span style='font-weight: bold'>Starts on</span>: {{mission.start_time.format('MMMM DO')}}</div>
-      <div> <span style='font-weight: bold'>Duration</span>: {{mission.duration_in_days}} days</div>
+      <div><b>Starts on</b>: {{mission.start_time.format('MMMM DO')}}</div>
+      <div><b>Duration</b>: {{mission.duration_in_days}} days</div>
       <div class="mission-actions">
         <button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
             Invite more crew members
