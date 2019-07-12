@@ -62,7 +62,9 @@ def send_mission_start(mission_id, planned_start_str):
   # if we got here, we should actually send an email
   emails = [m.email for m in mission.team.members]
   subject = 'Synchronize your watches, the mission begins!'
-  content = render_template('email_mission_start.html', mission=mission)
+
+  with app.app_context():
+    content = render_template('email_mission_start.html', mission=mission)
 
   send(
     to_emails=emails,
@@ -97,7 +99,12 @@ def send_mission_end(mission_id, planned_end_str):
   else:
     next_upcoming = None
 
-  content = render_template('email_mission_end.html', mission=mission, next_upcoming=next_upcoming)
+  with app.app_context():
+    content = render_template(
+      'email_mission_end.html',
+      mission=mission,
+      next_upcoming=next_upcoming,
+    )
 
   send(
     to_emails=emails,
