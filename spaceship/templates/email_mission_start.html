@@ -5,7 +5,7 @@
 
 <p>
 Our mission has now started.
-This mission, which will run for {{ mission.dureation_in_weeks }} weeks, is:
+This mission, which will run for {{ mission.duration_in_weeks }} weeks, is:
 </p>
 
 <div class="card" style="width: 18rem;">
@@ -16,6 +16,7 @@ This mission, which will run for {{ mission.dureation_in_weeks }} weeks, is:
     <p class="card-text">
     {{ goal.short_description }}
     </p>
+    {% endfor %}
   </div>
 </div>
 
