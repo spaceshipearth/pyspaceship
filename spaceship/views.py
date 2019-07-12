@@ -6,6 +6,7 @@ import pendulum
 from itsdangerous import URLSafeTimedSerializer
 from flask import render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_user, logout_user, login_required, current_user
+
 from sqlalchemy.exc import DatabaseError, IntegrityError
 from urllib.parse import urlparse
 
@@ -121,12 +122,43 @@ def confirm_token(token, expiration=3600):
         return False
     return email
 
+@app.route('/mission/<mission_id>/cancel', methods=['POST'])
+@login_required
+def cancel_mission(mission_id):
+  mission = Mission.query.filter(Mission.id == mission_id).first()
+  if not mission:
+    flash({'msg':f'Could not find mission', 'level':'danger'})
+    return redirect(url_for('home'))
+  if mission.is_deleted:
+    flash({'msg':f'Mission was already cancelled.', 'level':'danger'})
+    return redirect(url_for('home'))
+
+  try:
+    mission.deleted_at = pendulum.now('UTC')
+    mission.save()
+  except DatabaseError:
+    flash({'msg':f'Database error', 'level':'danger'})
+
+  flash({'msg':f'Mission cancelled', 'level':'success'})
+  return jsonify({'ok': True})
+
+
+
+
 @app.route('/crew/<team_id>/create-mission', methods=['GET', 'POST'])
 @login_required
 def create_mission(team_id):
   create_mission_form = CreateMissionForm(team_id=team_id)
   if create_mission_form.validate_on_submit():
     try:
+
+      goal_description = create_mission_form.data['goal']
+      goal = Goal(
+        short_description=goal_description,
+        category='diet',
+      )
+      goal.save()
+
       mission = Mission(
         title="Plant based diet",
         short_description="Save the planet by eating more plants",
@@ -134,15 +166,9 @@ def create_mission(team_id):
         started_at=create_mission_form.data['start'],
         team_id=team_id,
       )
-      mission.save()
-
-      goal = Goal(
-        short_description=create_mission_form.data['goal'],
-        category='diet',
-      )
-      goal.save()
-
+      
       mission.goals.append(goal)
+      mission.save()
 
     except (IntegrityError, DatabaseError) as e:
       db.session.rollback()
@@ -251,16 +277,21 @@ def crew(team_id):
   is_captain = team.captain_id == current_user.id
   team_size = len(team.members)
 
-  return render_template(
-    'crew.html',
-    is_captain=is_captain,
-    team=team,
-    team_size=team_size,
-    missions=team.missions,
-    crew=team.members,
-    invite=invite,
-    achievements=achievements.for_team(team),
-  )
+  upcoming_missions = [mission for mission in team.missions if mission.is_upcoming]
+  running_missions = [mission for mission in team.missions if mission.is_running]
+  completed_missions = [mission for mission in team.missions if mission.is_over]
+
+  return render_template('crew.html',
+                         is_captain=is_captain,
+                         team=team,
+                         team_size=team_size,
+                         completed_missions=completed_missions,
+                         running_missions=running_missions,
+                         upcoming_missions=upcoming_missions,
+                         captain=team.captain,
+                         crew=list(filter(lambda x: x.id != team.captain.id,team.members)),
+                         invite=invite,
+                         achievements=achievements.for_team(team))
 
 @app.route('/invite/<team_id>', methods=['POST'])
 def invite(team_id):

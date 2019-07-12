@@ -26,8 +26,22 @@ class Mission(db.Model):
   deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
 
   @property
-  def is_active(self):
-    return self.deleted_at == None
+  def is_deleted(self):
+    return self.deleted_at != None
+
+  @property
+  def days_until_start(self):
+    time_left = self.start_time - pendulum.now('UTC')
+    return time_left.in_days()
+
+  @property
+  def primary_goal_str(self):
+    return self.goals[0].short_description
+
+  @property 
+  def co2_saved_str(self):
+    # todo: pull from DB
+    return '345kg' 
 
   @property
   def start_time_str(self):
@@ -51,13 +65,25 @@ class Mission(db.Model):
   def is_running(self):
     now = pendulum.now('UTC')
     mission_end_time = self.started_at.add(weeks=self.duration_in_weeks)
-    return now < mission_end_time and now >= self.started_at
+    return now < mission_end_time and now >= self.started_at and not self.is_deleted
 
   @property
   def is_upcoming(self):
     now = pendulum.now('UTC')
-    return now < self.started_at
+    return now < self.started_at and not self.is_deleted
+
+  @property
+  def start_time(self):
+    return self.started_at
+
+  @property
+  def end_time(self):
+    return self.started_at.add(weeks=self.duration_in_weeks)
 
   @property
   def mission_day(self):
-    return (pendulum.now('UTC') - self.started_at).in_days()
+    return (pendulum.now('UTC') - self.started_at).in_days() 
+
+  @property
+  def duration_in_days(self):
+    return self.duration_in_weeks * 7
