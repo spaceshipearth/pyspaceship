@@ -1,21 +1,23 @@
 import os
 from invoke import task, run, Responder
 
-from tasks.utils import ROOT_REPO_DIR, in_repo_root
+from tasks.utils import ROOT_REPO_DIR
 
 PORT = 9876
-FLASK_ENV = {
-  'FLASK_APP':'spaceship',
-}
 
-# load sendgrid key if present
-with open(os.path.join(ROOT_REPO_DIR, 'sendgrid.key')) as f:
-  FLASK_ENV['SENDGRID_KEY'] = f.readline().strip()
+def make_flask_env():
+  env = {
+    'FLASK_APP':'spaceship',
+  }
 
-def get_db_manager():
-  from spaceship.db import db
-  db.connect()
-  return DatabaseManager(db)
+  # load sendgrid key if present
+  try:
+    with open(os.path.join(ROOT_REPO_DIR, 'sendgrid.key')) as f:
+      FLASK_ENV['SENDGRID_KEY'] = f.readline().strip()
+  except FileNotFoundError:
+    pass
+
+  return env
 
 @task(
   default=True,
@@ -28,17 +30,18 @@ def flask(ctx, host='localhost', debug=True):
   """Runs the flask web server"""
   print(f"Running Flask on localhost:{PORT}...")
 
+  env = make_flask_env()
   if debug:
-    FLASK_ENV['FLASK_DEBUG'] = '1'
+    env['FLASK_DEBUG'] = '1'
 
   with ctx.cd(ROOT_REPO_DIR):
-    ctx.run(f'flask run -h {host} -p {PORT}', env=FLASK_ENV)
+    ctx.run(f'flask run -h {host} -p {PORT}', env=env)
 
 @task
 def shell(ctx):
   """Run the flask shell"""
   with ctx.cd(ROOT_REPO_DIR):
-    ctx.run(f'flask shell', env=FLASK_ENV, pty=True)
+    ctx.run(f'flask shell', env=make_flask_env(), pty=True)
 
 @task()
 def gunicorn(ctx):
@@ -64,7 +67,7 @@ def mysql(ctx, stop=False):
 def celery_worker(ctx):
   """run the celery worker"""
   with ctx.cd(ROOT_REPO_DIR):
-    ctx.run(f'celery worker -A spaceship.celery.celery', env=FLASK_ENV)
+    ctx.run(f'celery worker -A spaceship.celery.celery', env=make_flask_env())
 
 @task
 def mysql_client(ctx):
@@ -95,16 +98,16 @@ def mysql_client(ctx):
 def prep_migration(ctx, desc):
   """Creates a migration based on changes to model files"""
   with ctx.cd(ROOT_REPO_DIR):
-    run(f'flask db migrate -m "{desc}"', env=FLASK_ENV)
+    run(f'flask db migrate -m "{desc}"', env=make_flask_env())
 
 @task
 def upgrade(ctx):
   """Runs pending migrations"""
   with ctx.cd(ROOT_REPO_DIR):
-    run(f'flask db upgrade', env=FLASK_ENV)
+    run(f'flask db upgrade', env=make_flask_env())
 
 @task
 def downgrade(ctx):
   """Removes the last migration that ran"""
   with ctx.cd(ROOT_REPO_DIR):
-    run(f'flask db downgrade', env=FLASK_ENV)
+    run(f'flask db downgrade', env=make_flask_env())
