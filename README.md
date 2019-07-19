@@ -116,7 +116,7 @@ First, you need to create the migration.
 You can do this through `migration-prep`:
 
 ```
-$ inv run.migration-prep --name "my migration description"
+$ inv run.prep-migration --desc "my migration description"
 ```
 
 This will generate your migration in `migrations/versions`.
