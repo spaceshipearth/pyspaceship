@@ -150,7 +150,6 @@ def cancel_mission_ajax(mission_id):
 @login_required
 def create_mission(team_id):
   goals = list(Goal.query.filter())
-  print (goals[0].short_description)
   create_mission_form = CreateMissionForm(team_id=team_id, goals=goals)
   if create_mission_form.validate_on_submit():
     try:
