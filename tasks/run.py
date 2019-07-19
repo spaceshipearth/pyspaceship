@@ -13,7 +13,7 @@ def make_flask_env():
   # load sendgrid key if present
   try:
     with open(os.path.join(ROOT_REPO_DIR, 'sendgrid.key')) as f:
-      FLASK_ENV['SENDGRID_KEY'] = f.readline().strip()
+      env['SENDGRID_KEY'] = f.readline().strip()
   except FileNotFoundError:
     pass
 
@@ -99,6 +99,17 @@ def prep_migration(ctx, desc):
   """Creates a migration based on changes to model files"""
   with ctx.cd(ROOT_REPO_DIR):
     run(f'flask db migrate -m "{desc}"', env=make_flask_env())
+
+@task(
+  help={
+    'desc': 'Description of the migration',
+  }
+)
+def prep_revision(ctx, desc):
+  """Creates a migration based on changes to model files"""
+  with ctx.cd(ROOT_REPO_DIR):
+    run(f'flask db revision -m "{desc}"', env=make_flask_env())
+
 
 @task
 def upgrade(ctx):
