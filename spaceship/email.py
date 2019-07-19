@@ -1,5 +1,6 @@
 import logging
 from flask import render_template
+import html2text
 import pendulum
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -16,12 +17,17 @@ def send(to_emails, subject, html_content, from_email='hello@spaceshipearth.org'
     log.info("Sending email:")
     log.info(html_content)
 
+  # create the message
+  message = Mail(
+    from_email=from_email,
+    to_emails=to_emails,
+    subject=subject,
+    plain_text_content=html2text.html2text(html_content),
+    html_content=html_content,
+  )
+
+  # actually send it
   try:
-    message = Mail(
-      from_email=from_email,
-      to_emails=to_emails,
-      subject=subject,
-      html_content=html_content)
     sg = SendGridAPIClient(app.config['SENDGRID_KEY'])
     response = sg.send(message)
   except Exception as e:
