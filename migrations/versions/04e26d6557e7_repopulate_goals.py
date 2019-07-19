@@ -21,7 +21,7 @@ def upgrade():
     op.execute("DELETE FROM mission_goal")
     op.execute("DELETE FROM goal")
     op.execute("INSERT INTO goal values(1, 'Eat no beef for the duration of the mission.', 'diet', null, null)")
-    op.execute("INSERT INTO goal values(2, 'Eat vegeterian food exclusively.', 'diet', null, null)")
+    op.execute("INSERT INTO goal values(2, 'Eat vegetarian food exclusively.', 'diet', null, null)")
     op.execute("INSERT INTO goal values(3, 'Eat vegan food exclusively.', 'diet', null, null)")
 
 
