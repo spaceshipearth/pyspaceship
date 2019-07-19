@@ -187,7 +187,7 @@
                 {% include 'compose_invite_email.html' %}
             </div>
             <div class="modal-footer">
-                <button id="email-send" class="btn btn-primary" data-endpoint="{% block endpoint %}{% endblock %}" data-dismiss="modal">Send</button>
+                <button id="email-send" class="btn btn-primary" data-endpoint="/invite/{{ team.id }}" data-dismiss="modal">Send</button>
             </div>
           </div>
         </div>
