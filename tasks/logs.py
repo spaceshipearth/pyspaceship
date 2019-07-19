@@ -41,24 +41,9 @@ def lb(ctx, namespace, freshness='1h', agent=False):
     except Exception as e:
       print(f"Invalid log line {line}: {e}")
 
-@task(
-  default=True,
-  help={
-    'freshness': 'Interval over which to look at logs (default: "1h")',
-    'namespace': 'Version of the site to view logs for',
-  }
-)
-def container(ctx, namespace, freshness='1h'):
-  """Logs from our containers"""
-  log_filter = ' AND '.join([
-    'resource.type=container',
-    f'resource.labels.namespace_id={namespace}',
-    'resource.labels.container_name=pyspaceship',
-  ])
-
-  cmd = f'gcloud logging read "{log_filter}" --format json --freshness {freshness}'
-
-  output = json.loads(run(cmd, hide=True).stdout)
+def print_container_lines(gcloud_cmd):
+  """print the lines returned from the given gcloud cmd"""
+  output = json.loads(run(gcloud_cmd, hide=True).stdout)
   for line in output[::-1]:
     try:
       # skip health checks
@@ -83,3 +68,40 @@ def container(ctx, namespace, freshness='1h'):
       print(" ".join(parts))
     except Exception as e:
       print(f"Invalid log line {line}: {e}")
+
+@task(
+  default=True,
+  help={
+    'freshness': 'Interval over which to look at logs (default: "1h")',
+    'namespace': 'Version of the site to view logs for',
+  }
+)
+def web(ctx, namespace, freshness='1h'):
+  """Logs from our containers"""
+  log_filter = ' AND '.join([
+    'resource.type=container',
+    f'resource.labels.namespace_id={namespace}',
+    'resource.labels.container_name=pyspaceship-web',
+  ])
+
+  print_container_lines(
+    f'gcloud logging read "{log_filter}" --format json --freshness {freshness}'
+  )
+
+@task(
+  help={
+    'freshness': 'Interval over which to look at logs (default: "1h")',
+    'namespace': 'Version of the site to view logs for',
+  }
+)
+def worker(ctx, namespace, freshness='1h'):
+  """Logs from our containers"""
+  log_filter = ' AND '.join([
+    'resource.type=container',
+    f'resource.labels.namespace_id={namespace}',
+    'resource.labels.container_name=pyspaceship-worker',
+  ])
+
+  print_container_lines(
+    f'gcloud logging read "{log_filter}" --format json --freshness {freshness}'
+  )
