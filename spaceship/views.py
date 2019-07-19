@@ -149,16 +149,13 @@ def cancel_mission_ajax(mission_id):
 @app.route('/crew/<team_id>/create-mission', methods=['GET', 'POST'])
 @login_required
 def create_mission(team_id):
-  create_mission_form = CreateMissionForm(team_id=team_id)
+  goals = list(Goal.query.filter())
+  print (goals[0].short_description)
+  create_mission_form = CreateMissionForm(team_id=team_id, goals=goals)
   if create_mission_form.validate_on_submit():
     try:
-
-      goal_description = create_mission_form.data['goal']
-      goal = Goal(
-        short_description=goal_description,
-        category='diet',
-      )
-      goal.save()
+      goal_id = create_mission_form.data['goal']
+      goal = Goal.query.get(goal_id)
 
       mission = Mission(
         title="Plant based diet",
