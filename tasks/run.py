@@ -1,4 +1,4 @@
-
+import os
 from invoke import task, run, Responder
 
 from tasks.utils import ROOT_REPO_DIR, in_repo_root
@@ -9,11 +9,8 @@ FLASK_ENV = {
 }
 
 # load sendgrid key if present
-try:
-  file = open("sendgrid.key", "r")
-  FLASK_ENV['SENDGRID_KEY'] = file.readline().strip()
-except:
-  pass
+with open(os.path.join(ROOT_REPO_DIR, 'sendgrid.key')) as f:
+  FLASK_ENV['SENDGRID_KEY'] = f.readline().strip()
 
 def get_db_manager():
   from spaceship.db import db
@@ -35,7 +32,7 @@ def flask(ctx, host='localhost', debug=True):
     FLASK_ENV['FLASK_DEBUG'] = '1'
 
   with ctx.cd(ROOT_REPO_DIR):
-    ctx.run(f'flask run -h {host} -p {PORT}', env=FLASK_ENV) 
+    ctx.run(f'flask run -h {host} -p {PORT}', env=FLASK_ENV)
 
 @task
 def shell(ctx):
