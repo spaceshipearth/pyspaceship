@@ -23,7 +23,7 @@
 
 <section>
 <div class="row">
-  <div class="col">Joined {{ user.created_at }}</div>
+  <div class="col">Joined {{ user.created_at.diff_for_humans() }}</div>
 </div>
 </section>
 
