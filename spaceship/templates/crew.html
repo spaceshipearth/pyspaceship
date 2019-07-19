@@ -174,25 +174,7 @@
       </button>
     </div>
 
-    <div class="modal" tabindex="-1" role="dialog" id="inviteCrewModal">
-        <div class="modal-dialog modal-lg" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Invite Crew</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
-                {% include 'compose_invite_email.html' %}
-            </div>
-            <div class="modal-footer">
-                <button id="email-send" class="btn btn-primary" data-endpoint="/invite/{{ team.id }}" data-dismiss="modal">Send</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    {% include 'compose_invite_email.html' %}
   </div>
 
 </div>
