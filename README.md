@@ -91,9 +91,20 @@ $ inv run.gunicorn
 
 The site will be accessible on localhost port 9876 (it's a countdown!).
 
+The full sequence of commands to start running a local version of the site:
+```
+inv run.mysql
+inv run.upgrade
+inv run.flask
+```
+
 ## Sending email locally ## 
 
-Create a file called sendgrid.key and place the sendgrid secret inside on a single line by itself
+Create a file called sendgrid.key and place the sendgrid secret inside on a single line by itself.
+You should also run
+```
+$ inv run.celery-worker
+```
 
 ## MySQL ##
 
