@@ -6,7 +6,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
 from spaceship import app
-from spaceship.celery import celery
+from spaceship.celery import celery, SqlAlchemyTask
 from spaceship.models import Mission
 
 log = logging.getLogger('spaceship.email')
@@ -48,7 +48,7 @@ def schedule_mission_emails(mission):
     expires=mission.end_time.add(days=1),    # don't bother sending past a day late
   )
 
-@celery.task
+@celery.task(base=SqlAlchemyTask)
 def send_mission_start(mission_id, planned_start_str):
   mission = Mission.query.get(mission_id)
   planned_start = pendulum.parse(planned_start_str)
@@ -79,7 +79,7 @@ def send_mission_start(mission_id, planned_start_str):
     html_content=content,
   )
 
-@celery.task
+@celery.task(base=SqlAlchemyTask)
 def send_mission_end(mission_id, planned_end_str):
   mission = Mission.query.get(mission_id)
   planned_end = pendulum.parse(planned_end_str)
