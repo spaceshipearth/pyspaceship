@@ -1,6 +1,4 @@
 
-<h1>LOGO</h1>
-
 <h3>Hi Team {{ mission.team.name }}!</h3>
 
 <p>
@@ -8,20 +6,17 @@ Our mission has now started.
 This mission, which will run for {{ mission.duration_in_weeks }} weeks, is:
 </p>
 
-<div class="card" style="width: 18rem;">
-  <div class="card-body">
-    <h5 class="card-title">{{ mission.title }}</h5>
-    <h6 class="card-subtitle mb-2 text-muted">{{ mission.short_description }}</h6>
-    {% for goal in mission.goals %}
-    <p class="card-text">
-    {{ goal.short_description }}
-    </p>
-    {% endfor %}
-  </div>
-</div>
+<h3>{{ mission.short_description }}</h3>
+
+{% for goal in mission.goals %}
+<p>
+{{ goal.short_description }}
+</p>
+{% endfor %}
 
 <p>
-Definitely share your accomplishments with your crew, and reach out to crewmates and the captain if you need support.
+Definitely share your accomplishments with your crew.
+Reach out to crewmates and the captain if you need support.
 Do the best you can!
 <p>
 
