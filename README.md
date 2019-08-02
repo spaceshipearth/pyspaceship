@@ -93,6 +93,8 @@ The site will be accessible on localhost port 9876 (it's a countdown!).
 
 The full sequence of commands to start running a local version of the site:
 ```
+workon pyspaceship
+pip install -r requirements.txt
 inv run.mysql
 inv run.upgrade
 inv run.flask
