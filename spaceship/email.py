@@ -84,7 +84,7 @@ def send_mission_end(mission_id, planned_end_str):
   mission = Mission.query.get(mission_id)
   planned_end = pendulum.parse(planned_end_str)
 
-  if not (mission and mission.is_active):
+  if not mission or mission.is_deleted:
     log.warning(f'not sending mission end email for inactive mission {mission_id}')
     return
 
