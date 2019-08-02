@@ -473,7 +473,7 @@ def accept_invitation(invitation, user):
     to_emails=[captain.email],
     subject='Your crew is growing!',
     html_content=render_template('crew_growing_email.html',
-      team_id=invitation.team,
+      team=invitation.team,
       name=user.name, _external=True))
 
 @app.route('/logout')

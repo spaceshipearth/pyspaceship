@@ -35,9 +35,11 @@
         <button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
             Invite more crew members
           </button>
-          <button data-mission-id={{mission.id}} type="button" class="btn btn-link mission-cancel">
-            Cancel mission
-          </button>
+          {% if is_captain %}
+            <button data-mission-id={{mission.id}} type="button" class="btn btn-link mission-cancel">
+              Cancel mission
+            </button>
+          {% endif %}
       </div>
 
     {% else %}
