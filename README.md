@@ -105,7 +105,7 @@ inv run.flask
 Create a file called sendgrid.key and place the sendgrid secret inside on a single line by itself.
 You should also run
 ```
-$ inv run.celery-worker
+$ inv run.worker
 ```
 
 ## MySQL ##
