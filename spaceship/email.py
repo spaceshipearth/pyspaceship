@@ -27,12 +27,8 @@ def send(to_emails, subject, html_content, from_email='hello@spaceshipearth.org'
   )
 
   # actually send it
-  try:
-    sg = SendGridAPIClient(app.config['SENDGRID_KEY'])
-    response = sg.send(message)
-  except Exception as e:
-    # TODO: instrument send failures
-    log.error('Unhandled exception sending email: %s', e)
+  sg = SendGridAPIClient(app.config['SENDGRID_KEY'])
+  response = sg.send(message)
 
 def schedule_mission_emails(mission):
   """sets mission start/end emails to be sent at the correct time"""
