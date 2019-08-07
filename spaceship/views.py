@@ -264,9 +264,11 @@ def register():
 
     if not email_confirmed:
       token = generate_confirmation_token(email_address)
-      email.send.delay(to_emails=email_address,
-          subject='Please verify your email for Spaceship Earth',
-          html_content=render_template('confirm_email.html',
+      email.send.delay(
+        to_emails=email_address,
+        subject='Please verify your email for Spaceship Earth',
+        html_content=render_template(
+          'confirm_email.html',
           confirmation_url=url_for('confirm_email', token=token, _external=True)))
 
     return redirect_for_logged_in()
