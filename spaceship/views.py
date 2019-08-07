@@ -128,7 +128,7 @@ def cancel_mission_ajax(mission_id):
   mission = Mission.query.filter(Mission.id == mission_id).first()
   if not mission:
     return jsonify({'error': 'Could not find mission'})
-  
+
   if mission.team.captain != current_user:
     return jsonify({'error': 'Only captains can cancel missions'})
 
@@ -163,7 +163,7 @@ def create_mission(team_id):
         started_at=create_mission_form.data['start'],
         team_id=team_id,
       )
-      
+
       mission.goals.append(goal)
       mission.save()
 
@@ -226,9 +226,11 @@ def register():
 
     if not email_confirmed:
       token = generate_confirmation_token(email_address)
-      email.send.delay(to_emails=email_address,
-          subject='Please verify your email for Spaceship Earth',
-          html_content=render_template('confirm_email.html',
+      email.send.delay(
+        to_emails=email_address,
+        subject='Please verify your email for Spaceship Earth',
+        html_content=render_template(
+          'confirm_email.html',
           confirmation_url=url_for('confirm_email', token=token, _external=True)))
 
     return redirect_for_logged_in()

@@ -1,9 +1,10 @@
 import redis
 
-from . import app
+from spaceship.config import Config
 
 store = redis.Redis(
-  host=app.config['REDIS_HOST'],
-  port=app.config['REDIS_PORT'],
-  db=app.config['REDIS_DB'],
+  host=Config.REDIS_HOST,
+  port=Config.REDIS_PORT,
+  db=Config.REDIS_DB,
+  decode_responses=True,
 )

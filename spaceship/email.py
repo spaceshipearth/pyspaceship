@@ -6,12 +6,12 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
 from spaceship import app
-from spaceship.celery import celery, SqlAlchemyTask
 from spaceship.models import Mission
+from spaceship.tasktiger import tiger
 
 log = logging.getLogger('spaceship.email')
 
-@celery.task
+@tiger.task
 def send(to_emails, subject, html_content, from_email='hello@spaceshipearth.org'):
   if not app.config['IN_PRODUCTION']:
     log.info("Sending email:")
@@ -36,19 +36,19 @@ def send(to_emails, subject, html_content, from_email='hello@spaceshipearth.org'
 
 def schedule_mission_emails(mission):
   """sets mission start/end emails to be sent at the correct time"""
-  send_mission_start.apply_async(
+  tiger.delay(
+    send_mission_start,
     args=(mission.id, mission.started_at.isoformat()),
-    eta=mission.started_at,
-    expires=mission.started_at.add(days=1),  # don't bother sending past a day late
+    when=mission.started_at,
   )
 
-  send_mission_end.apply_async(
+  tiger.delay(
+    send_mission_end,
     args=(mission.id, mission.end_time.isoformat()),
-    eta=mission.end_time,
-    expires=mission.end_time.add(days=1),    # don't bother sending past a day late
+    when=mission.end_time,
   )
 
-@celery.task(base=SqlAlchemyTask)
+@tiger.task
 def send_mission_start(mission_id, planned_start_str):
   mission = Mission.query.get(mission_id)
   planned_start = pendulum.parse(planned_start_str)
@@ -79,7 +79,7 @@ def send_mission_start(mission_id, planned_start_str):
     html_content=content,
   )
 
-@celery.task(base=SqlAlchemyTask)
+@tiger.task
 def send_mission_end(mission_id, planned_end_str):
   mission = Mission.query.get(mission_id)
   planned_end = pendulum.parse(planned_end_str)
