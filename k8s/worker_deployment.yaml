@@ -19,7 +19,7 @@ spec:
       containers:
       - name: pyspaceship-worker
         image: {$eval: image}
-        args: ["run.celery-worker"]
+        args: ["run.worker"]
         imagePullPolicy: "Always"
         env: {$eval: container_environment}
         volumeMounts:

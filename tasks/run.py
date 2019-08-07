@@ -64,8 +64,8 @@ def mysql(ctx, stop=False):
     run('docker-compose up -d')
 
 @task
-def celery_worker(ctx):
-  """run the celery worker"""
+def worker(ctx):
+  """run the worker"""
   with ctx.cd(ROOT_REPO_DIR):
     ctx.run(f'celery worker -A spaceship.celery.celery', env=make_flask_env())
 
