@@ -1,0 +1,22 @@
+{% extends 'compose_email.html' %}
+
+{% block emailModal %}emailCrewModal{% endblock %}
+{% block emailModalTitle %}Message your crew{% endblock %}
+{% block emailAddresses %}
+{% for m in crew %}{{m.email}}{% if not loop.last %} {% endif %}{% endfor %}
+{% endblock %}
+{% block endpoint %}/email_update/{{ team.id }}{% endblock %}
+{% block subject %}Updates from your Spaceship Earth crew{% endblock %}
+
+{% block message %}
+<p>Hi {{ team.name }} Crew,</p>
+<p><br></p>
+<p>I've just planned a new mission for us!</p>
+<p><br></p>
+{% for mission in upcoming_missions %}
+<p>Our upcoming mission is "{{ mission.short_description }}" and will run
+from {{ mission.start_time_str }} to {{ mission.end_time_str }}.</p>
+{% endfor %}
+<p><br></p>
+<p>Thanks,<br>{{ current_user.name }}</p>
+{% endblock %}

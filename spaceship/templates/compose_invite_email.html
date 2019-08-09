@@ -1,5 +1,8 @@
 {% extends 'compose_email.html' %}
 
+{% block emailModal %}inviteCrewModal{% endblock %}
+{% block emailModalTitle %}Invite new crew members{% endblock %}
+{% block emailAddresses %}bob@example.com mary@example.com {% endblock %}
 {% block endpoint %}/invite/{{ team.id }}{% endblock %}
 {% block subject %}Join my Spaceship Earth crew!{% endblock %}
 
@@ -19,7 +22,7 @@ organized around missions that help the planet by reducing our carbon footprint
 and resource use through behavior changes around diet, transportation, and
 public policy.
 <p><br></p>
-{% for mission in missions if mission.is_upcoming %}
+{% for mission in upcoming_missions %}
 <p>Please click the link below to join my team and sign up for the first
 mission! Our first mission is "{{ mission.short_description }}" and will run
 from {{ mission.start_time_str }} to {{ mission.end_time_str }}.</p>

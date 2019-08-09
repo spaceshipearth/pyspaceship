@@ -31,15 +31,18 @@
     {% elif mission.is_upcoming %}
       <div><b>Starts on</b>: {{mission.start_time.format('MMMM Do')}}</div>
       <div><b>Duration</b>: {{mission.duration_in_days}} days</div>
-      <div class="mission-actions">
-        <button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
+      <div class="mission-actions"> 
+          <button type="button" class="btn btn-link " data-toggle="modal" data-target="#emailCrewModal">
+            Message your crew
+          </button>        
+          <button type="button" class="btn btn-link " data-toggle="modal" data-target="#inviteCrewModal">
             Invite more crew members
+        </button>
+        {% if is_captain %}
+          <button data-mission-id={{mission.id}} type="button" class="btn btn-link mission-cancel">
+            Cancel mission
           </button>
-          {% if is_captain %}
-            <button data-mission-id={{mission.id}} type="button" class="btn btn-link mission-cancel">
-              Cancel mission
-            </button>
-          {% endif %}
+        {% endif %}
       </div>
 
     {% else %}
@@ -163,7 +166,6 @@
     <br/>
     {% if crew|length %}
       <h6>Crew Members</h6>    
-
       {% for user in crew: %}
             <a href="{{ url_for('profile', user_id=user.id) }}">
                 <img src="{{ gravatar(user.email, size=32) }}"  height="32">
@@ -177,6 +179,8 @@
     </div>
 
     {% include 'compose_invite_email.html' %}
+    {% include 'compose_update_email.html' %}
+
   </div>
 
 </div>

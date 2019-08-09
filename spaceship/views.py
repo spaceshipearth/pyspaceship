@@ -292,6 +292,36 @@ def crew(team_id):
                          invite=invite,
                          achievements=achievements.for_team(team))
 
+@app.route('/email_update/<team_id>', methods=['POST'])
+def email_update(team_id):
+  if not current_user:
+    return jsonify({'error': 'Must be logged in.'})
+  team = get_team_if_member(team_id)
+  if not team:
+    return jsonify({'error': 'Must be a member of team.'})
+
+  subject = request.form.get('subject', '')
+  if not subject:
+    return jsonify({'error': 'Subject cannot be blank.'})
+  message = request.form.get('message', '')
+  # quilljs needs <p><br></p> to show line breaks even though everything is in a paragraph
+  # this creates extra line breaks in gmail so just strip it out
+  message = message.replace('<p><br></p>', '')
+  emails = request.form.get('emails', '').split()
+  if not emails:
+    return jsonify({'error': 'Need at least one email in To: line.'})
+  try:
+    for crew_email in emails:
+      email.send.delay(
+        to_emails=crew_email,
+        subject=subject,
+        html_content=html_content,
+      )
+  except:
+    return jsonify({'error': 'Error sending invitations.'})
+
+  return jsonify({'ok': True})
+
 @app.route('/invite/<team_id>', methods=['POST'])
 def invite(team_id):
   if not current_user:
