@@ -59,7 +59,7 @@ main {
 }
 
 .splash-page {
-  background: #000 url(/static/earth.jpg) center bottom no-repeat;
+  background: #000 url(/static/earth.jpg) center center no-repeat;
   background-size: 100vw;
 }
 
