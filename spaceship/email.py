@@ -2,7 +2,6 @@ import logging
 from flask import render_template
 import html2text
 import pendulum
-
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
