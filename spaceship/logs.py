@@ -7,20 +7,19 @@ from spaceship.config import Config
 # from: https://cloud.google.com/logging/docs/setup/python
 if Config.IN_PRODUCTION:
   client = google.cloud.logging.Client()
-  client.setup_logging()
+  client.setup_logging(log_level=logging.INFO)
 
-  # set gunicorn logging to what google set up
-  root = logging.getLogger()
-  google_handlers = root.handlers
+# set log level on the root logger
+root = logging.getLogger()
+root.setLevel(logging.INFO)
 
+# in production, set gunicorn handlers to what google provided
+if Config.IN_PRODUCTION:
   gunicorn_logger = logging.getLogger('gunicorn.error')
-  gunicorn_logger.handlers = google_handlers
+  gunicorn_logger.handlers = root.handlers
 
 # if google logging is not available, set up our own (to stdout)
 else:
-  root = logging.getLogger()
-  root.setLevel(logging.INFO)
-
   # send output to stdout
   handler = logging.StreamHandler()
   root.addHandler(handler)
