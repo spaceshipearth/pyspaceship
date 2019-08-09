@@ -1,5 +1,6 @@
 .git
 __pycache__/
 *.sw?
+sendgrid.key
 spaceship/static/.webassets-cache
 spaceship/static/gen
