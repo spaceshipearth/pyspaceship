@@ -1,6 +1,7 @@
 
 import logging
 import pendulum
+import structlog
 import tasktiger
 
 from spaceship import logs
@@ -33,3 +34,6 @@ tiger = tasktiger.TaskTiger(
     "STORE_TRACEBACKS": False,
   },
 )
+
+tiger_logger = logging.getLogger("tiger")
+tiger.log = structlog.wrap_logger(tiger_logger)
