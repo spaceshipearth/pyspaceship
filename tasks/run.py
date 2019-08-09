@@ -66,6 +66,10 @@ def mysql(ctx, stop=False):
 @task
 def worker(ctx):
   """run the worker"""
+  env = make_flask_env()
+  for key in env:
+    os.environ[key] = env[key]
+
   with ctx.cd(ROOT_REPO_DIR):
     from spaceship.tasktiger import tiger
     tiger.run_worker()
