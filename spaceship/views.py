@@ -12,9 +12,10 @@ from urllib.parse import urlparse
 
 from spaceship import app, email, names, achievements
 from spaceship.db import db
-from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission
+from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission, SurveyAnswer
 from spaceship.forms import (
-  Register, CreateMissionForm, Login, AcceptInvitation, DeclineInvitation, CreateCrew
+  Register, CreateMissionForm, Login, AcceptInvitation,
+  DeclineInvitation, CreateCrew, DietSurvey
 )
 
 logger = logging.getLogger('spaceship.views')
@@ -128,7 +129,7 @@ def cancel_mission_ajax(mission_id):
   mission = Mission.query.filter(Mission.id == mission_id).first()
   if not mission:
     return jsonify({'error': 'Could not find mission'})
-  
+
   if mission.team.captain != current_user:
     return jsonify({'error': 'Only captains can cancel missions'})
 
@@ -144,7 +145,44 @@ def cancel_mission_ajax(mission_id):
 
   return jsonify({'ok': True})
 
+MISSION_SURVEYS = {
+  'diet': DietSurvey
+}
+@app.route('/mission/<mission_id>/debrief', methods=['GET', 'POST'])
+def debrief(mission_id):
+  mission = Mission.query.filter(Mission.id == mission_id).first()
+  team_ids = map(lambda t: t.id, current_user.teams)
+  if mission.team_id not in team_ids:
+    raise ValueError('Unauthorized')
 
+  survey = MISSION_SURVEYS[mission.goals[0].category]()
+  if survey.validate_on_submit():
+    objects = []
+    for field in survey:
+      if field.name in ['submit', 'csrf_token']:
+        continue
+      objects.append(
+        SurveyAnswer(
+            answer=survey.data[field.name],
+            mission_id=mission_id,
+            question_id=field.name,
+            survey_version=1,
+            user_id=current_user.id))
+    db.session.bulk_save_objects(objects)
+    return redirect(url_for('report', mission_id=mission_id))
+  else:
+    return render_template('eval.html', form=survey, mission=mission)
+{}
+@app.route('/mission/<mission_id>/report', methods=['GET', 'POST'])
+def report(mission_id):
+  mission = Mission.query.filter(Mission.id == mission_id).first()
+  team_ids = map(lambda t: t.id, current_user.teams)
+  if mission.team_id not in team_ids:
+    raise ValueError('Unauthorized')
+
+  survey = MISSION_SURVEYS[mission.goals[0].category]()
+  answers = list(SurveyAnswer.query.filter(SurveyAnswer.mission_id == mission_id))
+  return render_template('report.html', form=survey, answers=answers, team_id=mission.team_id, mission=mission)
 
 @app.route('/crew/<team_id>/create-mission', methods=['GET', 'POST'])
 @login_required
@@ -163,7 +201,7 @@ def create_mission(team_id):
         started_at=create_mission_form.data['start'],
         team_id=team_id,
       )
-      
+
       mission.goals.append(goal)
       mission.save()
 
@@ -174,7 +212,7 @@ def create_mission(team_id):
       return redirect(url_for('crew', team_id=team_id))
 
     # schedule emails
-    email.schedule_mission_emails(mission)
+    #email.schedule_mission_emails(mission)
     return redirect(url_for('crew', team_id=team_id))
 
   return render_template('create_mission.html', create_mission_form=create_mission_form)

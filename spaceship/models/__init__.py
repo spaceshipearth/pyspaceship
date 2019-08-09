@@ -16,3 +16,4 @@ from spaceship.models.user_achievement import UserAchievement
 from spaceship.models.team import Team
 from spaceship.models.mission import Mission
 from spaceship.models.user import User
+from spaceship.models.survey_answer import SurveyAnswer

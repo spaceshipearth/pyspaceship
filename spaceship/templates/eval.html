@@ -1,0 +1,14 @@
+{% extends "base.html" %} {% block title %} Mission Debrief - {{ super() }} {%
+endblock %} {% block content %}
+
+<h4>{{ mission.title }}</h4>
+
+<form method="post" class="needs-validation" novalidate>
+  {% set form = form %} {% include 'form_fields.html' %}
+</form>
+
+{% endblock %} {% block scripts %}
+{{ super() }}
+<script></script>
+
+{% endblock %}

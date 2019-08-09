@@ -16,6 +16,6 @@ class TeamUser(db.Model):
   deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
 
   @hybrid_property
-  def is_active(self):
+  def is_deleted(self):
     return self.deleted_at == None
 
