@@ -1,25 +1,33 @@
 $(document).ready(function() {
-  if ($('#email-editor').length) {
-    new Quill('#email-editor', {theme: 'snow'});
-    $('#email-send').click(function() {
-      var endpoint = $('#email-send').data('endpoint');
-      var emails = $('#emails').val();
-      if (!$('#subject').val().length) {
-        $('#subject').val($('#subject').data('default'));
+  $(".email-composer").each((i, composer) => {
+    const editor = $(composer).find(".email-editor")[0];
+    console.log(editor);
+    new Quill(editor, { theme: "snow" });
+    const sendButton = $(composer).find(".email-send");
+    sendButton.click(function() {
+      var endpoint = sendButton.data("endpoint");
+      var emails = $(composer)
+        .find(".email-to-addresses")
+        .val();
+      const subjectField = $(composer).find(".email-subject");
+      if (!subjectField.val().length) {
+        subjectField.val(subjectField.data("default"));
       }
-      var subject = $('#subject').val();
-      var message = $('#email-editor .ql-editor').html();
+      var subject = subjectField.val();
+      var message = $(composer)
+        .find(".email-editor .ql-editor")
+        .html();
       $.post(endpoint, {
-        'emails': emails,
-        'subject': subject,
-        'message': message
+        emails: emails,
+        subject: subject,
+        message: message
       }).done(function(json) {
-        if (json['error']) {
-          alert(json['error']);
+        if (json["error"]) {
+          alert(json["error"]);
         } else {
-          alert('Email sent!');
+          alert("Email sent!");
         }
       });
     });
-  }
+  });
 });

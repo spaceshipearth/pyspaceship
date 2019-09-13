@@ -1,4 +1,4 @@
-<div class="modal" tabindex="-1" role="dialog" id="{% block emailModal %}{% endblock %}" >
+<div class="modal email-composer" tabindex="-1" role="dialog" id="{% block emailModal %}{% endblock %}" >
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -10,27 +10,25 @@
       <div class="modal-body">
         <div class="input-group">
           <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon1">To:</span>
+            <span class="input-group-text">To:</span>
           </div>
           <input type="text"
             placeholder="{% block emailAddresses %}{% endblock %}"
-            class="form-control"
-            id="emails">
-      
+            class="form-control email-to-addresses">
         </div>
         <small class="text-muted">Enter one or more emails separated by spaces.</small>
-      
+
         <div class="input-group mt-1 mb-2">
             <div class="input-group-prepend">
-              <span class="input-group-text" id="basic-addon1">Subject:</span>
+              <span class="input-group-text">Subject:</span>
             </div>
-            <input id="subject"
+            <input
             type="text"
             value="{% block subject %}{% endblock %}"
             data-default="{{ self.subject() }}"
-            class="form-control">
+            class="form-control email-subject">
         </div>
-      
+
         <style>
         .email-editor {
           background: #fff;
@@ -40,16 +38,16 @@
           background: #efefef;
         }
         </style>
-      
-        <div id="email-editor" class="email-editor">
+
+        <div class="email-editor">
         {% block message %}{% endblock %}
         </div>
-      
+
         <br>
 
       </div>
       <div class="modal-footer">
-          <button id="email-send" class="btn btn-primary" data-endpoint="{% block endpoint %}{% endblock %}" data-dismiss="modal">Send</button>
+          <button class="btn btn-primary email-send" data-endpoint="{% block endpoint %}{% endblock %}" data-dismiss="modal">Send</button>
       </div>
     </div>
   </div>

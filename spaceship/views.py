@@ -315,7 +315,7 @@ def email_update(team_id):
       email.send.delay(
         to_emails=crew_email,
         subject=subject,
-        html_content=html_content,
+        html_content=message,
       )
   except:
     return jsonify({'error': 'Error sending invitations.'})
