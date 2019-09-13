@@ -12,7 +12,7 @@ from spaceship.tasktiger import tiger
 log = logging.getLogger('spaceship.email')
 
 @tiger.task
-def send(to_emails, subject, html_content, from_email='hello@spaceshipearth.org'):
+def send(to_emails, subject, html_content, from_email='Spaceship Earth <hello@spaceshipearth.org>'):
   if not app.config['IN_PRODUCTION']:
     log.info("Sending email:")
     log.info(html_content)
