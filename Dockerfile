@@ -1,7 +1,7 @@
 FROM python:3.7-slim-stretch
 
 # install some tools we want in the image
-RUN apt-get update && apt-get -y install mysql-client
+RUN apt-get update && apt-get -y install mysql-client git
 
 # set up users and directories
 ENV PROJECT pyspaceship
