@@ -376,22 +376,7 @@ def enlist(key):
   if not invitation:
     flash({'msg':f'Could not find invitation', 'level':'danger'})
     return redirect(url_for('home'))
-  if invitation.status == 'accepted':
-    flash({'msg':f'Invitation was already accepted.', 'level':'danger'})
-    return redirect(url_for('home'))
 
-  decline = DeclineInvitation()
-  if decline.decline.data and decline.validate():
-    try:
-      invitation.status = 'declined'
-      invitation.save()
-    except DatabaseError:
-      db.session.rollback()
-      flash({'msg':f'Database error', 'level':'danger'})
-    else:
-      flash({'msg':f'Invitation declined', 'level':'success'})
-
-    return redirect(url_for('home'))
 
   oauth_user_info = session.pop('oauth_user_info', None)
   register = None
@@ -401,10 +386,10 @@ def enlist(key):
     if email_mismatch:
       # could have gotten the invite via an alias? but also maybe multiple accounts. let them decide
       flash({'msg':f'Invitation was for ' + invitation.invited_email + ' but you are logged in as ' + current_user.email, 'level':'warning'})
-  elif User.query.filter(User.email == invitation.invited_email).count():
+ # elif User.query.filter(User.email == invitation.invited_email).count():
     # assume cookies were cleared
-    flash({'msg':f'Please log in as ' + invitation.invited_email, 'level':'warning'})
-    return redirect(url_for('login', next=url_for('enlist', key=key)))
+ #   flash({'msg':f'Please log in as ' + invitation.invited_email, 'level':'warning'})
+ #   return redirect(url_for('login', next=url_for('enlist', key=key)))
   else:
     register = Register()
     if not register.is_submitted():
@@ -450,7 +435,7 @@ def enlist(key):
   crew = team.members if team else []
 
   session['oauth_next_url'] = url_for('enlist', key=invitation.key_for_sharing)
-  return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), decline=decline, register=register, crew=crew)
+  return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), register=register, crew=crew)
 
 @app.route('/rsvp/<key>/<status>', methods=['POST'])
 @login_required
