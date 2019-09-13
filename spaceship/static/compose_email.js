@@ -1,6 +1,5 @@
 $(document).ready(function() {
   if ($('#email-editor').length) {
-    new Quill('#email-editor', {theme: 'snow'});
     $('#email-send').click(function() {
       var endpoint = $('#email-send').data('endpoint');
       var emails = $('#emails').val();
