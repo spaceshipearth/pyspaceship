@@ -24,14 +24,14 @@
     <div><b>Description</b>: {{ mission.short_description }}</div>
     <div><b>Primary Goal</b>: {{mission.primary_goal_str}}</div>
     {% if mission.is_running %}
-      <!--button type="button" class="btn btn-link" onClick="showInviteCrew();">
+      <!--button type="button" class="btn btn-link" onClick="emailSender.setState('invite');">
           Email the crew
       </button-->
     {% elif mission.is_upcoming %}
       <div><b>Starts on</b>: {{mission.start_time.format('MMMM Do')}}</div>
       <div><b>Duration</b>: {{mission.duration_in_days}} days</div>
       <div class="mission-actions">
-        <button type="button" class="btn btn-link" onClick="showInviteCrew();">
+        <button type="button" class="btn btn-link" onClick="emailSender.setState('invite');">
             Invite more crew members
           </button>
           {% if is_captain %}
@@ -173,7 +173,7 @@
       {% endfor %}
     {% endif %}
     <div style="padding-top:10px">
-      <button type="button" class="btn btn-primary" onClick="showInviteCrew();">
+      <button type="button" class="btn btn-primary" onClick="emailSender.setState('invite');">
           Invite crew members
       </button>
     </div>
