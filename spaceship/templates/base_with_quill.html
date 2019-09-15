@@ -91,34 +91,49 @@
 
       // actual editor instance
       quill: null,
+
+      // state saving
+      state: null,
+      savedStates: {},
     },
     mounted: function() {
       this.quill = new Quill(this.$refs.editor, {theme: 'snow'});
       this.quill.root.innerHTML = this.message;
       this.quill.on('text-change', () => this.textChanged());
+
+      this.savedStates['invite'] = {
+        modal_title: "Invite Crew",
+        subject: "Join my Spaceship Earth crew!",
+        endpoint: "/invite/{{ team.id }}",
+        emails: "",
+        emails_frozen: false,
+        message: $('#inviteCrewMessage').html().trim(),
+      };
     },
     methods: {
       textChanged() {
         this.message = this.quill.root.innerHTML;
-      }
+      },
+      setState(state) {
+        const oldState = this.savedStates[this.state] || {};
+        Object.keys(oldState).forEach(key => {
+          oldState[key] = this[key];
+        });
+        
+        const newState = this.savedStates[state];
+        Object.keys(newState).forEach(key => {
+          this[key] = newState[key];
+        });
+
+        this.state = state;
+        this.setQuillToMessage();
+        $('#inviteCrewModal').modal('show');
+      },
+      setQuillToMessage() {
+        this.quill.root.innerHTML = this.message;
+      },
     },
   });
-
-  function showInviteCrew() {
-    emailSender.modal_title = "Invite Crew";
-    emailSender.subject = 'Join my Spaceship Earth crew!';
-    emailSender.endpoint = "/invite/{{ team.id }}";
-    emailSender.emails = '';
-    emailSender.emails_frozen = false;
-
-    // setting .message does not sync back to quill, so lets do it directly
-    // also, annoyingly, quill replaces all newlines in the next with <p></p> so lets strip 'em
-    const message = $('#inviteCrewMessage').html().trim();
-    emailSender.quill.root.innerHTML = message;
-
-    // modal is ready, show it!
-    $('#inviteCrewModal').modal('show');
-  }
 </script>
 
 {% endblock scripts %}
