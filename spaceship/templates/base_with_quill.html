@@ -22,16 +22,16 @@
           <div class="input-group-prepend">
             <span class="input-group-text" id="basic-addon1">To:</span>
           </div>
-          <input type="text" v-model="emails" placeholder="bob@example.com mary@example.com" class="form-control" id="emails" :readonly="emails_frozen">
-
+          <input type="text" v-model="emails" placeholder="bob@example.com mary@example.com" class="form-control" :readonly="emails_frozen" :class="{ 'is-invalid': emailsBlank }">
         </div>
+
         <small class="text-muted">Enter one or more emails separated by spaces.</small>
       
         <div class="input-group mt-1 mb-2">
             <div class="input-group-prepend">
               <span class="input-group-text" id="basic-addon1">Subject:</span>
             </div>
-            <input id="subject" type="text" v-model="subject" :data-default="subject" class="form-control">
+            <input type="text" v-model="subject" :data-default="subject" class="form-control" :class="{ 'is-invalid': subjectBlank }">
         </div>
       
         <br>
@@ -40,7 +40,7 @@
       </div>
 
       <div class="modal-footer">
-          <button id="email-send" class="btn btn-primary" :data-endpoint="endpoint" data-dismiss="modal">Send</button>
+          <button class="btn btn-primary" v-on:click="sendEmail">Send</button>
       </div>
     </div>
   </div>
@@ -96,6 +96,11 @@
       state: null,
       savedStates: {},
     },
+    computed: {
+      messageBlank: function() { return !this.message.length; },
+      subjectBlank: function() { return !this.subject.length; },
+      emailsBlank: function() { return !this.emails.length; },
+    },
     mounted: function() {
       this.quill = new Quill(this.$refs.editor, {theme: 'snow'});
       this.quill.root.innerHTML = this.message;
@@ -131,6 +136,24 @@
       },
       setQuillToMessage() {
         this.quill.root.innerHTML = this.message;
+      },
+      sendEmail() {
+        if (this.messageBlank || this.subjectBlank || this.emailsBlank)
+          return;
+
+        $.post(this.endpoint, {
+          'emails': this.emails,
+          'subject': this.subject,
+          'message': this.message,
+        }).done((json) => {
+          if (json['error']) {
+            alert(json['error']);
+          } else {
+            alert('Email sent!');
+          }
+        });
+
+        $('#inviteCrewModal').modal('hide');
       },
     },
   });
