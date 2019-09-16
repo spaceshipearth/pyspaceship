@@ -115,9 +115,9 @@
 {% block scripts %}
 <!-- different versions of vue depending on environment -->
 {% if config.IN_PRODUCTION %}
-<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue" integrity="sha384-8t+aLluUVnn5SPPG/NbeZCH6TWIvaXIm/gDbutRvtEeElzxxWaZN+G/ZIEdI/f+y" crossorigin="anonymous"></script>
 {% else %}
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js" integrity="sha384-9u9lzb/hr8e14GLHe5TEOrTiH3Qtw5DX2Zw9X/g7cqj81W2McEMx5CKOszxdb8jg" crossorigin="anonymous"></script>
 {% endif %}
 
 <!-- bootstrap JS -->
@@ -129,18 +129,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js" integrity="sha384-fYxN7HsDOBRo1wT/NSZ0LkoNlcXvpDpFy6WzB42LxuKAX7sBwgo7vuins+E1HCaw" crossorigin="anonymous"></script>
 <!-- js-cookie -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.0/js.cookie.min.js" integrity="sha384-ujpAYcyxFaJsZN5668lLgOpEH8vtWrbOq8fvj+WZ2kD71LJwGa/9QP/suPPF1hTI" crossorigin="anonymous"></script>
-
-<!-- some custom JS -->
-<script>
-var csrfToken = $('meta[name=csrf-token]').attr('content');
-$.ajaxSetup({
-  beforeSend: function(xhr, settings) {
-    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
-      xhr.setRequestHeader("X-CSRFToken", csrfToken)
-    }
-  }
-});
-</script>
 
 {% assets "js_all" %}
 <script src="{{ ASSET_URL }}"></script>

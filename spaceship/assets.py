@@ -12,6 +12,7 @@ js = Bundle(
   'edit.js',
   'prevent-invalid-form-submit.js',
   'wip-overlay.js',
+  'add_csrf_token.js',
   output='gen/all.%(version)s.js')
 assets.register('js_all', js)
 
