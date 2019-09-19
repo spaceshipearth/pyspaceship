@@ -1,13 +1,17 @@
 <h1><img src="https://spaceshipearth.org/static/sship-bevel-152.png">Spaceship Earth</h1>
 
-Hi <h3>Welcome {{ current_user.name.split(" ")[0] }}! </h3>
-
-<p>You're on your way!</p>
-<p>Let's confirm your email address.</p>
-<p>By clicking on the following link, you are confirming your email address.</p>
+<h3>
+  Welcome to Spaceship Earth{% if user.first_name %}, {{user.first_name}}{% endif %}!
+</h3>
 
 <p>
-    <a href="{{confirmation_url}}">Confirm Email Address</a>
+  You're on your way.
+  Let's confirm your email address.
+  Click on the following link:
+</p>
+
+<p>
+  <a href="{{confirmation_url}}">Confirm Email Address</a>
 </p>
 
 <p>© Spaceship Earth</p>

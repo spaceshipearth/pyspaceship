@@ -1,16 +1,19 @@
-{% extends "base.html" %} {% block title %}Join - {{ super() }}{% endblock %} {%
-block content %}
+{% extends "base.html" %}
+
+{% block title %}Join - {{ super() }}{% endblock %}
+
+{% block content %}
 
 <h3>
-  <span class="font-weight-bold">{{ invitation.inviter.name }}</span> invited
-  you to join <span class="font-weight-bold">{{ invitation.team.name }}</span
-  >!
+  <span class="font-weight-bold">{{ invitation.inviter.name }}</span>
+  invited you to join
+  <span class="font-weight-bold">{{ invitation.team.name }}</span>!
 </h3>
 
 <section>
   <h5>People who already joined</h5>
   <ul class="crew-list">
-    {% for user in crew: %}
+    {% for user in invitation.team.crew: %}
     <li class="crew-list-item">
       <img
         class="profile-pic"
@@ -26,7 +29,8 @@ block content %}
 
 <section>
   <h5>Yes, sign me up!</h5>
-  {% if register %} {% include 'social-buttons.html' %}
+  {% if register %}
+  {% include 'social-buttons.html' %}
   <div class="row justify-content-center">
     <section class="help col-md-5">
       <h5 class="text-center">...or, register manually</h5>
@@ -35,14 +39,10 @@ block content %}
       </form>
     </section>
   </div>
-  {% else %} {% set form=accept %}
-  <form
-    action="{{url_for('rsvp', key=invitation.key_for_sharing, status='accepted')}}"
-    method="POST"
-    class="needs-validation"
-    novalidate
-  >
-    {% include 'form_fields.html' %}
+
+  {% else %}
+  <form method="POST" class="needs-validation" novalidate>
+    {% set form = accept %} {% include 'form_fields.html' %}
   </form>
   {% endif %}
 </section>

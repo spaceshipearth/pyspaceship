@@ -3,19 +3,22 @@ import hashlib
 import logging
 import pendulum
 
-from itsdangerous import URLSafeTimedSerializer
 from flask import render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 
 from sqlalchemy.exc import DatabaseError, IntegrityError
 from urllib.parse import urlparse
 
-from spaceship import app, email, names, achievements
+from spaceship import app, email, achievements
+from spaceship.accept_invitation import AcceptInvitation
+from spaceship.become_captain import BecomeCaptain
+from spaceship.confirm_email import confirm_token
 from spaceship.invite import Invite
+from spaceship.login_or_register import LoginOrRegister
 from spaceship.db import db
 from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission
 from spaceship.forms import (
-  Register, CreateMissionForm, Login, AcceptInvitation, DeclineInvitation, CreateCrew
+  Register, CreateMissionForm, Login, AcceptInvitation as AcceptInvitationForm, CreateCrew
 )
 
 logger = logging.getLogger('spaceship.views')
@@ -50,44 +53,34 @@ def login():
 
   oauth_user_info = session.pop('oauth_user_info', None)
   login = Login()
+  user = None
 
-  email_address = None
-  password = None
-  if oauth_user_info:
-    email_address = oauth_user_info.get('email')
-  elif login.validate_on_submit():
-    email_address = login.data['email']
-    password = login.data['password']
+  # try to log in
+  try:
+    if oauth_user_info:
+      user = LoginOrRegister.login(oauth_user_info=oauth_user_info)
+    elif login.validate_on_submit():
+      user = LoginOrRegister.login(email=login.data['email'], password=login.data['password'])
+  except LoginOrRegister.LoginFailed:
+    flash({'msg':'Incorrect email or password. Try again?', 'level':'danger'})
 
-  if email_address:
-    user = User.query.filter(User.email == email_address).first()
+  # logged in successfully; send them where they were trying to go
+  if user:
+    login_user(user)
 
-    if user:
-      if oauth_user_info:
-        # clear password in case someone else claimed this email
-        user.password_hash = None
-        user.save()
-      elif not user.password_hash:
-        # user's password was previously cleared
-        # TODO redirect to password reset flow
-        user = None
-      elif not user.check_password(password):
-        user = None
+    try:
+      next_url = request.values['next']
 
-    if user:
-      login_user(user)
-      try:
-        next_url = request.values['next']
-        parsed_next_url = urlparse(next_url)
-        if parsed_next_url.netloc:
-          raise ValueError('only relative redirect allowed')
-        return redirect(next_url)
-      except:
-        return redirect_for_logged_in()
+      # make sure the next url is valid
+      parsed_next_url = urlparse(next_url)
+      if parsed_next_url.netloc:
+        raise ValueError('only relative redirect allowed')
 
-    else:
-      flash({'msg':'Incorrect email or password. Try again?', 'level':'danger'})
+      return redirect(next_url)
+    except:
+      return redirect_for_logged_in()
 
+  # if we got here, no login; render login page
   session['oauth_next_url'] = url_for('login')
   return render_template('login.html', login=login)
 
@@ -107,21 +100,6 @@ def dashboard():
                          teams=current_user.teams,
                          missions=Mission.query.all(),
                          create_crew=CreateCrew())
-
-
-def generate_confirmation_token(email):
-    """Confirmation email token."""
-    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-    return serializer.dumps(email, salt=app.config['EMAIL_CONFIRM_SALT'])
-
-def confirm_token(token, expiration=3600):
-    """Plausibility check of confirmation token."""
-    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-    try:
-        email = serializer.loads(token, salt=app.config['EMAIL_CONFIRM_SALT'], max_age=expiration)
-    except:
-        return False
-    return email
 
 @app.route('/mission/<mission_id>/cancel', methods=['POST'])
 @login_required
@@ -144,8 +122,6 @@ def cancel_mission_ajax(mission_id):
     return jsonify({'error': 'Failed to cancel mission'})
 
   return jsonify({'ok': True})
-
-
 
 @app.route('/crew/<team_id>/create-mission', methods=['GET', 'POST'])
 @login_required
@@ -182,60 +158,31 @@ def create_mission(team_id):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+  """Registers a new user; if already exists, logs them in"""
   oauth_user_info = session.pop('oauth_user_info', None)
   register = Register()
+  user = None
 
-  name = None
-  email_address = None
-  email_confirmed = False
-  password = None
-  if oauth_user_info:
-    name = oauth_user_info.get('name')
-    email_address = oauth_user_info.get('email')
-    email_confirmed = True
-  elif register.validate_on_submit():
-    name = register.data['name']
-    email_address = register.data['email']
-    password = register.data['password']
+  try:
+    # did we authenticate via oauth?
+    if oauth_user_info:
+      user = LoginOrRegister.perform(oauth_user_info=oauth_user_info, as_captain=True)
 
-  if name and email_address:
-    try:
-      u = User(name=name, email=email_address, email_confirmed=email_confirmed)
-      if password:
-        u.set_password(password)
-      u.save()
+    # did the user submit a registration form?
+    elif register.validate_on_submit():
+      user = LoginOrRegister.perform(
+        email=register.data['email'], name=register.data['name'], password=register.data['password'], as_captain=True)
 
-      t = Team(captain=u, name=names.name_team())
-      t.save()
-      tu = TeamUser(team=t, user=u)
-      tu.save()
-    except IntegrityError as e:
-      logger.exception(e)
-      db.session.rollback()
-      # don't automatically log in existing oauth users because we want login to trigger a password reset
-      flash({'msg':f'Email already registered. Please sign-in'})
-      return redirect(url_for('login'))
-    except DatabaseError as e:
-      db.session.rollback()
-      flash({'msg':f'Error registering', 'level':'danger'})
-      logger.exception(e)
-      return redirect(url_for('home'))
+  # user already exists, but we provided a different password or something...
+  except LoginOrRegister.LoginFailed:
+    flash({'msg': 'Email address already registered; pick another, or click Log In', 'level': 'danger'})
 
-    login_user(u)
-
-    achievements.become_captain(u)
-
-    if not email_confirmed:
-      token = generate_confirmation_token(email_address)
-      email.send.delay(
-        to_emails=email_address,
-        subject='Please verify your email for Spaceship Earth',
-        html_content=render_template(
-          'confirm_email.html',
-          confirmation_url=url_for('confirm_email', token=token, _external=True)))
-
+  # successfully registered
+  if user:
+    login_user(user)
     return redirect_for_logged_in()
 
+  # didn't work out? return them to registration page
   session['oauth_next_url'] = url_for('register')
   return render_template('register.html', register=register)
 
@@ -246,6 +193,10 @@ def confirm_email(token):
     user = User.query.filter(User.email == current_user.email).first()
     user.email_confirmed = True
     user.save()
+    flash({'msg':'Email address confirmed', 'level': 'success'})
+  else:
+    flash({'msg':'Invalid email token; email address not confirmed', 'level': 'danger'})
+
   return redirect(url_for('dashboard'))
 
 @app.route('/create_crew', methods=['POST'])
@@ -253,16 +204,7 @@ def confirm_email(token):
 def create_crew():
   create_crew = CreateCrew()
   if create_crew.validate_on_submit():
-    try:
-      t = Team(
-        captain=current_user,
-        name=names.name_team())
-      t.members.append(current_user)
-      t.save()
-      achievements.become_captain(current_user)
-    except (IntegrityError, DatabaseError) as e:
-      db.session.rollback()
-      flash({'msg':f'Error creating a new crew', 'level':'danger'})
+    BecomeCaptain.perform(current_user)
 
   return redirect(url_for('dashboard'))
 
@@ -315,126 +257,71 @@ def invite(team_id):
 
 @app.route('/enlist/<key>', methods=['GET', 'POST'])
 def accept_invitation(key):
-  invitation = Invitation.query.filter(Invitation.key_for_sharing == key).first()
+  invitation: Invitiation = Invitation.query.filter(Invitation.key_for_sharing == key).first()
   if not invitation:
     flash({'msg':f'Could not find invitation', 'level':'danger'})
     return redirect(url_for('home'))
 
+  accept = AcceptInvitationForm()
+  register = Register()
 
-  oauth_user_info = session.pop('oauth_user_info', None)
-  register = None
-
+  # the user logged in already; they can only accept the invitation
   if current_user.is_authenticated:
-    email_mismatch = (invitation.invited_email and current_user.email != invitation.invited_email)
-    if email_mismatch:
-      # could have gotten the invite via an alias? but also maybe multiple accounts. let them decide
-      flash({'msg':f'Invitation was for ' + invitation.invited_email + ' but you are logged in as ' + current_user.email, 'level':'warning'})
- # elif User.query.filter(User.email == invitation.invited_email).count():
-    # assume cookies were cleared
- #   flash({'msg':f'Please log in as ' + invitation.invited_email, 'level':'warning'})
- #   return redirect(url_for('login', next=url_for('accept_invitation', key=key)))
+    if accept.validate_on_submit():
+      team = AcceptInvitation.perform(invitation, current_user)
+      flash({'msg':f'Welcome to team {team.name}, {current_user.name}!', 'level':'success'})
+      return redirect(url_for('crew', team_id=team.id))
+
+  # not logged in -- they must be registering
   else:
-    register = Register()
-    if not register.is_submitted():
-      # auto populate the email from the invitation but allow the user to change it
-      register.email.process_data(invitation.invited_email)
+    user = None
 
-  name = None
-  email_address = None
-  password = None
-  if oauth_user_info:
-    name = oauth_user_info.get('name')
-    email_address = oauth_user_info.get('email')
-  elif register and register.validate_on_submit():
-    name = register.data['name']
-    email_address = register.data['email']
-    password = register.data['password']
+    oauth_user_info = session.pop('oauth_user_info', None)
+    if oauth_user_info:
+      user = LoginOrRegister(oauth_user_info=oauth_user_info)
 
-  if name and email_address:
-    try:
-      u = User(name=name, email=email_address, email_confirmed=True)
-      if password:
-        u.set_password(password)
-      u.save()
-      accept_invitation(invitation, u)
-    except IntegrityError:
-      db.session.rollback()
-      flash({'msg':f'Email already registered. Please sign-in', 'level': 'danger'})
-      return redirect(url_for('login'))
-    except DatabaseError:
-      db.session.rollback()
-      flash({'msg':f'Database error', 'level':'danger'})
-      return redirect(url_for('home'))
-    except ValueError as err:
-      flash({'msg':f'{str(err)}', 'level':'danger'})
-      return redirect(url_for('home'))
-    else:
-      if not current_user.is_authenticated:
-        login_user(u)
-      return redirect_for_logged_in()
-    return redirect(url_for('dashboard'))
+    elif register.validate_on_submit():
+      user = LoginOrRegister.perform(
+        email=register.data['email'], name=register.data['name'], password=register.data['password'])
+
+    # successfully registered; accept the invite
+    if user:
+      team = AcceptInvitation.perform(invitation, user)
+      flash({'msg':f'Welcome to team {team.name}, {user.name}!', 'level':'success'})
+
+      login_user(user)
+      return redirect(url_for('crew', team_id=team.id))
+
+  # if we got here, we haven't yet accepted an invitiation; we need to render the page
+  invited_email = invitation.invited_email
+  if invitation.already_accepted:
+    invited_email = None
+
+  # logged-in users can only accept an invite
+  if current_user.is_authenticated:
+    register = None
+    if current_user.email != invited_email:
+      flash({
+        'msg':f'Invitation was for {invited_email} but you are logged in as {current_user.email}',
+        'level':'warning'
+      })
+
+  # non-logged-in users get a registration form, possibly with a pre-filled email address
+  else:
+    accept = None
+    if invited_email and not register.data['email']:
+      register.data['email'] = invited_email
 
   team = Team.query.get(invitation.team_id)
   crew = team.members if team else []
 
   session['oauth_next_url'] = url_for('accept_invitation', key=invitation.key_for_sharing)
-  return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), register=register, crew=crew)
-
-@app.route('/rsvp/<key>/<status>', methods=['POST'])
-@login_required
-def rsvp(key, status):
-  invitation = Invitation.query.filter(Invitation.key_for_sharing == key).first()
-  if not invitation:
-    flash({'msg':f'Could not find invitation', 'level': 'danger'})
-    return redirect(url_for('home'))
-  if invitation.status == 'accepted':
-    flash({'msg':f'Invitation was already accepted.', 'level': 'danger'})
-    return redirect(url_for('home'))
-
-  try:
-    if status == 'accepted':
-      accept_invitation(invitation, current_user)
-    elif status == 'declined':
-      invitation.status = 'declined'
-      invitation.save()
-    else:
-      raise ValueError(f'Invalid rsvp {status}')
-  except DatabaseError:
-    db.session.rollback()
-    flash({'msg':f'Database error', 'level':'danger'})
-  except ValueError as err:
-    flash({'msg':f'{str(err)}', 'level':'danger'})
-    return redirect(url_for('home'))
-  else:
-    flash({'msg':f'Invitation {status}', 'level':'success'})
-    return redirect(url_for('home'))
-
-  return redirect(url_for('home'))
-
-def accept_invitation(invitation, user):
-  already_on_team = (TeamUser.query.filter(
-      (TeamUser.user_id == user.id) &
-      (TeamUser.team_id == invitation.team_id))).count()
-  if already_on_team:
-    raise ValueError('Already on team')
-
-  tu = TeamUser(team=invitation.team, user=user)
-  tu.save()
-  invitation.status = 'accepted'
-  invitation.save()
-
-  # tell captain about new user
-  team = Team.query.get(invitation.team_id)
-  if not team:
-    return
-
-  captain = team.captain
-  email.send.delay(
-    to_emails=[captain.email],
-    subject='Your crew is growing!',
-    html_content=render_template('crew_growing_email.html',
-      team=invitation.team,
-      name=user.name, _external=True))
+  return render_template(
+    'enlist.html',
+    invitation=invitation,
+    register=register,
+    accept=accept,
+  )
 
 @app.route('/logout')
 def logout():
