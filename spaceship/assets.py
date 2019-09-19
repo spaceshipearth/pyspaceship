@@ -10,6 +10,7 @@ if app.config['IN_BUILD']:
 
 js = Bundle(
   'edit.js',
+  'copy.js',
   'prevent-invalid-form-submit.js',
   'wip-overlay.js',
   'add_csrf_token.js',

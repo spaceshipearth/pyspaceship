@@ -223,24 +223,22 @@ def crew(team_id):
 
   is_captain = team.captain_id == current_user.id
   team_size = len(team.members)
+  generic_invite = team.generic_invitation_from(current_user)
 
-  upcoming_missions = [mission for mission in team.missions if mission.is_upcoming]
-  running_missions = [mission for mission in team.missions if mission.is_running]
-  completed_missions = [mission for mission in team.missions if mission.is_over]
-
-  return render_template('crew.html',
-                         is_captain=is_captain,
-                         team=team,
-                         team_size=team_size,
-                         completed_missions=completed_missions,
-                         running_missions=running_missions,
-                         upcoming_missions=upcoming_missions,
-                         captain=team.captain,
-                         crew=list(filter(lambda x: x.id != team.captain.id,team.members)),
-                         achievements=achievements.for_team(team),
-                         invitation_subject=Invite.DEFAULT_SUBJECT,
-                         invitation_message=Invite.default_message(current_user, team),
-                         )
+  return render_template(
+    'crew.html',
+    is_captain=is_captain,
+    team=team,
+    team_size=team_size,
+    completed_missions=[mission for mission in team.missions if mission.is_over],
+    running_missions=[mission for mission in team.missions if mission.is_running],
+    upcoming_missions=[mission for mission in team.missions if mission.is_upcoming],
+    crew=list(filter(lambda x: x.id != team.captain.id,team.members)),
+    achievements=achievements.for_team(team),
+    invitation_subject=Invite.DEFAULT_SUBJECT,
+    invitation_message=Invite.default_message(current_user, team),
+    invite_link=url_for('accept_invitation', key=generic_invite.key_for_sharing, _external=True),
+  )
 
 @app.route('/invite/<team_id>', methods=['POST'])
 def invite(team_id):
