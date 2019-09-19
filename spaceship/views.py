@@ -11,6 +11,7 @@ from sqlalchemy.exc import DatabaseError, IntegrityError
 from urllib.parse import urlparse
 
 from spaceship import app, email, names, achievements
+from spaceship.invite import Invite
 from spaceship.db import db
 from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission
 from spaceship.forms import (
@@ -289,59 +290,31 @@ def crew(team_id):
                          upcoming_missions=upcoming_missions,
                          captain=team.captain,
                          crew=list(filter(lambda x: x.id != team.captain.id,team.members)),
-                         invite=invite,
-                         achievements=achievements.for_team(team))
+                         achievements=achievements.for_team(team),
+                         invitation_subject=Invite.DEFAULT_SUBJECT,
+                         invitation_message=Invite.default_message(current_user, team),
+                         )
 
 @app.route('/invite/<team_id>', methods=['POST'])
 def invite(team_id):
   if not current_user:
     return jsonify({'error': 'Must be logged in.'})
-  team = get_team_if_member(team_id)
-  if not team:
-    return jsonify({'error': 'Must be a member of team.'})
 
-  subject = request.form.get('subject', '')
-  if not subject:
-    return jsonify({'error': 'Subject cannot be blank.'})
-  message = request.form.get('message', '')
-  # quilljs needs <p><br></p> to show line breaks even though everything is in a paragraph
-  # this creates extra line breaks in gmail so just strip it out
-  message = message.replace('<p><br></p>', '')
-  emails = request.form.get('emails', '').split()
-  if not emails:
-    return jsonify({'error': 'Need at least one email in To: line.'})
-  try:
-    for invited_email in emails:
-      iv = Invitation(
-        inviter_id=current_user.id,
-        team_id=team_id,
-        invited_email=invited_email,
-        message=message,
-        status='sent')
-      iv.save()
+  error = Invite.perform(
+    inviter=current_user,
+    team_id=team_id,
+    subject=request.form.get('subject'),
+    message=request.form.get('message'),
+    emails=request.form.get('emails'),
+  )
 
-      # each recipient sees a unique invite link
-      invite_url = url_for('enlist', key=iv.key_for_sharing, _external=True)
-      if 'href="join"' in message:
-        html_content = message.replace('href="join"', f'href="{invite_url}"')
-      else:
-        # if the user deleted the invite link, put it at the bottom
-        html_content = f'{message}<p><a href="{invite_url}">Click here to join</a>'
-
-      email.send.delay(
-        to_emails=invited_email,
-        subject=subject,
-        html_content=html_content,
-      )
-
-    achievements.invite_crew(current_user)
-  except:
-    return jsonify({'error': 'Error sending invitations.'})
-
-  return jsonify({'ok': True})
+  if error is None:
+    return jsonify({'ok': True})
+  else:
+    return jsonify({'error': error})
 
 @app.route('/enlist/<key>', methods=['GET', 'POST'])
-def enlist(key):
+def accept_invitation(key):
   invitation = Invitation.query.filter(Invitation.key_for_sharing == key).first()
   if not invitation:
     flash({'msg':f'Could not find invitation', 'level':'danger'})
@@ -359,7 +332,7 @@ def enlist(key):
  # elif User.query.filter(User.email == invitation.invited_email).count():
     # assume cookies were cleared
  #   flash({'msg':f'Please log in as ' + invitation.invited_email, 'level':'warning'})
- #   return redirect(url_for('login', next=url_for('enlist', key=key)))
+ #   return redirect(url_for('login', next=url_for('accept_invitation', key=key)))
   else:
     register = Register()
     if not register.is_submitted():
@@ -404,7 +377,7 @@ def enlist(key):
   team = Team.query.get(invitation.team_id)
   crew = team.members if team else []
 
-  session['oauth_next_url'] = url_for('enlist', key=invitation.key_for_sharing)
+  session['oauth_next_url'] = url_for('accept_invitation', key=invitation.key_for_sharing)
   return render_template('enlist.html', invitation=invitation, accept=AcceptInvitation(), register=register, crew=crew)
 
 @app.route('/rsvp/<key>/<status>', methods=['POST'])

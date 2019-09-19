@@ -18,6 +18,17 @@
       </div>
 
       <div class="modal-body">
+        <div
+          role="alert"
+          class="alert"
+          v-bind:class="{ 'alert-success':send_result_ok, 'alert-danger':!send_result_ok }"
+          v-if="send_result_message">
+          <span v-html="send_result_message"></span>
+          <button type="button" class="close" aria-label="Close" v-on:click="dismissSendResult">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
         <div class="input-group">
           <div class="input-group-prepend">
             <span class="input-group-text" id="basic-addon1">To:</span>
@@ -47,7 +58,7 @@
 </div>
 
 <div style="display: none" id="inviteCrewMessage">
-{% include "invite_crew.html" %}
+  {{ invitation_message | safe }}
 </div>
 
 {% endblock content %}
@@ -95,6 +106,10 @@
       // state saving
       state: null,
       savedStates: {},
+
+      // results of a send attempt
+      send_result_message: null,
+      send_result_ok: true,
     },
     computed: {
       messageBlank: function() { return !this.message.length; },
@@ -108,7 +123,7 @@
 
       this.savedStates['invite'] = {
         modal_title: "Invite Crew",
-        subject: "Join my Spaceship Earth crew!",
+        subject: "{{ invitation_subject }}",
         endpoint: "/invite/{{ team.id }}",
         emails: "",
         emails_frozen: false,
@@ -118,6 +133,10 @@
     methods: {
       textChanged() {
         this.message = this.quill.root.innerHTML;
+      },
+      dismissSendResult() {
+        this.send_result_message = null;
+        this.send_result_ok = true;
       },
       setState(state) {
         const oldState = this.savedStates[this.state] || {};
@@ -138,8 +157,13 @@
         this.quill.root.innerHTML = this.message;
       },
       sendEmail() {
-        if (this.messageBlank || this.subjectBlank || this.emailsBlank)
+        this.dismissSendResult()
+
+        if (this.messageBlank || this.subjectBlank || this.emailsBlank) {
+          this.send_result_ok = false;
+          this.send_result_message = "Some required fields are empty";
           return;
+        }
 
         $.post(this.endpoint, {
           'emails': this.emails,
@@ -147,13 +171,14 @@
           'message': this.message,
         }).done((json) => {
           if (json['error']) {
-            alert(json['error']);
+            this.send_result_ok = false;
+            this.send_result_message = json['error'];
           } else {
-            alert('Email sent!');
+            this.send_result_ok = true;
+            this.send_result_message = 'Email sent successfully!';
+            window.setTimeout(() => { $('#sendEmailModal').modal('hide'); }, 2000);
           }
         });
-
-        $('#sendEmailModal').modal('hide');
       },
     },
   });
