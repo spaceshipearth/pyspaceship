@@ -260,7 +260,7 @@ def invite(team_id):
 
 @app.route('/enlist/<key>', methods=['GET', 'POST'])
 def accept_invitation(key):
-  invitation: Invitiation = Invitation.query.filter(Invitation.key_for_sharing == key).first()
+  invitation: Invitation = Invitation.query.filter(Invitation.key_for_sharing == key).first()
   if not invitation:
     flash({'msg':f'Could not find invitation', 'level':'danger'})
     return redirect(url_for('home'))
@@ -284,8 +284,11 @@ def accept_invitation(key):
       user = LoginOrRegister(oauth_user_info=oauth_user_info)
 
     elif register.validate_on_submit():
-      user = LoginOrRegister.perform(
-        email=register.data['email'], name=register.data['name'], password=register.data['password'])
+      try:
+        user = LoginOrRegister.perform(
+          email=register.data['email'], name=register.data['name'], password=register.data['password'])
+      except LoginOrRegister.LoginFailed:
+        flash({'msg': 'Email address is already registered; pick another, or log in first', 'level': 'danger'})
 
     # successfully registered; accept the invite
     if user:
