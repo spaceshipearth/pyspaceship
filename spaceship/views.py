@@ -189,7 +189,12 @@ def register():
 @app.route('/confirm_email/<token>', methods=['GET'])
 @login_required
 def confirm_email(token):
-  if confirm_token(token) == current_user.email:
+  try:
+    email_from_token = confirm_token(token)
+  except:
+    email_from_token = None
+
+  if email_from_token == current_user.email:
     user = User.query.filter(User.email == current_user.email).first()
     user.email_confirmed = True
     user.save()

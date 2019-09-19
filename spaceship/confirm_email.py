@@ -11,9 +11,4 @@ def generate_confirmation_token(email):
 def confirm_token(token, expiration=3600):
     """Plausibility check of confirmation token."""
     serializer = URLSafeTimedSerializer(Config.SECRET_KEY)
-    try:
-        email = serializer.loads(token, salt=config['EMAIL_CONFIRM_SALT'], max_age=expiration)
-    except:
-        return False
-    return email
-
+    return serializer.loads(token, salt=Config.EMAIL_CONFIRM_SALT, max_age=expiration)
