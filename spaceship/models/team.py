@@ -37,5 +37,5 @@ class Team(db.Model):
     return invitation
 
   @hybrid_property
-  def is_active(self):
+  def is_deleted(self):
     return self.deleted_at == None

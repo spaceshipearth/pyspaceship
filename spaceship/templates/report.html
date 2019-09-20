@@ -1,0 +1,28 @@
+{% extends "base.html" %} {% block title %} Mission Debrief - {{ super() }} {%
+endblock %} {% block content %}
+
+<h4>{{ mission.title }}</h4>
+
+<a
+  class="btn btn-link"
+  href="{{url_for('crew', team_id=team_id)}}}"
+  role="button"
+  >Back to my crew</a
+>
+
+{% for field in form %} {% if not field.flags.hidden and field.type
+!="SubmitField" %}
+
+<div>
+  <span>{{ field.label() }}</span>
+  {% for answer in answers %} {% if answer.question_id == field.id %}
+  <div>
+    {{ answer.answer }}
+  </div>
+  {% endif %} {% endfor %}
+</div>
+
+{% endif %} {% endfor %} {% endblock %} {% block scripts %}
+{{ super() }}
+
+{% endblock %}

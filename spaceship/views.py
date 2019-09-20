@@ -14,9 +14,10 @@ from spaceship.join_team import join_team
 from spaceship.create_team import create_team
 from spaceship.confirm_email import confirm_token
 from spaceship.db import db
-from spaceship.models import User, Team, Invitation, Goal, Mission
+from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission, SurveyAnswer
 from spaceship.forms import (
-  Register, CreateMissionForm, Login, AcceptInvitation, CreateCrew
+  Register, CreateMissionForm, Login, AcceptInvitation, 
+  DeclineInvitation, CreateCrew, DietSurvey
 )
 
 logger = logging.getLogger('spaceship.views')
@@ -120,6 +121,45 @@ def cancel_mission_ajax(mission_id):
     return jsonify({'error': 'Failed to cancel mission'})
 
   return jsonify({'ok': True})
+
+MISSION_SURVEYS = {
+  'diet': DietSurvey
+}
+@app.route('/mission/<mission_id>/debrief', methods=['GET', 'POST'])
+def debrief(mission_id):
+  mission = Mission.query.filter(Mission.id == mission_id).first()
+  team_ids = map(lambda t: t.id, current_user.teams)
+  if mission.team_id not in team_ids:
+    raise ValueError('Unauthorized')
+
+  survey = MISSION_SURVEYS[mission.goals[0].category]()
+  if survey.validate_on_submit():
+    objects = []
+    for field in survey:
+      if field.name in ['submit', 'csrf_token']:
+        continue
+      objects.append(
+        SurveyAnswer(
+            answer=survey.data[field.name],
+            mission_id=mission_id,
+            question_id=field.name,
+            survey_version=1,
+            user_id=current_user.id))
+    db.session.bulk_save_objects(objects)
+    return redirect(url_for('report', mission_id=mission_id))
+  else:
+    return render_template('eval.html', form=survey, mission=mission)
+
+@app.route('/mission/<mission_id>/report', methods=['GET', 'POST'])
+def report(mission_id):
+  mission = Mission.query.filter(Mission.id == mission_id).first()
+  team_ids = [t.id for t in current_user.teams]
+  if mission.team_id not in team_ids:
+    raise ValueError('Unauthorized')
+
+  survey = MISSION_SURVEYS[mission.goals[0].category]()
+  answers = list(SurveyAnswer.query.filter(SurveyAnswer.mission_id == mission_id))
+  return render_template('report.html', form=survey, answers=answers, team_id=mission.team_id, mission=mission)
 
 @app.route('/crew/<team_id>/create-mission', methods=['GET', 'POST'])
 @login_required

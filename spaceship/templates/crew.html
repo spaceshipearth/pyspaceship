@@ -44,11 +44,12 @@
     {% else %}
       <div> <span style='font-weight: bold'>CO2 Saved</span>: {{mission.co2_saved_str}}</div>
       <div class="mission-actions">
-        <a class="btn btn-link" href="{{mission.report_url}}" onclick="alert('Report unavailable')" role="button">View mission report</a>
+        <a class="btn btn-link" href="{{url_for('debrief', mission_id=mission.id)}}" role="button">Debrief mission</a>
+        <a class="btn btn-link" href="{{url_for('report', mission_id=mission.id)}}"  role="button">View mission report</a>
       </div>
     {% endif %}
 
-  </div> 
+  </div>
 </div>
 {%- endmacro %}
 
@@ -120,7 +121,7 @@
       <a href="{{ url_for('create_mission', team_id=team.id) }}" class="btn btn-primary btn-lg" role="button">Plan a mission</a>
     {% endfor %}
   </div>
-  
+
   {% if completed_missions|length %}
     <div class="missions-section">
       <h3>Completed Missions</h3>
@@ -133,7 +134,7 @@
       {% endfor %}
     </div>
   {% endif %}
-    
+
 </div>
 
 <section>
@@ -153,7 +154,7 @@
 <div class="col-sm-4">
   <div style='border: 1px solid #9bc1bc; padding: 1rem'>
     <h4 style="margin-top: 0px;">Crew</h4>
-    <h6>Captain</h6>    
+    <h6>Captain</h6>
     <div>
         <a href="{{ url_for('profile', user_id=team.captain.id) }}">
             <img src="{{ gravatar(team.captain.email, size=32) }}"  height="32">
@@ -163,7 +164,7 @@
 
     <br/>
     {% if crew|length %}
-      <h6>Crew Members</h6>    
+      <h6>Crew Members</h6>
 
       {% for user in crew: %}
             <a href="{{ url_for('profile', user_id=user.id) }}">
