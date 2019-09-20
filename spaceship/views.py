@@ -164,11 +164,11 @@ def register():
   try:
     # did we authenticate via oauth?
     if oauth_user_info:
-      user = login_or_register.perform(oauth_user_info=oauth_user_info, as_captain=True)
+      user = login_or_register.register(oauth_user_info=oauth_user_info, as_captain=True)
 
     # did the user submit a registration form?
     elif register.validate_on_submit():
-      user = login_or_register.perform(
+      user = login_or_register.register(
         email=register.data['email'], name=register.data['name'], password=register.data['password'], as_captain=True)
 
   # user already exists, but we provided a different password or something...
@@ -283,7 +283,7 @@ def accept_invitation(key):
 
     elif register.validate_on_submit():
       try:
-        user = login_or_register.perform(
+        user = login_or_register.register(
           email=register.data['email'], name=register.data['name'], password=register.data['password'])
       except login_or_register.LoginFailed:
         flash({'msg': 'Email address is already registered; pick another, or log in first', 'level': 'danger'})

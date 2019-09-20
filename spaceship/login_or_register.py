@@ -40,7 +40,7 @@ def login(
   else:
     raise LoginFailed()
 
-def perform(email=None, name=None, password=None, oauth_user_info={}, as_captain=False):
+def register(email=None, name=None, password=None, oauth_user_info={}, as_captain=False):
   """registers or logs the user in"""
   # no matter what, we require an email address; default to the oauth one if available
   email = oauth_user_info.get('email', email)
@@ -54,13 +54,13 @@ def perform(email=None, name=None, password=None, oauth_user_info={}, as_captain
 
   # if we got here, we have to create the user
   u = User(email=email)
-  u.name = oauth_user_info.get('name', name if name else '')
+  u.name = oauth_user_info.get('name', name if name else email.split('@')[0])
   u.email_confirmed = email == oauth_user_info.get('email')
   if password:
     u.set_password(password)
   u.save()
 
-  # the user either signed up via 'become a captain' or accepted an invite to join a team
+  # create a team for the user if they went through the Register (aka Become a Captain) flow
   if as_captain:
     create_team(u)
 

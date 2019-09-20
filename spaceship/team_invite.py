@@ -10,7 +10,9 @@ from spaceship.models import Invitation, Team, User
 log = logging.getLogger('spaceship.invite')
 
 DEFAULT_SUBJECT = "Join my Spaceship Earth crew!"
-EMAIL_REGEX = re.compile(r"""[^@,]+@[^\s,]+""")
+
+# an email is anything containing an `@` character, ending with whitespace and/or commas
+EMAIL_REGEX = re.compile(r"""[^@]+@[^\s,]+""")
 
 def default_message(inviter: User, team: Team):
   return render_template('invite_crew.html', inviter=inviter, team=team)
@@ -30,7 +32,7 @@ def send(inviter: User, team_id: int, subject: str, message: str, emails: List[s
   if not emails:
     return f'List a few folks to invite!'
 
-  # an email is anything containing an `@` character, separated by whitespace and/or commas
+  # find non-overlapping instances of an email address
   for invited_email in EMAIL_REGEX.findall(emails):
     iv = Invitation(
       inviter=inviter,
