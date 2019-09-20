@@ -20,21 +20,21 @@ class Team(db.Model):
   created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
   deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
 
-  def generic_invitation_from(self, inviter):
-    try:
-      generic = next(
-        i for i in self.invitations if (
-          i.inviter == inviter and i.invited_email is None and not i.already_accepted
-        )
-      )
-    except StopIteration:
-      generic = Invitation(
-        inviter=inviter,
-        team=self,
-      )
-      generic.save()
+  def generic_invitation_from(self, inviter) -> Invitation:
+    """returns an invitation not addressed to a particular email"""
+    # find an existing invitation from this person
+    for i in self.invitations:
+      if i.inviter == inviter and i.invited_email is None:
+        return i
 
-    return generic
+    # if we got here, no such luck; gotta make our own luck
+    invitation = Invitation(
+      inviter=inviter,
+      team=self,
+    )
+    invitation.save()
+
+    return invitation
 
   @hybrid_property
   def is_active(self):
