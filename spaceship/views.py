@@ -9,16 +9,14 @@ from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import DatabaseError, IntegrityError
 from urllib.parse import urlparse
 
-from spaceship import app, email, achievements
-from spaceship.accept_invitation import AcceptInvitation
-from spaceship.become_captain import BecomeCaptain
+from spaceship import app, email, achievements, team_invite, login_or_register
+from spaceship.accept_invitation import accept_invitation
+from spaceship.create_team import create_team
 from spaceship.confirm_email import confirm_token
-from spaceship.invite import Invite
-from spaceship.login_or_register import LoginOrRegister
 from spaceship.db import db
-from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission
+from spaceship.models import User, Team, Invitation, Goal, Mission
 from spaceship.forms import (
-  Register, CreateMissionForm, Login, AcceptInvitation as AcceptInvitationForm, CreateCrew
+  Register, CreateMissionForm, Login, AcceptInvitation, CreateCrew
 )
 
 logger = logging.getLogger('spaceship.views')
@@ -58,10 +56,10 @@ def login():
   # try to log in
   try:
     if oauth_user_info:
-      user = LoginOrRegister.login(oauth_user_info=oauth_user_info)
+      user = login_or_register.login(oauth_user_info=oauth_user_info)
     elif login.validate_on_submit():
-      user = LoginOrRegister.login(email=login.data['email'], password=login.data['password'])
-  except LoginOrRegister.LoginFailed:
+      user = login_or_register.login(email=login.data['email'], password=login.data['password'])
+  except login_or_register.LoginFailed:
     flash({'msg':'Incorrect email or password. Try again?', 'level':'danger'})
 
   # logged in successfully; send them where they were trying to go
@@ -166,15 +164,15 @@ def register():
   try:
     # did we authenticate via oauth?
     if oauth_user_info:
-      user = LoginOrRegister.perform(oauth_user_info=oauth_user_info, as_captain=True)
+      user = login_or_register.perform(oauth_user_info=oauth_user_info, as_captain=True)
 
     # did the user submit a registration form?
     elif register.validate_on_submit():
-      user = LoginOrRegister.perform(
+      user = login_or_register.perform(
         email=register.data['email'], name=register.data['name'], password=register.data['password'], as_captain=True)
 
   # user already exists, but we provided a different password or something...
-  except LoginOrRegister.LoginFailed:
+  except login_or_register.LoginFailed:
     flash({'msg': 'Email address already registered; pick another, or click Log In', 'level': 'danger'})
 
   # successfully registered
@@ -209,7 +207,7 @@ def confirm_email(token):
 def create_crew():
   create_crew = CreateCrew()
   if create_crew.validate_on_submit():
-    BecomeCaptain.perform(current_user)
+    create_team(current_user)
 
   return redirect(url_for('dashboard'))
 
@@ -235,8 +233,8 @@ def crew(team_id):
     upcoming_missions=[mission for mission in team.missions if mission.is_upcoming],
     crew=list(filter(lambda x: x.id != team.captain.id,team.members)),
     achievements=achievements.for_team(team),
-    invitation_subject=Invite.DEFAULT_SUBJECT,
-    invitation_message=Invite.default_message(current_user, team),
+    invitation_subject=team_invite.DEFAULT_SUBJECT,
+    invitation_message=team_invite.default_message(current_user, team),
     invite_link=url_for('accept_invitation', key=generic_invite.key_for_sharing, _external=True),
   )
 
@@ -245,7 +243,7 @@ def invite(team_id):
   if not current_user:
     return jsonify({'error': 'Must be logged in.'})
 
-  error = Invite.perform(
+  error = team_invite.send(
     inviter=current_user,
     team_id=team_id,
     subject=request.form.get('subject'),
@@ -265,13 +263,13 @@ def accept_invitation(key):
     flash({'msg':f'Could not find invitation', 'level':'danger'})
     return redirect(url_for('home'))
 
-  accept = AcceptInvitationForm()
+  accept = AcceptInvitation()
   register = Register()
 
   # the user logged in already; they can only accept the invitation
   if current_user.is_authenticated:
     if accept.validate_on_submit():
-      team = AcceptInvitation.perform(invitation, current_user)
+      team = accept_invitation(invitation, current_user)
       flash({'msg':f'Welcome to team {team.name}, {current_user.name}!', 'level':'success'})
       return redirect(url_for('crew', team_id=team.id))
 
@@ -281,18 +279,18 @@ def accept_invitation(key):
 
     oauth_user_info = session.pop('oauth_user_info', None)
     if oauth_user_info:
-      user = LoginOrRegister(oauth_user_info=oauth_user_info)
+      user = login_or_register(oauth_user_info=oauth_user_info)
 
     elif register.validate_on_submit():
       try:
-        user = LoginOrRegister.perform(
+        user = login_or_register.perform(
           email=register.data['email'], name=register.data['name'], password=register.data['password'])
-      except LoginOrRegister.LoginFailed:
+      except login_or_register.LoginFailed:
         flash({'msg': 'Email address is already registered; pick another, or log in first', 'level': 'danger'})
 
     # successfully registered; accept the invite
     if user:
-      team = AcceptInvitation.perform(invitation, user)
+      team = accept_invitation(invitation, user)
       flash({'msg':f'Welcome to team {team.name}, {user.name}!', 'level':'success'})
 
       login_user(user)
