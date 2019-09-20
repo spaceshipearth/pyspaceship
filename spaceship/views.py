@@ -10,7 +10,7 @@ from sqlalchemy.exc import DatabaseError, IntegrityError
 from urllib.parse import urlparse
 
 from spaceship import app, email, achievements, team_invite, login_or_register
-from spaceship.accept_invitation import accept_invitation
+from spaceship.join_team import join_team
 from spaceship.create_team import create_team
 from spaceship.confirm_email import confirm_token
 from spaceship.db import db
@@ -269,7 +269,7 @@ def accept_invitation(key):
   # the user logged in already; they can only accept the invitation
   if current_user.is_authenticated:
     if accept.validate_on_submit():
-      team = accept_invitation(invitation, current_user)
+      team = join_team(invitation, current_user)
       flash({'msg':f'Welcome to team {team.name}, {current_user.name}!', 'level':'success'})
       return redirect(url_for('crew', team_id=team.id))
 
@@ -290,13 +290,15 @@ def accept_invitation(key):
 
     # successfully registered; accept the invite
     if user:
-      team = accept_invitation(invitation, user)
+      team = join_team(invitation, user)
       flash({'msg':f'Welcome to team {team.name}, {user.name}!', 'level':'success'})
 
       login_user(user)
       return redirect(url_for('crew', team_id=team.id))
 
   # if we got here, we haven't yet accepted an invitiation; we need to render the page
+
+  # figure out the email to auto-populate into a registration form
   invited_email = invitation.invited_email
   if invitation.already_accepted:
     invited_email = None

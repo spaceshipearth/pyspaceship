@@ -4,7 +4,7 @@ from flask import render_template
 from spaceship import email
 from spaceship.models import Invitation, Team, TeamUser, User
 
-def accept_invitation(cls, invitation: Invitation, user: User) -> Team:
+def join_team(invitation: Invitation, user: User) -> Team:
   team: Team = invitation.team
   if user in team.members:
     return team
