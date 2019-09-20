@@ -172,11 +172,11 @@ def debrief(mission_id):
     return redirect(url_for('report', mission_id=mission_id))
   else:
     return render_template('eval.html', form=survey, mission=mission)
-{}
+
 @app.route('/mission/<mission_id>/report', methods=['GET', 'POST'])
 def report(mission_id):
   mission = Mission.query.filter(Mission.id == mission_id).first()
-  team_ids = map(lambda t: t.id, current_user.teams)
+  team_ids = [t.id for t in current_user.teams]
   if mission.team_id not in team_ids:
     raise ValueError('Unauthorized')
 
@@ -212,7 +212,7 @@ def create_mission(team_id):
       return redirect(url_for('crew', team_id=team_id))
 
     # schedule emails
-    #email.schedule_mission_emails(mission)
+    email.schedule_mission_emails(mission)
     return redirect(url_for('crew', team_id=team_id))
 
   return render_template('create_mission.html', create_mission_form=create_mission_form)
