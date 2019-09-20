@@ -1,11 +1,9 @@
 
 from authlib.flask.client import OAuth
-from flask_login import login_user
 from flask import redirect, session, url_for
 from loginpass import create_flask_blueprint, Google
 
 from spaceship import app
-from spaceship.models import User
 
 oauth = OAuth(app)
 

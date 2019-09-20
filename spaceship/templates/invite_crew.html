@@ -1,0 +1,17 @@
+{#- this is a great video, but some people who are not like me might find the language offensive #}
+{#- <a href="https://www.youtube.com/watch?v=JDcro7dPqpA&t=1114s">Climate Emergency</a> #}
+
+<p>Hi Friends!</p>
+<p>As you are probably aware, there is a climate emergency underway. I know many of you are concerned about this, but like me, unsure about the most impactful actions we can all take.</p>
+<p>Spaceship Earth is a real-world game that helps groups take the most impactful, research backed actions for addressing climate change. The game is organized around missions that help the planet by reducing our carbon footprint and resource use through behavior changes around diet, transportation, and public policy.</p>
+
+{%- for mission in team.missions if mission.is_upcoming %}
+<p>Please click the link below to join my team and sign up for the first mission! Our first mission is "{{ mission.short_description }}" and will run from {{ mission.start_time_str }} to {{ mission.end_time_str }}.</p>
+{%- else %}
+<p>Please click the link below to join my team! If you join, you'll get an email when the first mission is scheduled.</p>
+{%- endfor %}
+<p><a href="join">Click here to join</a></p>
+<p>After the mission is over, we'll see how we did and calculate the aggregate CO2 emission savings. We'll also see what the impact would be if everyone in the US did as well on this mission as we are able to. :)</p>
+<p>If you sign up, I will ask you to go on similar future missions with me which will involve well-researched actions to help ameliorate the worst effects of climate change.</p>
+<p>Thanks,
+{{ inviter.name }}</p>

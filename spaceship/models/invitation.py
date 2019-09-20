@@ -26,3 +26,10 @@ class Invitation(db.Model):
   @hybrid_property
   def is_deleted(self):
     return self.deleted_at == None
+
+  @property
+  def already_accepted(self):
+    self.status == 'accepted'
+
+  def mark_accepted(self):
+    self.status = 'accepted'

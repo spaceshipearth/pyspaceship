@@ -3,12 +3,12 @@
 from flask import Flask
 app = Flask(__name__)
 
+# configure logging
+from spaceship import logs
+
 # configure the app
 from spaceship.config import Config
 app.config.from_object(Config)
-
-# configure logging
-from spaceship import logs
 
 # CSRF protection
 from flask_wtf.csrf import CSRFProtect
@@ -28,5 +28,5 @@ from spaceship import login
 from spaceship import google_auth
 from spaceship import views
 
-# celery configuration
-from spaceship import celery
+# tasktiger configuration (for delayed tasks)
+from spaceship import tasktiger
