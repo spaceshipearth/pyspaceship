@@ -30,6 +30,10 @@ class User(db.Model):
   def is_active(self):
     return self.deleted_at == None
 
+  @property
+  def first_name(self):
+    return self.name.split(' ')[0]
+
   # required by Flask Login
   @property
   def is_authenticated(self):
