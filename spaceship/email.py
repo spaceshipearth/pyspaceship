@@ -1,5 +1,5 @@
 import logging
-from flask import render_template
+from flask import render_template, url_for
 import html2text
 import pendulum
 from sendgrid import SendGridAPIClient
@@ -106,6 +106,7 @@ def send_mission_end(mission_id, planned_end_str):
     content = render_template(
       'email_mission_end.html',
       mission=mission,
+      debrief_url=url_for('debrief', mission_id=mission_id),
       next_upcoming=next_upcoming,
     )
 

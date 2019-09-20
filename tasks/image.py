@@ -59,7 +59,7 @@ def do_deploy(tag, ns):
   if ns.is_prod:
     replicas = 3
 
-  environment = load_manifest('container_environment', {})
+  environment = load_manifest('container_environment', {'namespace':ns})
 
   web = load_manifest(
     'web_deployment',

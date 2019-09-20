@@ -66,3 +66,5 @@
       key: secret
 - name: GOOGLE_APPLICATION_CREDENTIALS
   value: /srv/pyspaceship/google-app-creds/key.json
+- name: SERVER_NAME
+  value: '{{namespace}}.spaceshipearth.org'
