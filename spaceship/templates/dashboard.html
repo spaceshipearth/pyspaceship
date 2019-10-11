@@ -1,33 +1,112 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - {{ super() }}{% endblock %}
+{% block title %}Missions - {{ super() }}{% endblock %}
+
+{% macro render_mission(mission) -%}
+<div class="row mission">
+
+  <div class="col-sm-2">
+    {% if mission.is_running %}
+        <div style="margin-bottom:0px"> Day {{mission.mission_day}} </div>
+        <div style="font-size:14px; "> of {{ mission.duration_in_days}}</div>
+    {% elif mission.is_upcoming %}
+      T-MINUS<br/>
+      {{mission.days_until_start}} days
+    {% else %}
+      COMPLETED<br/>
+      {{ mission.start_time.format('MMMM Do') }}
+    {% endif %}
+  </div>
+
+  <div class="col-sm-10">
+    <h5 style="margin-bottom: 0px">{{ mission.title }} </h5>
+    <div><b>Description</b>: {{ mission.short_description }}</div>
+    <div><b>Primary Goal</b>: {{mission.primary_goal_str}}</div>
+    {% if mission.is_running %}
+      <!--button type="button" class="btn btn-link" onClick="emailSender.setState('invite');">
+          Email the crew
+      </button-->
+    {% elif mission.is_upcoming %}
+      <div><b>Starts on</b>: {{mission.start_time.format('MMMM Do')}}</div>
+      <div><b>Duration</b>: {{mission.duration_in_days}} days</div>
+      <div class="mission-actions">
+        <button type="button" class="btn btn-link" onClick="emailSender.setState('invite');">
+            Invite more crew members
+          </button>
+          {% if is_captain %}
+            <button data-mission-id={{mission.id}} type="button" class="btn btn-link mission-cancel">
+              Cancel mission
+            </button>
+          {% endif %}
+      </div>
+
+    {% else %}
+      <div> <span style='font-weight: bold'>CO2 Saved</span>: {{mission.co2_saved_str}}</div>
+      <div class="mission-actions">
+        <a class="btn btn-link" href="{{url_for('debrief', mission_id=mission.id)}}" role="button">Debrief mission</a>
+        <a class="btn btn-link" href="{{url_for('report', mission_id=mission.id)}}"  role="button">View mission report</a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{%- endmacro %}
 
 {% block content %}
 <h3>Welcome <a href="{{ url_for('profile', user_id=current_user.id) }}">{{ current_user.name.split(" ")[0] }}</a>! </h3>
-{% for team in teams: %}
-  <section class="dash-team">
-    <a href="{{ url_for('crew', team_id=team.id) }}">
-      <h5>{{ team.name }}</h5>
-    </a>
-    <div>
-    {% if not team.mission_id %}
-      <em>No current mission</em>
-    {% else %}
-        <div>{{ team.mission.title }}</div>
-        <div>{{ team.mission.short_description }}</div>
-    {% endif %}
+
+<div class="missions">
+
+  {% if running_missions|length %}
+    <div class="missions-section">
+      <h3>Active Mission</h3>
+      {% for mission in running_missions %}
+        {{ render_mission(mission) }}
+      {% else %}
+        <div>
+          <h5>None yet</h5>
+        </div>
+      {% endfor %}
     </div>
-  </section>
+  {% endif %}
 
-{% endfor %}
+  <div class="missions-section">
+    <h3>Upcoming Mission</h3>
+    {% for mission in upcoming_missions %}
+      {{ render_mission(mission) }}
+    {% else %}
+      <a href="{{ url_for('create_mission', team_id=team.id) }}" class="btn btn-primary btn-lg" role="button">Plan a mission</a>
+    {% endfor %}
+  </div>
 
-<div class="row">
-<div class="ml-auto col-auto">
-<form method="POST" action="/create_crew" class="needs-validation" novalidate>
-  {% set form = create_crew %}
-  {% include 'form_fields.html' %}
-</form>
+  {% if completed_missions|length %}
+    <div class="missions-section">
+      <h3>Completed Missions</h3>
+      {% for mission in completed_missions %}
+        {{ render_mission(mission) }}
+      {% else %}
+        <div>
+          <p>None yet</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 </div>
-</div>
 
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+$(".mission-cancel").click((e) => {
+  if (confirm("Are you sure?")) {
+    $.post('/mission/'+$(e.target).data('mission-id')+'/cancel').done((json) => {
+      if (json['error']) {
+          alert(json['error']);
+      }
+      window.location.reload();
+    });
+  }
+});
+</script>
 {% endblock %}
