@@ -71,6 +71,84 @@
     </div>
   {% endif %}
 
+  <div class="missions-section" id="new-mission">
+    <h3>New Mission</h3>
+<p>Select a goal for your new mission
+<div class="accordion" id="accordionExample">
+  <div class="card">
+    <div class="card-header" id="headingOne">
+      <h2 class="mb-0">
+        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Diet
+        </button>
+      </h2>
+    </div>
+    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+      <div class="card-body">
+        <div class="form-check">
+          <input v-model="goal" class="form-check-input" type="radio" name="goal" id="diet-vegan" value="diet-vegan" checked>
+          <label class="form-check-label" for="diet-vegan">
+            Go vegan
+          </label>
+        </div>
+        <div class="form-check">
+          <input v-model="goal" class="form-check-input" type="radio" name="goal" id="diet-vegetarian" value="diet-vegetarian">
+          <label class="form-check-label" for="diet-vegetarian">
+            Go vegetarian
+          </label>
+        </div>
+        <div class="form-check">
+          <input v-model="goal" class="form-check-input" type="radio" name="goal" id="diet-no-beef" value="diet-no-beef">
+          <label class="form-check-label" for="diet-no-beef">
+            <p>Eat no beef
+            <p><a href="#">Why not?</a>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="headingTwo">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+          Transportation
+        </button>
+      </h2>
+    </div>
+    <div id="collapseTwo" class="collapse show" aria-labelledby="headingTwo" data-parent="#accordionExample">
+      <div class="card-body">
+        <div class="form-check">
+          <input v-model="goal" class="form-check-input" type="radio" name="goal" id="goal4" value="option1" checked>
+          <label class="form-check-label" for="goal4">
+            Bike to work
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="headingThree">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+          Education
+        </button>
+      </h2>
+    </div>
+    <div id="collapseThree" class="collapse show" aria-labelledby="headingThree" data-parent="#accordionExample">
+      <div class="card-body">
+        <div class="form-check">
+          <input v-model="goal" class="form-check-input" type="radio" name="goal" id="goal5" value="option5" checked>
+          <label class="form-check-label" for="goal5">
+            Read a book
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<button type="button" class="btn btn-primary" v-on:click="createMission" v-bind:disabled="goalSelected">Create mission</button>
+  </div>
+
   <div class="missions-section">
     <h3>Upcoming Mission</h3>
     {% for mission in upcoming_missions %}
@@ -109,5 +187,24 @@ $(".mission-cancel").click((e) => {
     });
   }
 });
+</script>
+
+<script>
+  const missionCreator = new Vue({
+    el: '#new-mission',
+    delimiters: ['[[', ']]'],
+    data: {
+      goal: null,
+    },
+    computed: {
+      goalSelected: function() { return this.goal === null; }
+    },
+    methods: {
+      createMission: function() {
+        // $.post
+        // then redirect to the mission page for additional editing
+      }
+    },
+  });
 </script>
 {% endblock %}
