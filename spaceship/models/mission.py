@@ -1,6 +1,7 @@
 import pendulum
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
+import uuid
 
 from spaceship.db import db
 from spaceship.models import MissionGoal
@@ -8,6 +9,7 @@ from spaceship.models.custom_fields import PendulumDateTimeField
 
 class Mission(db.Model):
   id = db.Column(db.Integer, primary_key=True)
+  uuid = db.Column(db.String(32), unique=True, default=lambda: uuid.uuid4().hex)
 
   title = db.Column(db.String(127))
   short_description = db.Column(db.String(127))
@@ -36,12 +38,15 @@ class Mission(db.Model):
 
   @property
   def primary_goal_str(self):
-    return self.goals[0].short_description
+    if not self.goals:
+      return None
+    else:
+      return self.goals[0].short_description
 
-  @property 
+  @property
   def co2_saved_str(self):
     # todo: pull from DB
-    return '345kg' 
+    return '345kg'
 
   @property
   def start_time_str(self):
@@ -82,7 +87,7 @@ class Mission(db.Model):
 
   @property
   def mission_day(self):
-    return (pendulum.now('UTC') - self.started_at).in_days() 
+    return (pendulum.now('UTC') - self.started_at).in_days()
 
   @property
   def duration_in_days(self):

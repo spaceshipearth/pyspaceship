@@ -16,7 +16,7 @@ from spaceship.confirm_email import confirm_token
 from spaceship.db import db
 from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission, SurveyAnswer
 from spaceship.forms import (
-  Register, CreateMissionForm, Login, AcceptInvitation, 
+  Register, CreateMissionForm, Login, AcceptInvitation,
   DeclineInvitation, CreateCrew, DietSurvey
 )
 
@@ -99,6 +99,11 @@ def dashboard():
                          teams=current_user.teams,
                          missions=Mission.query.all(),
                          create_crew=CreateCrew())
+
+@app.route('/mission/<mission_uuid>')
+def mission(mission_uuid):
+  mission = Mission.query.filter(Mission.uuid == mission_uuid).one_or_none()
+  return render_template('mission.html', mission=mission, team=mission.team)
 
 @app.route('/mission/<mission_id>/cancel', methods=['POST'])
 @login_required
