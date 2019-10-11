@@ -95,9 +95,14 @@ def contact():
 @login_required
 def dashboard():
   # to avoid redirect loops, this view does not redirect
+  missions = []
+  for team in current_user.teams:
+    missions.extend(team.missions)
   return render_template('dashboard.html',
                          teams=current_user.teams,
-                         missions=Mission.query.all(),
+                         completed_missions=[mission for mission in missions if mission.is_over],
+                         running_missions=[mission for mission in missions if mission.is_running],
+                         upcoming_missions=[mission for mission in missions if mission.is_upcoming],
                          create_crew=CreateCrew())
 
 @app.route('/mission/<mission_id>/cancel', methods=['POST'])
@@ -268,9 +273,6 @@ def crew(team_id):
     is_captain=is_captain,
     team=team,
     team_size=team_size,
-    completed_missions=[mission for mission in team.missions if mission.is_over],
-    running_missions=[mission for mission in team.missions if mission.is_running],
-    upcoming_missions=[mission for mission in team.missions if mission.is_upcoming],
     crew=list(filter(lambda x: x.id != team.captain.id,team.members)),
     achievements=achievements.for_team(team),
     invitation_subject=team_invite.DEFAULT_SUBJECT,
