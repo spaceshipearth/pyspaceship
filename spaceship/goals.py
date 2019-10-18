@@ -54,6 +54,8 @@ GOALS_BY_CATEGORY = {
       },
       {
         "name": "Plan a local vacation",
+        "icon" : "/static/caleb-george-iVXfOilGYHA-vanlife.jpg",
+        "alt" : "Photo by Caleb George on Unsplash",
         "short_description": "Take a roadtrip instead of flying",
         "description": "You should be biking more. Good for you and good for the planet.",
       },
