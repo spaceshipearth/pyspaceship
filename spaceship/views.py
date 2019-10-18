@@ -16,8 +16,7 @@ from spaceship.confirm_email import confirm_token
 from spaceship.db import db
 from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission, SurveyAnswer
 from spaceship.forms import (
-  Register, CreateMissionForm, Login, AcceptInvitation,
-  DeclineInvitation, CreateCrew, DietSurvey
+  Register, Login, AcceptInvitation, DeclineInvitation, CreateCrew, DietSurvey
 )
 
 logger = logging.getLogger('spaceship.views')
@@ -171,7 +170,7 @@ def report(mission_id):
   answers = list(SurveyAnswer.query.filter(SurveyAnswer.mission_id == mission_id))
   return render_template('report.html', form=survey, answers=answers, team_id=mission.team_id, mission=mission)
 
-@app.route('/crew/<team_id>/create-mission', methods=['GET', 'POST'])
+@app.route('/mission/create', methods=['POST'])
 @login_required
 def create_mission(team_id):
   goals = list(Goal.query.filter())
