@@ -21,12 +21,13 @@ GOALS_BY_CATEGORY = {
       {
         "name": "Go vegetarian",
         "icon": "/static/chantal-garnier-910GanwBoew-vegan.jpg",
+        "alt" : "Photo by Chantal Garnier on Unsplash",
         "short_description": "Avoid all animal flesh; dairy and eggs are ok",
         "description": "Animal products are bad. Don't eat them.",
       },
       {
         "name": "Avoid beef",
-        "icon" : "/static/jez-timms-DVRXFIH42d0-nobeef.jpg",
+        "icon" : "/static/climate_damage.png",
         "short_description": "Avoid beef",
         "description": "Animal products are bad. Don't eat them.",
       },
@@ -39,11 +40,15 @@ GOALS_BY_CATEGORY = {
     "goals": [
       {
         "name": "Bike to work/school",
+        "icon" : "/static/david-marcu-Op5JMbkOqi0-bike.jpg",
+        "alt" : "Photo by David Marcu on Unsplash",
         "short_description": "Ride your bike to work or school",
         "description": "You should be biking more. Good for you and good for the planet.",
       },
        {
         "name": "Take public transit or bike",
+        "icon" : "/static/ryan-searle-k1AFA4N8O0g-traffic.jpg",
+        "alt": "Photo by Ryan Searle on Unsplash",
         "short_description": "Take public transit or bike",
         "description": "You should be biking more. Good for you and good for the planet.",
       },
@@ -61,11 +66,15 @@ GOALS_BY_CATEGORY = {
     "goals": [
       {
         "name": "Read a book",
+        "icon" : "/static/joao-silas-9c_djeQTDyY-book.jpg",
+        "alt" : "Photo by João Silas on Unsplash",
         "short_description": "Become educated about climate change",
         "description": "This is your chance. You've always wanted to read.",
       },
       {
         "name": "Have a conversation",
+        "icon" : "/static/etienne-boulanger-erCPgyXNlto-chat.jpg",
+        "alt" : "Photo by Etienne Boulanger on Unsplash",
         "short_description": "Talk to your friends about climate change",
         "description": "Especially if they don't believe in it",
       },
