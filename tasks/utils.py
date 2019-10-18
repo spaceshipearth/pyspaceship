@@ -42,7 +42,7 @@ class K8SNamespace:
     for item in items:
       pods.append({
         'name': item['metadata']['name'],
-        'image': item['status']['containerStatuses'][0]['image'],
+        'image': item['spec']['containers'][0]['image'],
         'phase': item['status']['phase'],
       })
 
