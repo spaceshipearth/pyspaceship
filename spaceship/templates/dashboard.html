@@ -115,6 +115,16 @@
                 <p class="card-text">
                   [[ goal.description ]]
                 </p>
+
+                <p>
+                  Read more at:
+                  <ul>
+                    <li v-for="link in goal.links">
+                      <a :href="link.url">[[ link.title ]]</a>
+                    </li>
+                  </ul>
+                </p>
+
                 <button class="btn btn-primary" v-on:click="selectGoal(goal)">
                   Select Mission
                 </button>

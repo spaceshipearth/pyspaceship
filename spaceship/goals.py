@@ -14,7 +14,13 @@ GOALS_BY_CATEGORY = {
         "name": "Go vegan",
         "icon" : "/static/vegan.png",
         "short_description": "Avoid all animal products",
-        "description": "Animal products are bad. Don't eat them.",
+        "description": "Our diet comes with a steep climate price tag: one-fifth of global emissions. Adopting a vegan diet is the most impactful thing you could do to lower your diet's footprint. A vegan diet eliminates 80% of the average Americans diet related emissions.",
+        "links": [
+          {
+            "url": "https://www.independent.co.uk/life-style/health-and-families/veganism-environmental-impact-planet-reduced-plant-based-diet-humans-study-a8378631.html",
+            "title": "Single best way to help fight climate change",
+          },
+        ],
       },
       {
         "name": "Go vegetarian",
