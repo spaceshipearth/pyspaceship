@@ -1,48 +1,84 @@
 
+
 GOALS_BY_CATEGORY = {
   "diet": {
     "icon": None,
+<<<<<<< HEAD
     "title": "Plant-Rich Diet",
     "description": "Change your diet, change the world",
+=======
+    "description": None,
+>>>>>>> example icons
     "goals": [
       {
-        "name": "Go Vegan",
+        "name": "Go vegan",
+        "icon" : "/static/vegan.png",
         "short_description": "Avoid all animal products",
         "description": "Animal products are bad. Don't eat them.",
       },
       {
-        "name": "Go Vegetarian",
-        "short_description": "Avoid all animal products",
+        "name": "Go vegetarian",
+        "icon": "/static/chantal-garnier-910GanwBoew-vegan.jpg",
+        "short_description": "Avoid all animal flesh; dairy and eggs are ok",
         "description": "Animal products are bad. Don't eat them.",
       },
       {
-        "name": "Avoid Beef",
-        "short_description": "Avoid all animal products",
+        "name": "Avoid beef",
+        "icon" : "/static/jez-timms-DVRXFIH42d0-nobeef.jpg",
+        "short_description": "Avoid beef",
         "description": "Animal products are bad. Don't eat them.",
       },
     ],
   },
   "transportation": {
     "icon": None,
+<<<<<<< HEAD
     "title": "Transportation",
     "description": "Save energy by changing how you travel",
+=======
+    "description": None,
+>>>>>>> example icons
     "goals": [
       {
-        "name": "Bike to work",
+        "name": "Bike to work/school",
         "short_description": "Ride your bike to work or school",
+        "description": "You should be biking more. Good for you and good for the planet.",
+      },
+       {
+        "name": "Take public transit or bike",
+        "short_description": "Take public transit or bike",
+        "description": "You should be biking more. Good for you and good for the planet.",
+      },
+      {
+        "name": "Plan a local vacation",
+        "short_description": "Take a roadtrip instead of flying",
         "description": "You should be biking more. Good for you and good for the planet.",
       },
     ],
   },
   "education": {
     "icon": None,
+<<<<<<< HEAD
     "title": "Education",
     "description": "Learn more about the science and policy of climate change",
+=======
+    "description": None,
+>>>>>>> example icons
     "goals": [
       {
         "name": "Read a book",
         "short_description": "Become educated about climate change",
         "description": "This is your chance. You've always wanted to read.",
+      },
+      {
+        "name": "Have a conversation",
+        "short_description": "Talk to your friends about climate change",
+        "description": "Especially if they don't believe in it",
+      },
+      {
+        "name": "Have a conversation",
+        "short_description": "Talk to your friends about climate change",
+        "description": "Especially if they don't believe in it",
       },
     ],
   },
