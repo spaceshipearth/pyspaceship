@@ -10,6 +10,7 @@ from sqlalchemy.exc import DatabaseError, IntegrityError
 from urllib.parse import urlparse
 
 from spaceship import app, email, achievements, team_invite, login_or_register
+from spaceship.goals import GOALS_BY_CATEGORY
 from spaceship.join_team import join_team
 from spaceship.create_team import create_team
 from spaceship.confirm_email import confirm_token
@@ -97,12 +98,14 @@ def dashboard():
   missions = []
   for team in current_user.teams:
     missions.extend(team.missions)
-  return render_template('dashboard.html',
-                         teams=current_user.teams,
-                         completed_missions=[mission for mission in missions if mission.is_over],
-                         running_missions=[mission for mission in missions if mission.is_running],
-                         upcoming_missions=[mission for mission in missions if mission.is_upcoming],
-                         create_crew=CreateCrew())
+  return render_template(
+    'dashboard.html',
+    goals=GOALS_BY_CATEGORY,
+    teams=current_user.teams,
+    completed_missions=[mission for mission in missions if mission.is_over],
+    running_missions=[mission for mission in missions if mission.is_running],
+    upcoming_missions=[mission for mission in missions if mission.is_upcoming],
+    create_crew=CreateCrew())
 
 @app.route('/mission/<mission_uuid>')
 def mission(mission_uuid):

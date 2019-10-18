@@ -2,7 +2,7 @@
 GOALS_BY_CATEGORY = {
   "diet": {
     "icon": None,
-    "description": None,
+    "description": "Change your diet, change the world",
     "goals": [
       {
         "name": "Go Vegan",
@@ -23,7 +23,7 @@ GOALS_BY_CATEGORY = {
   },
   "transportation": {
     "icon": None,
-    "description": None,
+    "description": "Save energy by changing how you travel",
     "goals": [
       {
         "name": "Bike to work",
@@ -34,7 +34,7 @@ GOALS_BY_CATEGORY = {
   },
   "education": {
     "icon": None,
-    "description": None,
+    "description": "Learn more about the science and policy of climate change",
     "goals": [
       {
         "name": "Read a book",
