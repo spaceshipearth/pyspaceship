@@ -3,12 +3,8 @@
 GOALS_BY_CATEGORY = {
   "diet": {
     "icon": None,
-<<<<<<< HEAD
     "title": "Plant-Rich Diet",
     "description": "Change your diet, change the world",
-=======
-    "description": None,
->>>>>>> example icons
     "goals": [
       {
         "name": "Go vegan",
@@ -38,12 +34,8 @@ GOALS_BY_CATEGORY = {
   },
   "transportation": {
     "icon": None,
-<<<<<<< HEAD
     "title": "Transportation",
     "description": "Save energy by changing how you travel",
-=======
-    "description": None,
->>>>>>> example icons
     "goals": [
       {
         "name": "Bike to work/school",
@@ -64,12 +56,8 @@ GOALS_BY_CATEGORY = {
   },
   "education": {
     "icon": None,
-<<<<<<< HEAD
     "title": "Education",
     "description": "Learn more about the science and policy of climate change",
-=======
-    "description": None,
->>>>>>> example icons
     "goals": [
       {
         "name": "Read a book",
