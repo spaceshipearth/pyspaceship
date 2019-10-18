@@ -11,8 +11,8 @@ class Mission(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   uuid = db.Column(db.String(32), unique=True, default=lambda: uuid.uuid4().hex)
 
-  title = db.Column(db.String(127))
-  short_description = db.Column(db.String(127))
+  title = db.Column(db.String(127), default='')
+  short_description = db.Column(db.String(127), default='')
   duration_in_weeks = db.Column(db.SmallInteger, default=4)
   frozen = db.Column(db.Boolean, default=False)
 
