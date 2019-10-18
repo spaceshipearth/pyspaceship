@@ -2,6 +2,7 @@
 GOALS_BY_CATEGORY = {
   "diet": {
     "icon": None,
+    "title": "Plant-Rich Diet",
     "description": "Change your diet, change the world",
     "goals": [
       {
@@ -23,6 +24,7 @@ GOALS_BY_CATEGORY = {
   },
   "transportation": {
     "icon": None,
+    "title": "Transportation",
     "description": "Save energy by changing how you travel",
     "goals": [
       {
@@ -34,6 +36,7 @@ GOALS_BY_CATEGORY = {
   },
   "education": {
     "icon": None,
+    "title": "Education",
     "description": "Learn more about the science and policy of climate change",
     "goals": [
       {
@@ -44,3 +47,8 @@ GOALS_BY_CATEGORY = {
     ],
   },
 }
+
+# let goals know their category
+for category, cinfo in GOALS_BY_CATEGORY.items():
+  for goal in cinfo['goals']:
+    goal['category'] = category

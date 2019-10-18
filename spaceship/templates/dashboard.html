@@ -74,45 +74,57 @@
   <div class="missions-section" id="new-mission">
     <h3>New Mission</h3>
     <p>Select a goal for your new mission
-    <div class="accordion" id="accordionExample">
-      {% for category, cat_info in goals.items() %}
-      <div class="card">
+    <div class="card" v-if="goal">
+      <div class="card-header">
+        [[ goals[goal.category].title ]] -- [[ goal.name ]]
+      </div>
+
+      <div class="card-body">
+        <p> [[ goal.description ]] </p>
+      </div>
+
+      <div class="card-footer text-right">
+        <form method="POST" action="/mission/create" class="form-row">
+          <input type="hidden" name="goal" :value="goal" />
+          <input type="hidden" name="csrf_token" :value="csrfToken" />
+
+          <button class="btn btn-secondary" v-on:click="clearGoal">Pick another goal</button>
+          <button type="submit" class="btn btn-primary">Create Mission</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="accordion" id="accordionExample" v-else>
+      <div class="card" v-for="(cat_info, category) in goals">
         <div class="card-header" id="heading-{{ category }}">
           <h2 class="mb-0">
-            {{ category | capitalize }}
+            [[ cat_info.title ]]
           </h2>
         </div>
 
         <div class="card-body">
           <p>
-            {{ cat_info['description'] }}
+            [[ cat_info.description ]]
           </p>
 
           <div class="card-deck">
-            {% for goal in cat_info['goals'] %}
-            <div class="card" style="max-width: 18rem;">
+            <div class="card" style="max-width: 18rem;" v-for="goal in cat_info.goals">
               <img src="..." class="card-img-top" alt="...">
               <div class="card-body">
-                <h5 class="card-title"> {{ goal['name'] }} </h5>
+                <h5 class="card-title"> [[ goal.name ]] </h5>
                 <p class="card-text">
-                  {{ goal['short_description'] }}
+                  [[ goal.description ]]
                 </p>
-                <a href="#" class="btn btn-primary">Select Mission</a>
+                <button class="btn btn-primary" v-on:click="selectGoal(goal)">
+                  Select Mission
+                </button>
               </div>
             </div>
-            {% endfor %}
           </div>
 
         </div>
       </div>
-      {% endfor %}
     </div>
-
-    <form method="POST" action="/mission/create">
-      <input type="hidden" name="goal" :value="goal" />
-      <input type="hidden" name="csrf_token" :value="csrfToken" />
-      <button type="submit" class="btn btn-primary">Create Mission</button>
-    </form>
   </div>
 
   {% if upcomming_missions|length %}
@@ -152,17 +164,25 @@ $(".mission-cancel").click((e) => {
 </script>
 
 <script>
+  const goals = {{ goals | tojson }};
   const missionCreator = new Vue({
     el: '#new-mission',
     delimiters: ['[[', ']]'],
     data: {
       csrfToken: window.csrfToken,
+      goals,
       goal: null,
     },
     computed: {
       goalSelected: function() { return this.goal === null; }
     },
     methods: {
+      selectGoal: function(goal) {
+        this.goal = goal;
+      },
+      clearGoal: function() {
+        this.goal = null;
+      },
       createMission: function() {
         // $.post
         // then redirect to the mission page for additional editing
