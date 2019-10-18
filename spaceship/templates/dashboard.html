@@ -74,27 +74,8 @@
   <div class="missions-section" id="new-mission">
     <h3>New Mission</h3>
     <p>Select a goal for your new mission
-    <div class="card" v-if="goal">
-      <div class="card-header">
-        [[ goals[goal.category].title ]] -- [[ goal.name ]]
-      </div>
 
-      <div class="card-body">
-        <p> [[ goal.description ]] </p>
-      </div>
-
-      <div class="card-footer text-right">
-        <form method="POST" action="/mission/create" class="form-row">
-          <input type="hidden" name="goal" :value="goal" />
-          <input type="hidden" name="csrf_token" :value="csrfToken" />
-
-          <button class="btn btn-secondary" v-on:click="clearGoal">Pick another goal</button>
-          <button type="submit" class="btn btn-primary">Create Mission</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="accordion" id="accordionExample" v-else>
+    <div class="accordion" id="accordionExample">
       <div class="card" v-for="(cat_info, category) in goals">
         <div class="card-header" id="heading-{{ category }}">
           <h2 class="mb-0">
@@ -125,9 +106,15 @@
                   </ul>
                 </p>
 
-                <button class="btn btn-primary" v-on:click="selectGoal(goal)">
-                  Select Mission
-                </button>
+                <div class="card-footer text-right">
+                  <form method="POST" action="/mission/create" class="form-row">
+                    <input type="hidden" name="category" :value="category" />
+                    <input type="hidden" name="goal" :value="goal.name" />
+                    <input type="hidden" name="csrf_token" :value="csrfToken" />
+
+                    <button type="submit" class="btn btn-primary">Create Mission</button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
@@ -181,22 +168,9 @@ $(".mission-cancel").click((e) => {
     data: {
       csrfToken: window.csrfToken,
       goals,
-      goal: null,
     },
     computed: {
       goalSelected: function() { return this.goal === null; }
-    },
-    methods: {
-      selectGoal: function(goal) {
-        this.goal = goal;
-      },
-      clearGoal: function() {
-        this.goal = null;
-      },
-      createMission: function() {
-        // $.post
-        // then redirect to the mission page for additional editing
-      }
     },
   });
 </script>

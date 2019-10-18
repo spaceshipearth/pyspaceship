@@ -8,7 +8,7 @@ from spaceship.models.custom_fields import PendulumDateTimeField
 
 class Team(db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(127))
+  name = db.Column(db.String(127), default='')
   description = db.Column(db.Text, default='Best. Crew. Ever.')
 
   captain_id = db.Column(db.Integer, db.ForeignKey('user.id'))
