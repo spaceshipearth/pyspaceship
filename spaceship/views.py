@@ -17,7 +17,7 @@ from spaceship.confirm_email import confirm_token
 from spaceship.db import db
 from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission, SurveyAnswer
 from spaceship.forms import (
-  Register, Login, AcceptInvitation, DeclineInvitation, CreateCrew, DietSurvey
+  Register, Login, AcceptInvitation, DeclineInvitation, DietSurvey
 )
 
 logger = logging.getLogger('spaceship.views')
@@ -98,14 +98,14 @@ def dashboard():
   missions = []
   for team in current_user.teams:
     missions.extend(team.missions)
+
   return render_template(
     'dashboard.html',
     goals=GOALS_BY_CATEGORY,
-    teams=current_user.teams,
     completed_missions=[mission for mission in missions if mission.is_over],
     running_missions=[mission for mission in missions if mission.is_running],
     upcoming_missions=[mission for mission in missions if mission.is_upcoming],
-    create_crew=CreateCrew())
+  )
 
 @app.route('/mission/<mission_uuid>')
 def mission(mission_uuid):
@@ -257,15 +257,6 @@ def confirm_email(token):
     flash({'msg':'Email address confirmed', 'level': 'success'})
   else:
     flash({'msg':'Invalid email token; email address not confirmed', 'level': 'danger'})
-
-  return redirect(url_for('dashboard'))
-
-@app.route('/create_crew', methods=['POST'])
-@login_required
-def create_crew():
-  create_crew = CreateCrew()
-  if create_crew.validate_on_submit():
-    create_team(current_user)
 
   return redirect(url_for('dashboard'))
 
