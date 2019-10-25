@@ -41,7 +41,7 @@ class Goal(db.Model):
     return GOALS_BY_CATEGORY[self.category]
 
   @property
-  def category_goal(self):
+  def goal_info(self):
     """returns the goal represented by this object from GOALS_BY_CATEGORY"""
     cat_goals = self.category_info['goals']
     return [g for g in cat_goals if g['name'] == self.short_description][0]
