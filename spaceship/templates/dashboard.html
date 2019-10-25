@@ -54,7 +54,7 @@
 {%- endmacro %}
 
 {% block content %}
-
+<h3>Welcome <a href="{{ url_for('profile', user_id=current_user.id) }}">{{ current_user.name.split(" ")[0] }}</a>! </h3>
 
 <div class="missions">
 
@@ -72,23 +72,18 @@
   {% endif %}
 
   <div class="missions-section" id="new-mission">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Plan your first mission</h5>
-        <p class="card-text">Pick your mission.  Invite your team.  Change the world!</p>
-        </div>
-    </div>
-    <br/>
+    <h3>New Mission</h3>
+    <p>Select a goal for your new mission
 
     <div class="accordion" id="accordionExample">
-      <div v-for="(cat_info, category) in goals">
-        <div id="heading-{{ category }}">
+      <div class="card" v-for="(cat_info, category) in goals">
+        <div class="card-header" id="heading-{{ category }}">
           <h2 class="mb-0">
             [[ cat_info.title ]]
           </h2>
         </div>
 
-        <div>
+        <div class="card-body">
           <p>
             [[ cat_info.description ]]
           </p>
@@ -111,14 +106,15 @@
                   </ul>
                 </p>
 
-
-                <form method="POST" action="/mission/create" class="form-row">
+                <div class="card-footer text-right">
+                  <form method="POST" action="/mission/create" class="form-row">
                     <input type="hidden" name="category" :value="category" />
                     <input type="hidden" name="goal" :value="goal.name" />
                     <input type="hidden" name="csrf_token" :value="csrfToken" />
 
                     <button type="submit" class="btn btn-primary">Create Mission</button>
                   </form>
+                </div>
               </div>
             </div>
           </div>

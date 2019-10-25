@@ -107,17 +107,10 @@ def dashboard():
     upcoming_missions=[mission for mission in missions if mission.is_upcoming],
     create_crew=CreateCrew())
 
-def mission_goal_info(mission):
-  goal=mission.goals[0]
-  return [g for g in GOALS_BY_CATEGORY[goal.category]['goals'] if g['name'] == goal.short_description][0]
-
 @app.route('/mission/<mission_uuid>')
 def mission(mission_uuid):
   mission = Mission.query.filter(Mission.uuid == mission_uuid).one_or_none()
-  invite_link= url_for('mission', mission_uuid=mission_uuid, _external=True)
-  is_team_member = len([m for m in mission.team.members if m == current_user])
-  return render_template('mission.html', mission=mission, goal=mission_goal_info(mission), team=mission.team,
-      current_user=current_user, invite_link=invite_link, is_team_member=is_team_member)
+  return render_template('mission.html', mission=mission, team=mission.team)
 
 @app.route('/mission/<mission_id>/cancel', methods=['POST'])
 @login_required

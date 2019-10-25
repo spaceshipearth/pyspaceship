@@ -63,8 +63,8 @@
       </ul>
       <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
         {% if current_user.is_anonymous %}
-        {{ render_nav_item('register', 'Sign up') }}
-        {{ render_nav_item('login', 'Sign In') }}
+        {{ render_nav_item('register', 'Become a captain') }}
+        {{ render_nav_item('login', 'Log In') }}
         {% else %}
         <li class="nav-item dropdown">
           <a role="button" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

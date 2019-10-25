@@ -12,7 +12,7 @@ html {
 }
 
 body {
-  background-color: #fafafa;
+  background-color: #e6ebe0;
   margin-bottom: 40px;
   font-family: 'Titillium Web', sans-serif;
 }
@@ -23,7 +23,7 @@ body {
   width: 100%;
   height: 40px;
   line-height: 40px;
-  background-color: #eee;
+  background-color: #333;
 }
 
 .footer a {
@@ -31,7 +31,7 @@ body {
 }
 
 .navbar {
-  background-color:#d6ebff;
+  background-color: #9bc1bc;
   margin-bottom: 32px;
 }
 
@@ -44,13 +44,13 @@ main {
 }
 
 .btn-primary {
-  border-color: #1E3F66	;
-  background-color: #1E3F66	;
+  border-color: #ed604e;
+  background-color: #ed6a5a;
 }
 
 .btn-primary:hover {
-  background-color: #2E5984	;
-  border-color: #2E5984	;
+  background-color: #C2574A;
+  border-color: #C2574A;
 }
 
 
@@ -242,7 +242,7 @@ input[type="date"] {
 /* create a new arrow, because we are going to mess up the native one
 see "List of symbols" below if you want another, you could also try to add a font-awesome icon.. */
 input[type="date"]:after {
-  content: "\25BC";
+  content: "\25BC"; 
   color: #555;
   padding: 0 5px;
 }
@@ -277,16 +277,16 @@ input[type="date"]::-webkit-clear-button {
 /* End of datetime control cheesery */
 
 .fancy-date {
-  background: white;
-  border: 1px solid black;
+  background: white; 
+  border: 1px solid black; 
   width:40px; height:40px;
   border-radius: 4px;
 
 }
 .fancy-date-month {
-  font-size:10px;
-  font-weight: bold;
-  background:red;
+  font-size:10px; 
+  font-weight: bold; 
+  background:red; 
   color:white;
   text-align: center;
 }
