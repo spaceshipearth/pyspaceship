@@ -3,54 +3,52 @@
 {% block title %}Missions - {{ super() }}{% endblock %}
 
 {% macro render_mission(mission) -%}
-<div class="row mission">
 
-  <div class="col-sm-2">
-    {% if mission.is_running %}
-        <div style="margin-bottom:0px"> Day {{mission.mission_day}} </div>
-        <div style="font-size:14px; "> of {{ mission.duration_in_days}}</div>
-    {% elif mission.is_upcoming %}
-      T-MINUS<br/>
-      {{mission.days_until_start}} days
-    {% else %}
-      COMPLETED<br/>
-      {{ mission.start_time.format('MMMM Do') }}
-    {% endif %}
-  </div>
+  {% set goal = mission.goals[0] %}
 
-  <div class="col-sm-10">
-    <h5 style="margin-bottom: 0px">{{ mission.title }} </h5>
-    <div><a href="{{ url_for('mission', mission_uuid=mission.uuid) }}">Link</a></div>
-    <div><b>Description</b>: {{ mission.short_description }}</div>
-    <div><b>Primary Goal</b>: {{mission.primary_goal_str}}</div>
-    {% if mission.is_running %}
-      <!--button type="button" class="btn btn-link" onClick="emailSender.setState('invite');">
-          Email the crew
-      </button-->
-    {% elif mission.is_upcoming %}
-      <div><b>Starts on</b>: {{mission.start_time.format('MMMM Do')}}</div>
-      <div><b>Duration</b>: {{mission.duration_in_days}} days</div>
-      <div class="mission-actions">
-        <button type="button" class="btn btn-link" onClick="emailSender.setState('invite');">
-            Invite more crew members
-          </button>
-          {% if is_captain %}
-            <button data-mission-id={{mission.id}} type="button" class="btn btn-link mission-cancel">
-              Cancel mission
-            </button>
-          {% endif %}
+  {% if goal %}
+  {% set goal_info = goal.goal_info %}
+  <div class="card" style="max-width: 18rem;">
+    <div class="card-header">
+      <a href="{{ url_for('mission', mission_uuid=mission.uuid) }}">
+        {{ goal_info['name'] }}
+      </a>
+    </div>
+
+    <img src="{{ goal_info['icon'] }}" class="card-img-top" alt="{{ goal['alt'] }}">
+
+    <div class="card-body">
+      <h5 class="card-title">
+        {% if mission.is_running %}
+        Day {{ mission.mission_day }} of {{ mission.duration_in_days }}
+        {% elif mission.is_upcoming %}
+        T-MINUS {{mission.days_until_start}} days
+        {% else %}
+        COMPLETED {{ mission.start_time.format('MMMM Do') }}
+        {% endif %}
+      </h5>
+
+      <div class="card-text card-group">
+        {% for user in mission.team.members %}
+        <div>
+          <a class="text-center p-1" role="button" href="{{ url_for('profile', user_id=user.id) }}">
+            <div>
+              <img src="{{ gravatar(user.email, size=64) }}"  height="64">
+            </div>
+            <div>
+              {{ user.name }}
+              {% if user == mission.team.captain %}
+              <span class="badge badge-success">Captain</span>
+              {% endif %}
+            </div>
+          </a>
+        </div>
+        {% endfor %}
       </div>
-
-    {% else %}
-      <div> <span style='font-weight: bold'>CO2 Saved</span>: {{mission.co2_saved_str}}</div>
-      <div class="mission-actions">
-        <a class="btn btn-link" href="{{url_for('debrief', mission_id=mission.id)}}" role="button">Debrief mission</a>
-        <a class="btn btn-link" href="{{url_for('report', mission_id=mission.id)}}"  role="button">View mission report</a>
-      </div>
-    {% endif %}
-
+    </div>
   </div>
-</div>
+  {% endif %}
+
 {%- endmacro %}
 
 {% block content %}
@@ -58,62 +56,71 @@
 
 <div class="missions">
 
-  {% if running_missions|length %}
-    <div class="missions-section">
-      <h3>Active Mission</h3>
-      {% for mission in running_missions %}
-        {{ render_mission(mission) }}
-      {% else %}
-        <div>
-          <h5>None yet</h5>
-        </div>
-      {% endfor %}
+  {% if active_missions|length %}
+  <div class="card mb-3">
+    <div class="card-header">
+      <h2 class="mb-0">Active Missions</h2>
     </div>
+
+    <div class="card-body">
+      <div class="card-deck">
+
+        {% for mission in active_missions %}
+        {{ render_mission(mission) }}
+        {% endfor %}
+       </div>
+    </div>
+  </div>
   {% endif %}
 
-  <div class="missions-section" id="new-mission">
-    <h3>New Mission</h3>
-    <p>Select a goal for your new mission
+  <div class="card" id="new-mission">
+    <div class="card-header">
+      <h2>New Mission</h3>
+    </div>
 
-    <div class="accordion" id="accordionExample">
-      <div class="card" v-for="(cat_info, category) in goals">
-        <div class="card-header" id="heading-{{ category }}">
-          <h2 class="mb-0">
-            [[ cat_info.title ]]
-          </h2>
-        </div>
+    <div class="card-body">
+      <p>Select a goal for your new mission</p>
 
-        <div class="card-body">
-          <p>
-            [[ cat_info.description ]]
-          </p>
+      <div class="accordion" id="accordionExample">
+        <div class="card" v-for="(cat_info, category) in goals">
+          <div class="card-header" id="heading-{{ category }}">
+            <h3 class="mb-0">
+              [[ cat_info.title ]]
+            </h3>
+          </div>
 
-          <div class="card-deck">
-            <div class="card" style="max-width: 18rem;" v-for="goal in cat_info.goals">
-              <img :src="goal.icon" class="card-img-top" alt="goal.alt">
-              <div class="card-body">
-                <h5 class="card-title"> [[ goal.name ]] </h5>
-                <p class="card-text">
-                  [[ goal.description ]]
-                </p>
+          <div class="card-body">
+            <p>
+              [[ cat_info.description ]]
+            </p>
 
-                <p>
-                  Read more at:
-                  <ul>
-                    <li v-for="link in goal.links">
-                      <a :href="link.url">[[ link.title ]]</a>
-                    </li>
-                  </ul>
-                </p>
+            <div class="card-deck">
+              <div class="card" style="max-width: 18rem;" v-for="goal in cat_info.goals">
+                <img :src="goal.icon" class="card-img-top" alt="goal.alt">
+                <div class="card-body">
+                  <h5 class="card-title"> [[ goal.name ]] </h5>
+                  <p class="card-text">
+                    [[ goal.description ]]
+                  </p>
 
-                <div class="card-footer text-right">
-                  <form method="POST" action="/mission/create" class="form-row">
-                    <input type="hidden" name="category" :value="category" />
-                    <input type="hidden" name="goal" :value="goal.name" />
-                    <input type="hidden" name="csrf_token" :value="csrfToken" />
+                  <p>
+                    Read more at:
+                    <ul>
+                      <li v-for="link in goal.links">
+                        <a :href="link.url">[[ link.title ]]</a>
+                      </li>
+                    </ul>
+                  </p>
 
-                    <button type="submit" class="btn btn-primary">Create Mission</button>
-                  </form>
+                  <div class="card-footer text-right">
+                    <form method="POST" action="/mission/create" class="form-row">
+                      <input type="hidden" name="category" :value="category" />
+                      <input type="hidden" name="goal" :value="goal.name" />
+                      <input type="hidden" name="csrf_token" :value="csrfToken" />
+
+                      <button type="submit" class="btn btn-primary">Create Mission</button>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
@@ -123,41 +130,27 @@
     </div>
   </div>
 
-  {% if upcomming_missions|length %}
-  <div class="missions-section">
-    <h3>Upcoming Mission</h3>
-    {% for mission in upcoming_missions %}
-      {{ render_mission(mission) }}
-    {% endfor %}
-  </div>
-  {% endif %}
-
   {% if completed_missions|length %}
-  <div class="missions-section">
-    <h3>Completed Missions</h3>
-    {% for mission in completed_missions %}
-      {{ render_mission(mission) }}
-    {% endfor %}
+  <div class="card mt-3">
+    <div class="card-header">
+      <h2 class="mb-0">Past Missions</h2>
+    </div>
+
+    <div class="card-body">
+      <div class="card-deck">
+
+        {% for mission in completed_missions %}
+        {{ render_mission(mission) }}
+        {% endfor %}
+       </div>
+    </div>
   </div>
   {% endif %}
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
-<script>
-$(".mission-cancel").click((e) => {
-  if (confirm("Are you sure?")) {
-    $.post('/mission/'+$(e.target).data('mission-id')+'/cancel').done((json) => {
-      if (json['error']) {
-          alert(json['error']);
-      }
-      window.location.reload();
-    });
-  }
-});
-</script>
 
 <script>
   const goals = {{ goals | tojson }};
@@ -173,4 +166,5 @@ $(".mission-cancel").click((e) => {
     },
   });
 </script>
+
 {% endblock %}

@@ -103,8 +103,7 @@ def dashboard():
     'dashboard.html',
     goals=GOALS_BY_CATEGORY,
     completed_missions=[mission for mission in missions if mission.is_over],
-    running_missions=[mission for mission in missions if mission.is_running],
-    upcoming_missions=[mission for mission in missions if mission.is_upcoming],
+    active_missions=[mission for mission in missions if (not mission.is_over)],
   )
 
 @app.route('/mission/<mission_uuid>')
