@@ -45,7 +45,7 @@ GOALS_BY_CATEGORY = {
         "short_description": "Ride your bike to work or school",
         "description": "You should be biking more. Good for you and good for the planet.",
       },
-       {
+      {
         "name": "Take public transit or bike",
         "icon" : "/static/ryan-searle-k1AFA4N8O0g-traffic.jpg",
         "alt": "Photo by Ryan Searle on Unsplash",
