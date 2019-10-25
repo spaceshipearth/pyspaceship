@@ -10,14 +10,14 @@ from sqlalchemy.exc import DatabaseError, IntegrityError
 from urllib.parse import urlparse
 
 from spaceship import app, email, achievements, team_invite, login_or_register
+from spaceship.goals import GOALS_BY_CATEGORY
 from spaceship.join_team import join_team
 from spaceship.create_team import create_team
 from spaceship.confirm_email import confirm_token
 from spaceship.db import db
 from spaceship.models import User, Team, TeamUser, Invitation, Goal, Mission, SurveyAnswer
 from spaceship.forms import (
-  Register, CreateMissionForm, Login, AcceptInvitation,
-  DeclineInvitation, CreateCrew, DietSurvey
+  Register, Login, AcceptInvitation, DeclineInvitation, CreateCrew, DietSurvey
 )
 
 logger = logging.getLogger('spaceship.views')
@@ -98,12 +98,14 @@ def dashboard():
   missions = []
   for team in current_user.teams:
     missions.extend(team.missions)
-  return render_template('dashboard.html',
-                         teams=current_user.teams,
-                         completed_missions=[mission for mission in missions if mission.is_over],
-                         running_missions=[mission for mission in missions if mission.is_running],
-                         upcoming_missions=[mission for mission in missions if mission.is_upcoming],
-                         create_crew=CreateCrew())
+  return render_template(
+    'dashboard.html',
+    goals=GOALS_BY_CATEGORY,
+    teams=current_user.teams,
+    completed_missions=[mission for mission in missions if mission.is_over],
+    running_missions=[mission for mission in missions if mission.is_running],
+    upcoming_missions=[mission for mission in missions if mission.is_upcoming],
+    create_crew=CreateCrew())
 
 @app.route('/mission/<mission_uuid>')
 def mission(mission_uuid):
@@ -171,38 +173,44 @@ def report(mission_id):
   answers = list(SurveyAnswer.query.filter(SurveyAnswer.mission_id == mission_id))
   return render_template('report.html', form=survey, answers=answers, team_id=mission.team_id, mission=mission)
 
-@app.route('/crew/<team_id>/create-mission', methods=['GET', 'POST'])
+@app.route('/mission/create', methods=['POST'])
 @login_required
-def create_mission(team_id):
-  goals = list(Goal.query.filter())
-  create_mission_form = CreateMissionForm(team_id=team_id, goals=goals)
-  if create_mission_form.validate_on_submit():
-    try:
-      goal_id = create_mission_form.data['goal']
-      goal = Goal.query.get(goal_id)
+def create_mission():
+  category = request.form.get('category')
+  goal_name = request.form.get('goal')
+  if not category or not goal_name:
+    flash({'msg': 'Error creating mission', 'level': 'danger'})
+    return redirect(url_for('dashboard'))
 
-      mission = Mission(
-        title="Plant based diet",
-        short_description="Save the planet by eating more plants",
-        duration_in_weeks=1,
-        started_at=create_mission_form.data['start'],
-        team_id=team_id,
-      )
+  # make sure this is a valid goal name (we have info for it)
+  goal_info = [g for g in GOALS_BY_CATEGORY[category]['goals'] if g['name'] == goal_name][0]
 
-      mission.goals.append(goal)
-      mission.save()
+  # when should it start?
+  now = pendulum.now('America/Los_Angeles')
+  monday = now.next(pendulum.MONDAY)
+  if (monday - now) < pendulum.duration(days=2):
+    monday = monday.next(pendulum.MONDAY)
 
-    except (IntegrityError, DatabaseError) as e:
-      db.session.rollback()
-      logger.exception(e)
-      flash({'msg':f'Error creating mission'})
-      return redirect(url_for('crew', team_id=team_id))
+  # create a team for the mission
+  team = create_team(current_user)
+  team.save()
 
-    # schedule emails
-    email.schedule_mission_emails(mission)
-    return redirect(url_for('crew', team_id=team_id))
+  goal = Goal(category=category, short_description=goal_name)
+  goal.save()
 
-  return render_template('create_mission.html', create_mission_form=create_mission_form)
+  mission = Mission(
+    duration_in_weeks=1,
+    started_at=monday,
+    team=team,
+  )
+  mission.goals.append(goal)
+  mission.save()
+
+  # schedule emails
+  email.schedule_mission_emails(mission)
+
+  # send to the mission page
+  return redirect(url_for('mission', mission_uuid=mission.uuid))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

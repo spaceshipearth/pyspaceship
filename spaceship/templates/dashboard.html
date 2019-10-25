@@ -71,26 +71,75 @@
     </div>
   {% endif %}
 
+  <div class="missions-section" id="new-mission">
+    <h3>New Mission</h3>
+    <p>Select a goal for your new mission
+
+    <div class="accordion" id="accordionExample">
+      <div class="card" v-for="(cat_info, category) in goals">
+        <div class="card-header" id="heading-{{ category }}">
+          <h2 class="mb-0">
+            [[ cat_info.title ]]
+          </h2>
+        </div>
+
+        <div class="card-body">
+          <p>
+            [[ cat_info.description ]]
+          </p>
+
+          <div class="card-deck">
+            <div class="card" style="max-width: 18rem;" v-for="goal in cat_info.goals">
+              <img :src="goal.icon" class="card-img-top" alt="goal.alt">
+              <div class="card-body">
+                <h5 class="card-title"> [[ goal.name ]] </h5>
+                <p class="card-text">
+                  [[ goal.description ]]
+                </p>
+
+                <p>
+                  Read more at:
+                  <ul>
+                    <li v-for="link in goal.links">
+                      <a :href="link.url">[[ link.title ]]</a>
+                    </li>
+                  </ul>
+                </p>
+
+                <div class="card-footer text-right">
+                  <form method="POST" action="/mission/create" class="form-row">
+                    <input type="hidden" name="category" :value="category" />
+                    <input type="hidden" name="goal" :value="goal.name" />
+                    <input type="hidden" name="csrf_token" :value="csrfToken" />
+
+                    <button type="submit" class="btn btn-primary">Create Mission</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if upcomming_missions|length %}
   <div class="missions-section">
     <h3>Upcoming Mission</h3>
     {% for mission in upcoming_missions %}
       {{ render_mission(mission) }}
-    {% else %}
-      <a href="{{ url_for('create_mission', team_id=team.id) }}" class="btn btn-primary btn-lg" role="button">Plan a mission</a>
     {% endfor %}
   </div>
+  {% endif %}
 
   {% if completed_missions|length %}
-    <div class="missions-section">
-      <h3>Completed Missions</h3>
-      {% for mission in completed_missions %}
-        {{ render_mission(mission) }}
-      {% else %}
-        <div>
-          <p>None yet</p>
-        </div>
-      {% endfor %}
-    </div>
+  <div class="missions-section">
+    <h3>Completed Missions</h3>
+    {% for mission in completed_missions %}
+      {{ render_mission(mission) }}
+    {% endfor %}
+  </div>
   {% endif %}
 </div>
 
@@ -109,5 +158,20 @@ $(".mission-cancel").click((e) => {
     });
   }
 });
+</script>
+
+<script>
+  const goals = {{ goals | tojson }};
+  const missionCreator = new Vue({
+    el: '#new-mission',
+    delimiters: ['[[', ']]'],
+    data: {
+      csrfToken: window.csrfToken,
+      goals,
+    },
+    computed: {
+      goalSelected: function() { return this.goal === null; }
+    },
+  });
 </script>
 {% endblock %}
