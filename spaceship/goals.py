@@ -1,5 +1,4 @@
 
-
 GOALS_BY_CATEGORY = {
   "diet": {
     "icon": None,

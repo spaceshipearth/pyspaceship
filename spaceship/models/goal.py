@@ -1,6 +1,7 @@
 
 import pendulum
 
+from spaceship.goals import GOALS_BY_CATEGORY
 from spaceship.db import db
 from spaceship.models.custom_fields import PendulumDateTimeField
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -27,3 +28,20 @@ class Goal(db.Model):
   @hybrid_property
   def is_deleted(self):
     return self.deleted_at == None
+
+  @classmethod
+  def from_category_goal(cls, category, goal_name):
+    """creates a new goal object from specified category/name in the
+    GOALS_BY_CATEGORY object"""
+    return Goal(category=category, short_description=goal_name)
+
+  @property
+  def category_info(self):
+    """returns info about the category from GOALS_BY_CATEGORY"""
+    return GOALS_BY_CATEGORY[self.category]
+
+  @property
+  def category_goal(self):
+    """returns the goal represented by this object from GOALS_BY_CATEGORY"""
+    cat_goals = self.category_info['goals']
+    return [g for g in cat_goals if g['name'] == self.short_description][0]

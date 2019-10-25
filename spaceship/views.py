@@ -195,7 +195,7 @@ def create_mission():
   team = create_team(current_user)
   team.save()
 
-  goal = Goal(category=category, short_description=goal_name)
+  goal = Goal.from_category_goal(category, goal_name)
   goal.save()
 
   mission = Mission(
