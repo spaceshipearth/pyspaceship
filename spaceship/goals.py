@@ -155,5 +155,6 @@ GOALS_BY_CATEGORY = {
 
 # let goals know their category
 for category, cinfo in GOALS_BY_CATEGORY.items():
+  category["name"] = category
   for goal in cinfo['goals']:
     goal['category'] = category
