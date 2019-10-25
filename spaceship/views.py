@@ -100,7 +100,7 @@ def dashboard():
     missions.extend(team.missions)
   return render_template(
     'dashboard.html',
-    goals=GOALS_BY_CATEGORY,
+    categories=GOALS_BY_CATEGORY,
     teams=current_user.teams,
     completed_missions=[mission for mission in missions if mission.is_over],
     running_missions=[mission for mission in missions if mission.is_running],

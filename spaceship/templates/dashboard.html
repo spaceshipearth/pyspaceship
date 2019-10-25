@@ -76,8 +76,8 @@
     <p>Select a goal for your new mission
 
     <div class="accordion" id="accordionExample">
-      <div class="card" v-for="(cat_info, category) in goals">
-        <div class="card-header" id="heading-{{ category }}">
+      <div class="card" v-for="cat_info in sortedCategories">
+        <div class="card-header">
           <h2 class="mb-0">
             [[ cat_info.title ]]
           </h2>
@@ -105,16 +105,15 @@
                     </li>
                   </ul>
                 </p>
+              </div>
+              <div class="card-footer text-center">
+                <form method="POST" action="/mission/create">
+                  <input type="hidden" name="category" :value="cat_info.name" />
+                  <input type="hidden" name="goal" :value="goal.name" />
+                  <input type="hidden" name="csrf_token" :value="csrfToken" />
 
-                <div class="card-footer text-right">
-                  <form method="POST" action="/mission/create" class="form-row">
-                    <input type="hidden" name="category" :value="category" />
-                    <input type="hidden" name="goal" :value="goal.name" />
-                    <input type="hidden" name="csrf_token" :value="csrfToken" />
-
-                    <button type="submit" class="btn btn-primary">Create Mission</button>
-                  </form>
-                </div>
+                  <button type="submit" class="btn btn-primary">Create Mission</button>
+                </form>
               </div>
             </div>
           </div>
@@ -161,16 +160,17 @@ $(".mission-cancel").click((e) => {
 </script>
 
 <script>
-  const goals = {{ goals | tojson }};
+  const categories = {{ categories | tojson }};
   const missionCreator = new Vue({
     el: '#new-mission',
     delimiters: ['[[', ']]'],
     data: {
       csrfToken: window.csrfToken,
-      goals,
+      categories,
     },
     computed: {
-      goalSelected: function() { return this.goal === null; }
+      goalSelected: function() { return this.goal === null; },
+      sortedCategories: function() { return Object.values(this.categories).sort((a,b) => a.rank - b.rank); },
     },
   });
 </script>
