@@ -1,4 +1,5 @@
 
+import serpy
 
 GOALS_BY_CATEGORY = {
   "diet": {
@@ -159,6 +160,14 @@ GOALS_BY_CATEGORY = {
       ]
     }
 }
+
+class GoalSerializer(serpy.DictSerializer):
+  name = serpy.StrField()
+  icon = serpy.StrField()
+  alt = serpy.StrField()
+  short_description = serpy.StrField()
+  description = serpy.StrField()
+  category = serpy.StrField()
 
 # let goals know their category
 for category_name, category_info in GOALS_BY_CATEGORY.items():

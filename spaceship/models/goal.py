@@ -1,7 +1,9 @@
 
 import pendulum
+import serpy
 
 from spaceship.db import db
+from spaceship.goals import GOALS_BY_CATEGORY, GoalSerializer
 from spaceship.models.custom_fields import PendulumDateTimeField
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -15,6 +17,16 @@ class Goal(db.Model):
 
   visible_after = db.Column(PendulumDateTimeField(), nullable=True)
   hidden_after = db.Column(PendulumDateTimeField(), nullable=True)
+
+  class Serializer(db.Model.Serializer):
+    short_description = serpy.StrField()
+    category = serpy.StrField()
+    actual_goal = GoalSerializer()
+
+  @property
+  def actual_goal(self):
+    cat_goals = GOALS_BY_CATEGORY[self.category]
+    return [g for g in cat_goals['goals'] if g['name'] == self.short_description][0]
 
   @hybrid_property
   def is_visible(self):
