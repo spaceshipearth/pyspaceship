@@ -53,35 +53,26 @@ def do_push(tag):
   print(f"Pushing docker tag {tag}...")
   run('docker push %s' % tag)
 
-def do_deploy(tag, ns):
+def do_deploy(tag, ns: K8SNamespace):
   """actually perform a deploy of the manifests"""
   replicas = 1
   if ns.is_prod:
     replicas = 3
 
-  environment = load_manifest('container_environment', {'namespace':ns})
+  context = {
+    'namespace': ns.namespace,
+    'image': tag,
+    'replicas': replicas,
+  }
+  context['container_environment'] = load_manifest('container_environment', context)
 
-  web = load_manifest(
-    'web_deployment',
-    {
-      'image': tag,
-      'replicas': replicas,
-      'container_environment': environment,
-    }
-  )
+  web = load_manifest('web_deployment', context)
   ns.apply(web)
 
-  worker = load_manifest(
-    'worker_deployment',
-    {
-      'image': tag,
-      'replicas': replicas,
-      'container_environment': environment,
-    }
-  )
+  worker = load_manifest('worker_deployment', context)
   ns.apply(worker)
 
-  service = load_manifest('service')
+  service = load_manifest('service', context)
   ns.apply(service)
 
 @task(

@@ -26,6 +26,9 @@ spec:
           httpGet:
             path: /health
             port: 9876
+            httpHeaders:
+              - name: Host
+                value: "${namespace}.spaceshipearth.org"
         volumeMounts:
           - name: google-app-creds
             mountPath: /srv/pyspaceship/google-app-creds
