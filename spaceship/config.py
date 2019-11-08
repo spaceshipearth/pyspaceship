@@ -41,5 +41,5 @@ class Config:
   GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', 'c1PSnZoSuVTOtta-g-OH_3ZL')
 
   USE_CELERY_WORKERS = bool(int(os.environ.get('USE_CELERY_WORKERS', '0')))
-  SERVER_NAME =  os.environ.get('SERVER_NAME', "localhost.localdomain:9876")
+  SERVER_NAME =  os.environ.get('SERVER_NAME', "localhost:9876")
   PREFERRED_URL_SCHEME = 'https' if IN_PRODUCTION else 'http'
