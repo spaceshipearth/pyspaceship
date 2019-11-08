@@ -110,6 +110,8 @@
                     </li>
                   </ul>
                 </p>
+              </div>
+              <div class="card-footer text-center">
 
 
                 <form method="POST" action="/mission/create" class="form-row">
@@ -165,16 +167,17 @@ $(".mission-cancel").click((e) => {
 </script>
 
 <script>
-  const goals = {{ goals | tojson }};
+  const categories = {{ categories | tojson }};
   const missionCreator = new Vue({
     el: '#new-mission',
     delimiters: ['[[', ']]'],
     data: {
       csrfToken: window.csrfToken,
-      goals,
+      categories,
     },
     computed: {
-      goalSelected: function() { return this.goal === null; }
+      goalSelected: function() { return this.goal === null; },
+      sortedCategories: function() { return Object.values(this.categories).sort((a,b) => a.rank - b.rank); },
     },
   });
 </script>
