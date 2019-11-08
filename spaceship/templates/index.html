@@ -3,11 +3,15 @@
 {% block title %}Home - {{ super() }}{% endblock %}
 
 {% block content %}
-{% include 'wip-overlay.html' %}
-{% include 'banner.html' %}
+
+
+<div class="row" style="margin-top:100px; margin-bottom:100px;">
+  <img src="/static/earth.jpg" class="mx-auto d-block" style="width:200px"/>
+</div>
+
 
 <div class="row justify-content-center">
-  <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg" role="button">Sign up</a>
+  <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg" role="button" style="background-color:white; color: #1E3F66; border-color: white">Sign up</a>
 </div>
 
 {% endblock %}

@@ -161,7 +161,7 @@ GOALS_BY_CATEGORY = {
 }
 
 # let goals know their category
-for category, cinfo in GOALS_BY_CATEGORY.items():
-  category["name"] = category
-  for goal in cinfo['goals']:
-    goal['category'] = category
+for category_name, category_info in GOALS_BY_CATEGORY.items():
+  category_info["name"] = category_name
+  for goal in category_info["goals"]:
+    goal['category'] = category_name

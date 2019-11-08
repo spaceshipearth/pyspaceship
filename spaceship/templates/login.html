@@ -3,18 +3,22 @@
 {% block title %}Log In - {{ super() }}{% endblock %}
 
 {% block content %}
-<h3 class="text-center">Returning users...</h3>
+<h3 class="text-center">Welcome back!</h3>
 
-{% include 'social-buttons.html' %}
 
 <div class="row justify-content-center">
-<section class="help col-md-5">
-<h5 class="text-center">Sign in with site account</h5>
-{% set form = login %}
-<form method="POST" class="needs-validation" novalidate>
-{% include 'form_fields.html' %}
-</form>
-</section>
+
+    <section class="col-md-5">
+    {% include 'social-buttons.html' %}
+
+    <div class="text-center" style="padding:10px">or </div>
+
+    {% set form = login %}
+    <form method="POST" class="needs-validation" novalidate>
+      {% include 'form_fields.html' %}
+    </form>
+  </section>
+
 </div>
 
 {% endblock %}

@@ -5,19 +5,23 @@
 {% block content %}
 <h3 class="text-center">Spaceship Earth needs you to become a captain!</h3>
 
-{% include 'social-buttons.html' %}
 
 <div class="row justify-content-center">
-<section class="help col-md-5">
-<h5 class="text-center">...or, register manually</h5>
-<form method="POST" class="needs-validation" novalidate>
-{% set form = register %}
-{% include 'form_fields.html' %}
-</form>
-</section>
+
+    <section class="col-md-5">
+    {% include 'social-buttons.html' %}
+
+    <div class="text-center" style="padding:10px">or </div>
+
+    {% set form = register %}
+    <form method="POST" class="needs-validation" novalidate>
+      {% include 'form_fields.html' %}
+    </form>
+  </section>
+
 </div>
 
-<section>
+<!--section>
 <p>Captaining is the biggest contribution you can make to this project.
 Maximizing the environmental sustainability of your personal choices is
 fantastic, but one human can only do so much. By signing up to be a captain,
@@ -40,6 +44,6 @@ climate change together.
 <p>We need to know your name and email so we can tell your friends who you are
 when you invite them to join your crew. (We promise not to spam you.)
 
-</section>
+</section-->
 
 {% endblock %}

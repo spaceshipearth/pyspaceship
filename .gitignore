@@ -111,3 +111,6 @@ spaceship/static/jquery-3.2.1.js
 # auto-generated asset bundles and manifest
 spaceship/static/.webassets-manifest
 spaceship/static/gen
+
+# god knows
+.DS_Store
