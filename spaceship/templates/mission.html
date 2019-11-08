@@ -5,62 +5,92 @@
 {% block content %}
 
 {{ super() }}
+    {%if not current_user.name or not is_team_member %}
+    <div class="card text-white bg-primary mb-3">
+      <div class="card-body">
 
-<div class="row">
+        <p class="card-text">
+          {{team.captain.name}} has invited you to their mission.
+        </p>
 
-<h2>Mission Page</h2>
-
-<section>
-  <h3>Mission Brief</h3>
-  <p>
-    This is an important mission.
-    There are many reasons for this.
-    Without this mission, things would not go well.
-  </p>
-</section>
-
-<section>
-  <h3>Mission Control</h3>
-  <p>Mission starts very soon<p>
-  <button class="btn btn-primary">Cancel Mission</button>
-  <button class="btn btn-secondary">Message Mission Team</button>
-</section>
-
-<section>
-  <div style='border: 1px solid #9bc1bc; padding: 1rem'>
-    <h4 style="margin-top: 0px;">Crew</h4>
-    <h6>Captain</h6>
-    <div>
-        <a href="{{ url_for('profile', user_id=team.captain.id) }}">
-            <img src="{{ gravatar(team.captain.email, size=32) }}"  height="32">
-        </a>
-        <span style="font-size:1.25rem; vertical-align:middle;"> {{ team.captain.name }} </span>
+        <button class="btn btn-primary">Join mission</button>
+      </div>
     </div>
-
     <br/>
-    {% if crew|length %}
-      <h6>Crew Members</h6>
+    {%endif%}
 
-      {% for user in crew: %}
-            <a href="{{ url_for('profile', user_id=user.id) }}">
-                <img src="{{ gravatar(user.email, size=32) }}"  height="32">
-            </a>
-      {% endfor %}
-    {% endif %}
-    <div style="padding-top:10px">
-      <button type="button" class="btn btn-primary" onClick="emailSender.setState('invite');">
-          Invite Crew Members
-      </button>
-    </div>
-    <div style="padding-top:10px">
-      <p>Invite Link: <span style="color: green" id="inviteCopied"></span></p> 
-      <input type="text" value="{{ invite_link }}" id="inviteLink" />
-      <button type="button" class="btn btn-info" onClick="copyText('inviteLink', 'inviteCopied');">
-        Copy
-      </button>
-    </div>
+        <h1 class="card-title">Mission: {{ goal.name }} </h1>
+
+<div>
+  <h3>
+    Overview
+  </h3>
+
+  <!--img src='{{goal.icon}}' style="height:200px;" class="card-img-top" alt="..."-->
+
+
+    <p>
+      {{goal.description }}
+    </p>
+
+    <p>
+      Read more at:
+      <ul>
+        {% for link in goal.links %}
+          <li>
+            <a href="{{link.url}}">{{link.title}}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </p>
+</div>
+
+<div>
+  <h3>
+    The plan
+  </h3>
+    <p class="card-text">
+      Our mission starts in <b>{{mission.days_until_start}} days</b>, on {{mission.start_time_str}} and will be one week long. </p>
+    </p>
+    <p class="card-text">
+      Our goal is to {{goal.short_description}} for the week. Every day there will be a reminder sent to the team and you will be able to share photos and updates with your team throughout the day!
+    </p>
+    <p class="card-text">
+      At the end of the week we'll share a wrap-up with some information on the impact of the mission.
+    </p>
+    {% if team.captain == current_user %}
+      <button class="btn btn-link">Reschedule </button>
+      <button class="btn btn-link">Cancel </button>
+   {% endif %}
+</div>
+<br/>
+<div class="card">
+  <div class="card-body">
+    <h3 class="card-title"> Team </h5>
   </div>
-</section>
+
+  <ul class="list-group list-group-flush">
+    {% for user in team.members: %}
+      <li class="list-group-item">
+        <a href="{{ url_for('profile', user_id=user.id) }}">
+        <img src="{{ gravatar(user.email, size=32) }}" height="32"
+        style="border-radius:32px; border: 1px solid #eee; margin-right:10px"> </a>
+        {{user.name}} {{'(captain)' if user == team.captain else ''}}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div class="card-body">
+    <p class="card-text">
+    Invite link: <input type="text" value="{{ invite_link }}" id="inviteLink" style="width:350px" />
+    <button type="button" class="btn btn-info" onClick="copyText('inviteLink', 'inviteCopied');">
+      Copy
+    </button>
+    </p>
+    <button class="btn btn-secondary">Message The Team</button>
+  </div>
+  <br/>
+</div>
 
 {% endblock %}
 
