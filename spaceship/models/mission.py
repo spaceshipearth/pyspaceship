@@ -1,4 +1,5 @@
 import pendulum
+import serpy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
 import uuid
@@ -26,6 +27,14 @@ class Mission(db.Model):
 
   created_at = db.Column(PendulumDateTimeField(), default=lambda: pendulum.now('UTC'))
   deleted_at = db.Column(PendulumDateTimeField(), nullable=True)
+
+  class Serializer(db.Model.Serializer):
+    uuid = serpy.StrField()
+    title = serpy.StrField()
+    short_description = serpy.StrField()
+    duration_in_weeks = serpy.IntField()
+
+    goals = MissionGoal.Serializer(many=True)
 
   @property
   def is_deleted(self):

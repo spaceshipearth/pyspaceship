@@ -1,4 +1,5 @@
 
+import serpy
 from sqlalchemy.exc import DatabaseError
 
 from flask_sqlalchemy.model import Model
@@ -6,6 +7,12 @@ from flask_sqlalchemy.model import Model
 from spaceship.db import db
 
 class Base(Model):
+  class Serializer(serpy.Serializer):
+    id = serpy.IntField()
+
+  def serialize(self):
+    return self.Serializer(self).data
+
   @property
   def session(self):
     return db.session
